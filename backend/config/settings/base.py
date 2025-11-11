@@ -57,9 +57,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # Custom middleware
-    "core.middleware.audit_log.AuditLogMiddleware",
-    "core.middleware.rate_limit.RateLimitMiddleware",
+    # Custom middleware (order matters!)
+    "core.middleware.request_id.RequestIDMiddleware",  # First - adds request ID
+    "core.middleware.fingerprint.FingerprintMiddleware",  # Second - extracts fingerprint
+    "core.middleware.audit_log.AuditLogMiddleware",  # Third - logs requests
+    "core.middleware.rate_limit.RateLimitMiddleware",  # Last - rate limiting
 ]
 
 ROOT_URLCONF = "config.urls"
