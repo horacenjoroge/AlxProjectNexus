@@ -100,8 +100,9 @@ jobs:
           name: codecov-umbrella
 
       - name: Check code style with Black
+        working-directory: .
         run: |
-          black --check --config pyproject.toml backend/
+          black --check backend/
 
       - name: Check imports with isort
         run: |
