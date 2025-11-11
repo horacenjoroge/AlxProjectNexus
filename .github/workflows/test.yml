@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Disable email notifications
+notifications:
+  email: false
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -107,9 +111,12 @@ jobs:
           echo "Black version: $(black --version)"
           echo "Python version: $(python --version)"
           echo "Working directory: $(pwd)"
-          echo "Files to check:"
-          ls -la backend/apps/analytics/apps.py || true
-          black --check backend/
+          echo "Checking pyproject.toml exists:"
+          ls -la pyproject.toml || true
+          echo "Sample file content (first 5 lines):"
+          head -5 backend/apps/analytics/apps.py || true
+          echo "Running black check..."
+          black --check backend/ || (echo "Black check failed, showing diff:" && black --diff backend/ | head -100 && exit 1)
 
       - name: Check imports with isort
         run: |
