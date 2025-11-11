@@ -102,6 +102,9 @@ jobs:
       - name: Check code style with Black
         working-directory: .
         run: |
+          echo "Black version: $(black --version)"
+          echo "Python version: $(python --version)"
+          echo "Working directory: $(pwd)"
           black --check backend/
 
       - name: Check imports with isort
