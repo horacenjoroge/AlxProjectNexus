@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [main, develop]
 
-# Disable email notifications
-notifications:
-  email: false
-
 jobs:
   test:
     runs-on: ubuntu-latest
