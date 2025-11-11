@@ -9,6 +9,15 @@ from apps.polls.models import Poll, Choice
 pytest_plugins = ["pytest_django"]
 
 
+@pytest.fixture(scope="session", autouse=True)
+def django_db_setup_ensure_migrations(django_db_setup, django_db_blocker):
+    """Ensure all migrations are applied, including custom apps."""
+    with django_db_blocker.unblock():
+        from django.core.management import call_command
+        # Run migrations explicitly to ensure all apps' migrations are applied
+        call_command("migrate", verbosity=1, interactive=False)
+
+
 @pytest.fixture
 def user(db):
     """Create a test user."""
