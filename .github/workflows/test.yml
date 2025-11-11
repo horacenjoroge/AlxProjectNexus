@@ -116,7 +116,9 @@ jobs:
 
       - name: Check imports with isort
         run: |
-          isort --check-only backend/
+          python -m pip install --no-cache-dir isort==5.13.2
+          echo "isort version: $(isort --version)"
+          isort --check-only --settings-path pyproject.toml backend/
 
       - name: Lint with flake8
         run: |
