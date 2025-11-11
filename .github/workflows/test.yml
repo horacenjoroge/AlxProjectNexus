@@ -76,11 +76,6 @@ jobs:
         run: |
           mkdir -p backend/static
 
-      - name: Create migrations (if needed)
-        working-directory: backend
-        run: |
-          python manage.py makemigrations --settings=config.settings.test --noinput || true
-
       - name: Run tests
         working-directory: backend
         env:
