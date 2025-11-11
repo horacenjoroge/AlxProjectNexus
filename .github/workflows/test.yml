@@ -116,9 +116,11 @@ jobs:
 
       - name: Check imports with isort
         run: |
+          python -m pip uninstall -y isort || true
           python -m pip install --no-cache-dir isort==5.13.2
           echo "isort version: $(isort --version)"
-          isort --check-only --settings-path pyproject.toml backend/
+          echo "Running isort check..."
+          isort --check-only backend/ || (echo "isort check failed, showing diff:" && isort --diff backend/ | head -200 && exit 1)
 
       - name: Lint with flake8
         run: |
