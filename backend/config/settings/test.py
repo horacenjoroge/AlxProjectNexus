@@ -1,18 +1,25 @@
 """
 Test settings for Provote project.
 """
-import tempfile
+import os
 from pathlib import Path
 from .base import *  # noqa: F403, F401
 
-# Use temporary file-based database for tests
-# This works better with Django's initialization and pytest-django
+# Use file-based database for tests in a reliable location
 # pytest-django will automatically create tables and run migrations
-TEST_DB = Path(tempfile.gettempdir()) / "provote_test.db"
+# Use a database file in the project directory for CI/CD compatibility
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+TEST_DB = BASE_DIR / "test_db.sqlite3"
+# Ensure parent directory exists
+TEST_DB.parent.mkdir(parents=True, exist_ok=True)
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": str(TEST_DB),
+        "OPTIONS": {
+            "timeout": 20,
+        },
     }
 }
 
