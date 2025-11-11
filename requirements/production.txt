@@ -1,0 +1,11 @@
+-r base.txt
+
+# Production WSGI Server
+gunicorn==21.2.0
+
+# Production Static Files
+whitenoise==6.6.0
+
+# Monitoring (Optional)
+# sentry-sdk==1.38.0
+

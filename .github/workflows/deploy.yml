@@ -1,0 +1,52 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/production.txt
+
+      - name: Run production checks
+        working-directory: backend
+        run: |
+          python manage.py check --deploy --settings=config.settings.production
+
+      - name: Build Docker image
+        working-directory: docker
+        run: |
+          docker build -f Dockerfile -t provote:latest ..
+
+      # Add deployment steps here based on your infrastructure
+      # Examples:
+      # - Deploy to Docker Hub
+      # - Deploy to AWS ECS
+      # - Deploy to Google Cloud Run
+      # - Deploy to Heroku
+      # - Deploy to DigitalOcean App Platform
+
+      - name: Deployment placeholder
+        run: |
+          echo "Add your deployment steps here"
+          echo "Examples:"
+          echo "- Push to container registry"
+          echo "- Update Kubernetes deployment"
+          echo "- Deploy to cloud platform"
+
