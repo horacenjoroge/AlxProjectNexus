@@ -52,6 +52,27 @@ def check_fingerprint_suspicious(
     if not getattr(settings, "FINGERPRINT_CHECK_ENABLED", True):
         return {"suspicious": False, "reasons": [], "risk_score": 0, "block_vote": False}
 
+    # Tier 0: Check if fingerprint is permanently blocked (highest priority)
+    try:
+        from apps.analytics.models import FingerprintBlock
+
+        blocked_fingerprint = FingerprintBlock.objects.filter(
+            fingerprint=fingerprint, is_active=True
+        ).first()
+
+        if blocked_fingerprint:
+            return {
+                "suspicious": True,
+                "reasons": [
+                    f"Fingerprint is permanently blocked: {blocked_fingerprint.reason}"
+                ],
+                "risk_score": 100,
+                "block_vote": True,
+            }
+    except Exception as e:
+        logger.error(f"Error checking blocked fingerprints: {e}")
+        # Continue with validation if check fails
+
     reasons = []
     risk_score = 0
     block_vote = False
@@ -79,7 +100,7 @@ def check_fingerprint_suspicious(
                     f"Same fingerprint used by {user_count} different users"
                 )
                 risk_score += 40
-                block_vote = True  # Critical: block vote
+                block_vote = True  # Critical: block vote and mark for permanent blocking
             elif user_count > 1:
                 # Current user is in set, but there are other users - suspicious but don't block
                 reasons.append(
@@ -168,7 +189,7 @@ def check_fingerprint_suspicious(
                     risk_score += 40
                     # Only block if current user is different from existing users
                     if user_id not in distinct_users:
-                        block_vote = True  # Critical: block vote
+                        block_vote = True  # Critical: block vote and mark for permanent blocking
 
             # Check for different IPs
             if ip_address and len(distinct_ips) >= getattr(
@@ -219,12 +240,27 @@ def check_fingerprint_suspicious(
         # On error, allow vote but log warning
         return {"suspicious": False, "reasons": [], "risk_score": 0, "block_vote": False}
 
-    return {
+    result = {
         "suspicious": len(reasons) > 0,
         "reasons": reasons,
         "risk_score": min(risk_score, 100),
         "block_vote": block_vote,
     }
+
+    # If vote is blocked due to critical suspicious pattern, mark fingerprint for permanent blocking
+    if block_vote and "different users" in " ".join(reasons).lower():
+        try:
+            block_fingerprint_permanently(
+                fingerprint=fingerprint,
+                reason=", ".join(reasons),
+                user_id=user_id,
+                poll_id=poll_id,
+            )
+        except Exception as e:
+            logger.error(f"Error blocking fingerprint permanently: {e}")
+            # Don't fail validation if blocking fails
+
+    return result
 
 
 def update_fingerprint_cache(
@@ -295,4 +331,62 @@ def update_fingerprint_cache(
     except Exception as e:
         logger.error(f"Error updating fingerprint cache: {e}")
         # Don't fail vote creation if cache update fails
+
+
+def block_fingerprint_permanently(
+    fingerprint: str,
+    reason: str,
+    user_id: int,
+    poll_id: int = None,
+):
+    """
+    Permanently block a fingerprint due to suspicious activity.
+
+    Args:
+        fingerprint: Browser fingerprint hash to block
+        reason: Reason for blocking
+        user_id: User ID who triggered the block
+        poll_id: Poll ID (optional)
+    """
+    if not fingerprint:
+        return
+
+    try:
+        from apps.analytics.models import FingerprintBlock
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        # Check if already blocked
+        existing_block = FingerprintBlock.objects.filter(
+            fingerprint=fingerprint, is_active=True
+        ).first()
+
+        if existing_block:
+            # Already blocked, no need to create another
+            return
+
+        # Get statistics about this fingerprint
+        user = User.objects.filter(id=user_id).first()
+        fingerprint_votes = Vote.objects.filter(fingerprint=fingerprint)
+        distinct_users = fingerprint_votes.values_list("user_id", flat=True).distinct()
+        total_votes = fingerprint_votes.count()
+        first_user = fingerprint_votes.order_by("created_at").first()
+
+        # Create permanent block
+        FingerprintBlock.objects.create(
+            fingerprint=fingerprint,
+            reason=reason,
+            blocked_by=None,  # Auto-blocked by system
+            first_seen_user=first_user.user if first_user else user,
+            total_users=len(distinct_users),
+            total_votes=total_votes,
+        )
+
+        logger.warning(
+            f"Fingerprint {fingerprint[:16]}... permanently blocked. Reason: {reason}"
+        )
+
+    except Exception as e:
+        logger.error(f"Error creating fingerprint block: {e}")
+        # Don't fail if blocking fails
 

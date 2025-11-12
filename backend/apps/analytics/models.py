@@ -62,3 +62,85 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.method} {self.path} - {self.status_code} at {self.created_at}"
+
+
+class FingerprintBlock(models.Model):
+    """
+    Permanently blocked fingerprints due to suspicious activity.
+    Once a fingerprint is blocked, it cannot be used for voting until manually unblocked.
+    """
+
+    fingerprint = models.CharField(
+        max_length=128,
+        unique=True,
+        db_index=True,
+        help_text="Blocked browser/device fingerprint hash",
+    )
+    reason = models.TextField(help_text="Reason for blocking (e.g., 'Used by multiple users')")
+    blocked_at = models.DateTimeField(auto_now_add=True, help_text="When the fingerprint was blocked")
+    blocked_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="blocked_fingerprints",
+        help_text="User/admin who blocked this fingerprint (null if auto-blocked)",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        help_text="Whether this block is currently active (can be unblocked by admin)",
+    )
+    unblocked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the fingerprint was unblocked (if applicable)",
+    )
+    unblocked_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="unblocked_fingerprints",
+        help_text="User/admin who unblocked this fingerprint",
+    )
+    # Metadata
+    first_seen_user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="first_seen_fingerprints",
+        help_text="First user who used this fingerprint",
+    )
+    total_users = models.IntegerField(
+        default=0,
+        help_text="Total number of different users who used this fingerprint before blocking",
+    )
+    total_votes = models.IntegerField(
+        default=0,
+        help_text="Total number of votes from this fingerprint before blocking",
+    )
+
+    class Meta:
+        ordering = ["-blocked_at"]
+        indexes = [
+            models.Index(fields=["fingerprint", "is_active"]),
+            models.Index(fields=["is_active", "blocked_at"]),
+        ]
+        verbose_name = "Blocked Fingerprint"
+        verbose_name_plural = "Blocked Fingerprints"
+
+    def __str__(self):
+        status = "ACTIVE" if self.is_active else "INACTIVE"
+        return f"Blocked fingerprint {self.fingerprint[:16]}... ({status})"
+
+    def unblock(self, user=None):
+        """Unblock this fingerprint."""
+        self.is_active = False
+        from django.utils import timezone
+
+        self.unblocked_at = timezone.now()
+        if user:
+            self.unblocked_by = user
+        self.save()

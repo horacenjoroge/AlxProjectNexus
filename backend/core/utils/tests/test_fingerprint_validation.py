@@ -291,3 +291,138 @@ class TestFingerprintValidationIntegration:
         assert cached_data is not None
         assert cached_data["count"] >= 1
 
+
+@pytest.mark.django_db
+class TestPermanentFingerprintBlocking:
+    """Test permanent fingerprint blocking functionality."""
+
+    def test_permanently_blocked_fingerprint_is_rejected(self, user):
+        """Test that permanently blocked fingerprints are rejected immediately."""
+        from apps.analytics.models import FingerprintBlock
+        from apps.polls.models import Poll, PollOption
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        # Create permanent block
+        FingerprintBlock.objects.create(
+            fingerprint="blocked_fp_123",
+            reason="Used by multiple users",
+            first_seen_user=user,
+            total_users=2,
+            total_votes=5,
+        )
+
+        # Try to check fingerprint
+        result = check_fingerprint_suspicious(
+            "blocked_fp_123", poll.id, user.id, "192.168.1.1"
+        )
+
+        assert result["suspicious"] is True
+        assert result["block_vote"] is True
+        assert result["risk_score"] == 100
+        assert "permanently blocked" in " ".join(result["reasons"]).lower()
+
+    def test_fingerprint_auto_blocked_on_suspicious_activity(self, user):
+        """Test that fingerprint is automatically blocked when suspicious pattern detected."""
+        from apps.analytics.models import FingerprintBlock
+        from apps.polls.models import Poll, PollOption
+        from apps.votes.models import Vote
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        user2 = type(user).objects.create_user(username="user2", password="pass")
+
+        # Create vote with fingerprint from user1
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=option,
+            fingerprint="suspicious_fp",
+            ip_address="192.168.1.1",
+            voter_token="token1",
+            idempotency_key="key1",
+        )
+
+        # Update cache to mark as suspicious
+        update_fingerprint_cache("suspicious_fp", poll.id, user.id, "192.168.1.1")
+
+        # Try to vote with different user (should trigger permanent block)
+        factory = RequestFactory()
+        request = factory.post("/api/votes/")
+        request.fingerprint = "suspicious_fp"
+        request.META["REMOTE_ADDR"] = "192.168.1.2"
+
+        # Check fingerprint (should block and create permanent block)
+        result = check_fingerprint_suspicious(
+            "suspicious_fp", poll.id, user2.id, "192.168.1.2"
+        )
+
+        assert result["block_vote"] is True
+
+        # Verify permanent block was created
+        block = FingerprintBlock.objects.filter(
+            fingerprint="suspicious_fp", is_active=True
+        ).first()
+        assert block is not None
+        assert block.reason
+        assert block.total_users >= 1
+
+    def test_blocked_fingerprint_persists_across_time_windows(self, user):
+        """Test that blocked fingerprints remain blocked even after cache expires."""
+        from apps.analytics.models import FingerprintBlock
+        from apps.polls.models import Poll, PollOption
+        from datetime import timedelta
+        from django.utils import timezone
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        # Create permanent block
+        block = FingerprintBlock.objects.create(
+            fingerprint="persistent_blocked_fp",
+            reason="Used by multiple users",
+            first_seen_user=user,
+            total_users=2,
+            total_votes=3,
+            blocked_at=timezone.now() - timedelta(days=2),  # Blocked 2 days ago
+        )
+
+        # Clear cache (simulating expiration)
+        cache.clear()
+
+        # Try to check fingerprint (should still be blocked)
+        result = check_fingerprint_suspicious(
+            "persistent_blocked_fp", poll.id, user.id, "192.168.1.1"
+        )
+
+        assert result["block_vote"] is True
+        assert "permanently blocked" in " ".join(result["reasons"]).lower()
+
+    def test_unblocked_fingerprint_can_be_used_again(self, user):
+        """Test that unblocked fingerprints can be used again."""
+        from apps.analytics.models import FingerprintBlock
+        from apps.polls.models import Poll, PollOption
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        # Create and then unblock fingerprint
+        block = FingerprintBlock.objects.create(
+            fingerprint="unblocked_fp",
+            reason="Test block",
+            first_seen_user=user,
+            total_users=1,
+            total_votes=1,
+        )
+        block.unblock()
+
+        # Try to check fingerprint (should not be blocked)
+        result = check_fingerprint_suspicious(
+            "unblocked_fp", poll.id, user.id, "192.168.1.1"
+        )
+
+        # Should not be blocked (is_active=False)
+        assert result["block_vote"] is False or not result.get("suspicious", False)
+
