@@ -18,7 +18,9 @@ from core.utils.fingerprint_validation import (
 )
 from core.utils.idempotency import (
     check_idempotency,
+    extract_ip_address,
     generate_idempotency_key,
+    generate_voter_token,
     store_idempotency_result,
 )
 from django.contrib.auth.models import User
@@ -103,15 +105,19 @@ def create_vote(
     user_agent = ""
 
     if request:
-        # Get IP address
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip_address = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip_address = request.META.get("REMOTE_ADDR")
+        # Extract IP address using utility function
+        ip_address = extract_ip_address(request)
 
         # Get user agent
         user_agent = request.META.get("HTTP_USER_AGENT", "")
+
+    # Generate voter token
+    voter_token = generate_voter_token(
+        user_id=user.id if user else None,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        fingerprint=fingerprint,
+    )
 
     # Fingerprint validation (Tier 1 & 2)
     validation_result = None
@@ -132,7 +138,7 @@ def create_vote(
                     user=user,
                     poll=poll,
                     option=choice,
-                    voter_token="",  # Will be set if needed
+                    voter_token=voter_token,
                     idempotency_key=idempotency_key,
                     ip_address=ip_address,
                     user_agent=user_agent,
@@ -173,7 +179,7 @@ def create_vote(
             option=choice,
             poll=poll,
             idempotency_key=idempotency_key,
-            voter_token="",  # Can be set if needed for anonymous voting
+            voter_token=voter_token,
             ip_address=ip_address,
             user_agent=user_agent,
             fingerprint=fingerprint,
@@ -202,7 +208,7 @@ def create_vote(
             user=user,
             poll=poll,
             option=choice,
-            voter_token="",
+            voter_token=voter_token,
             idempotency_key=idempotency_key,
             ip_address=ip_address,
             user_agent=user_agent,
