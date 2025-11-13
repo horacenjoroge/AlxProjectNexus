@@ -308,3 +308,75 @@ class TestMiddlewareOrder:
         assert log.request_id == request.request_id
         assert log.user == user
 
+    def test_rate_limit_with_forwarded_for_header(self):
+        """Test rate limiting with X-Forwarded-For header."""
+        middleware = RateLimitMiddleware(lambda req: JsonResponse({"ok": True}))
+        factory = RequestFactory()
+
+        request = factory.get(
+            "/api/test/",
+            HTTP_X_FORWARDED_FOR="192.168.1.100, 10.0.0.1",
+        )
+
+        cache.clear()
+
+        # Make requests up to limit
+        for i in range(RateLimitMiddleware.RATE_LIMIT_PER_IP):
+            response = middleware(request)
+            assert response.status_code == 200
+
+        # Next request should be blocked
+        response = middleware(request)
+        assert response.status_code == 429
+
+    def test_audit_log_includes_response_time(self):
+        """Test that audit log includes response time."""
+        import time
+        from apps.analytics.models import AuditLog
+
+        def slow_view(request):
+            time.sleep(0.1)  # Simulate slow response
+            return JsonResponse({"ok": True})
+
+        middleware = AuditLogMiddleware(slow_view)
+        factory = RequestFactory()
+
+        request = factory.get("/api/test/")
+        request.META["REMOTE_ADDR"] = "192.168.1.1"
+
+        AuditLog.objects.all().delete()
+
+        middleware(request)
+
+        log = AuditLog.objects.first()
+        assert log.response_time > 0
+        assert log.response_time >= 0.1  # Should be at least the sleep time
+
+    def test_fingerprint_with_missing_headers(self):
+        """Test fingerprint extraction with missing headers."""
+        middleware = FingerprintMiddleware(lambda req: JsonResponse({"ok": True}))
+        factory = RequestFactory()
+
+        # Request with no headers
+        request = factory.get("/api/test/")
+
+        middleware(request)
+
+        # Should still generate fingerprint (even if empty)
+        assert hasattr(request, "fingerprint")
+        assert isinstance(request.fingerprint, str)
+
+    def test_request_id_uniqueness(self):
+        """Test that request IDs are unique when generated."""
+        middleware = RequestIDMiddleware(lambda req: JsonResponse({"ok": True}))
+        factory = RequestFactory()
+
+        request_ids = set()
+        for _ in range(100):
+            request = factory.get("/api/test/")
+            middleware(request)
+            request_ids.add(request.request_id)
+
+        # All request IDs should be unique
+        assert len(request_ids) == 100
+
