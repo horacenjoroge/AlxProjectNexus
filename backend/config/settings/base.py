@@ -180,6 +180,8 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
+        "vote_anon": "50/hour",  # More restrictive for voting
+        "vote_user": "200/hour",  # More restrictive for voting
     },
     "EXCEPTION_HANDLER": "core.exceptions.handlers.custom_exception_handler",
 }
