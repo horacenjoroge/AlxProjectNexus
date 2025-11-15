@@ -16,8 +16,10 @@ from .serializers import (
     PollCreateSerializer,
     PollOptionSerializer,
     PollSerializer,
+    PollTemplateCreateSerializer,
     PollUpdateSerializer,
 )
+from .templates import get_template, list_templates
 
 logger = logging.getLogger(__name__)
 
@@ -251,4 +253,69 @@ class PollViewSet(viewsets.ModelViewSet):
                 "unique_voters": poll.cached_unique_voters,
                 "results": results,
             }
+        )
+
+    @action(detail=False, methods=["get"], url_path="templates")
+    def list_templates(self, request):
+        """
+        List all available poll templates.
+        
+        GET /api/v1/polls/templates/
+        """
+        templates = list_templates()
+        return Response(templates, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="templates/(?P<template_id>[^/.]+)")
+    def get_template(self, request, template_id=None):
+        """
+        Get specific poll template details.
+        
+        GET /api/v1/polls/templates/{template_id}/
+        """
+        template = get_template(template_id)
+        if not template:
+            return Response(
+                {"error": f"Template '{template_id}' not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {
+                "id": template_id,
+                "name": template["name"],
+                "description": template["description"],
+                "default_options": template["default_options"],
+                "settings": template["settings"],
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["post"], url_path="from-template")
+    def create_from_template(self, request):
+        """
+        Create a poll from a template.
+        
+        POST /api/v1/polls/from-template/
+        
+        Request Body:
+        {
+            "template_id": "yes_no",
+            "title": "Do you like pizza?",
+            "description": "Optional description",
+            "custom_options": [{"text": "Yes"}, {"text": "No"}],  # Optional
+            "custom_settings": {"show_results": false},  # Optional
+            "starts_at": "2024-01-01T00:00:00Z",  # Optional
+            "ends_at": "2024-01-31T23:59:59Z",  # Optional
+            "is_active": true  # Optional
+        }
+        """
+        serializer = PollTemplateCreateSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        poll = serializer.save()
+
+        return Response(
+            PollSerializer(poll).data,
+            status=status.HTTP_201_CREATED,
         )

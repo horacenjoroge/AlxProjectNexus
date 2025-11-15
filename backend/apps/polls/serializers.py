@@ -298,3 +298,71 @@ class BulkPollOptionCreateSerializer(serializers.Serializer):
             created_options.append(option)
 
         return {"options": created_options}
+
+
+class PollTemplateCreateSerializer(serializers.Serializer):
+    """Serializer for creating a poll from a template."""
+
+    template_id = serializers.CharField(required=True, help_text="Template ID (yes_no, multiple_choice, etc.)")
+    title = serializers.CharField(required=True, max_length=200)
+    description = serializers.CharField(required=False, allow_blank=True)
+    custom_options = PollOptionCreateSerializer(many=True, required=False, allow_null=True)
+    custom_settings = serializers.DictField(required=False, allow_null=True)
+    starts_at = serializers.DateTimeField(required=False, allow_null=True)
+    ends_at = serializers.DateTimeField(required=False, allow_null=True)
+    is_active = serializers.BooleanField(required=False, default=True)
+
+    def validate_template_id(self, value):
+        """Validate that template ID exists."""
+        from .templates import get_template, list_templates
+
+        template = get_template(value)
+        if not template:
+            available = list(list_templates().keys())
+            raise serializers.ValidationError(
+                f"Invalid template ID: {value}. Available templates: {', '.join(available)}"
+            )
+        return value
+
+    def validate(self, attrs):
+        """Validate template data."""
+        from .templates import create_poll_from_template, validate_template_options
+
+        template_id = attrs.get("template_id")
+        custom_options = attrs.get("custom_options")
+
+        # If custom options provided, validate them
+        if custom_options:
+            try:
+                validate_template_options(custom_options)
+            except ValueError as e:
+                raise serializers.ValidationError({"custom_options": str(e)})
+
+        return attrs
+
+    def create(self, validated_data):
+        """Create poll from template."""
+        from .templates import create_poll_from_template
+
+        template_id = validated_data.pop("template_id")
+        custom_options = validated_data.pop("custom_options", None)
+        custom_settings = validated_data.pop("custom_settings", None)
+
+        # Get poll data from template
+        poll_data = create_poll_from_template(
+            template_id=template_id,
+            title=validated_data.pop("title"),
+            description=validated_data.pop("description", ""),
+            custom_options=custom_options,
+            custom_settings=custom_settings,
+            starts_at=validated_data.pop("starts_at", None),
+            ends_at=validated_data.pop("ends_at", None),
+            is_active=validated_data.pop("is_active", True),
+        )
+
+        # Create poll using PollCreateSerializer (avoid circular import)
+        serializer = PollCreateSerializer(data=poll_data, context=self.context)
+        serializer.is_valid(raise_exception=True)
+        poll = serializer.save(created_by=self.context["request"].user)
+
+        return poll
