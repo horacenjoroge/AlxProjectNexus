@@ -1,11 +1,16 @@
 """
-Serializers for Polls app with nested option creation.
+Serializers for Polls app with nested option creation and advanced validation.
 """
 
 from django.db import models
+from django.utils import timezone
 from rest_framework import serializers
 
 from .models import Poll, PollOption
+
+# Validation constants
+MIN_OPTIONS = 2
+MAX_OPTIONS = 100
 
 
 class PollOptionSerializer(serializers.ModelSerializer):
@@ -71,7 +76,7 @@ class PollSerializer(serializers.ModelSerializer):
 
 
 class PollCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating a Poll with nested options."""
+    """Serializer for creating a Poll with nested options and validation."""
 
     options = PollOptionCreateSerializer(many=True, required=False, allow_empty=True)
 
@@ -88,6 +93,60 @@ class PollCreateSerializer(serializers.ModelSerializer):
             "options",
         ]
 
+    def validate_options(self, value):
+        """Validate options count."""
+        if len(value) < MIN_OPTIONS:
+            raise serializers.ValidationError(
+                f"A poll must have at least {MIN_OPTIONS} options. Provided: {len(value)}"
+            )
+        if len(value) > MAX_OPTIONS:
+            raise serializers.ValidationError(
+                f"A poll cannot have more than {MAX_OPTIONS} options. Provided: {len(value)}"
+            )
+        return value
+
+    def validate_ends_at(self, value):
+        """Validate that expiry date is in the future."""
+        if value:
+            now = timezone.now()
+            if value <= now:
+                raise serializers.ValidationError(
+                    "Expiry date must be in the future."
+                )
+        return value
+
+    def validate(self, attrs):
+        """Validate poll data."""
+        starts_at = attrs.get("starts_at")
+        ends_at = attrs.get("ends_at")
+
+        # Validate start date is before expiry date
+        if starts_at and ends_at:
+            if starts_at >= ends_at:
+                raise serializers.ValidationError(
+                    {
+                        "ends_at": "Expiry date must be after start date.",
+                        "starts_at": "Start date must be before expiry date.",
+                    }
+                )
+
+        # Validate options count (check both in options field and after creation)
+        options_data = attrs.get("options", [])
+        if len(options_data) < MIN_OPTIONS:
+            raise serializers.ValidationError(
+                {
+                    "options": f"A poll must have at least {MIN_OPTIONS} options. Provided: {len(options_data)}"
+                }
+            )
+        if len(options_data) > MAX_OPTIONS:
+            raise serializers.ValidationError(
+                {
+                    "options": f"A poll cannot have more than {MAX_OPTIONS} options. Provided: {len(options_data)}"
+                }
+            )
+
+        return attrs
+
     def create(self, validated_data):
         """Create poll with nested options."""
         options_data = validated_data.pop("options", [])
@@ -101,7 +160,7 @@ class PollCreateSerializer(serializers.ModelSerializer):
 
 
 class PollUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating a Poll (limited fields)."""
+    """Serializer for updating a Poll (limited fields) with validation."""
 
     class Meta:
         model = Poll
@@ -115,12 +174,26 @@ class PollUpdateSerializer(serializers.ModelSerializer):
             "security_rules",
         ]
 
+    def validate_ends_at(self, value):
+        """Validate that expiry date is in the future."""
+        if value:
+            now = timezone.now()
+            if value <= now:
+                raise serializers.ValidationError(
+                    "Expiry date must be in the future."
+                )
+        return value
+
     def validate(self, attrs):
         """Validate that poll can be modified."""
         poll = self.instance
+        now = timezone.now()
 
         # Check if poll has votes
-        if poll.votes.exists():
+        has_votes = poll.votes.exists()
+        allow_option_modification = poll.settings.get("allow_option_modification_after_votes", False)
+
+        if has_votes and not allow_option_modification:
             # Only allow limited modifications
             allowed_fields = {"is_active", "ends_at", "settings", "security_rules"}
             provided_fields = set(attrs.keys())
@@ -135,13 +208,80 @@ class PollUpdateSerializer(serializers.ModelSerializer):
                     }
                 )
 
+        # Validate dates
+        starts_at = attrs.get("starts_at", poll.starts_at)
+        ends_at = attrs.get("ends_at", poll.ends_at)
+
+        # Validate start date is before expiry date
+        if starts_at and ends_at:
+            if starts_at >= ends_at:
+                raise serializers.ValidationError(
+                    {
+                        "ends_at": "Expiry date must be after start date.",
+                        "starts_at": "Start date must be before expiry date.",
+                    }
+                )
+
+        # Validate can't activate expired poll
+        is_active = attrs.get("is_active", poll.is_active)
+        if is_active and ends_at and ends_at < now:
+            raise serializers.ValidationError(
+                {
+                    "is_active": "Cannot activate a poll that has already expired.",
+                    "ends_at": f"Poll expired at {ends_at}. Current time: {now}",
+                }
+            )
+
         return attrs
 
 
 class BulkPollOptionCreateSerializer(serializers.Serializer):
-    """Serializer for bulk creating poll options."""
+    """Serializer for bulk creating poll options with validation."""
 
     options = PollOptionCreateSerializer(many=True, min_length=1)
+
+    def validate_options(self, value):
+        """Validate options count."""
+        poll = self.context.get("poll")
+        if poll:
+            current_count = poll.options.count()
+            new_count = len(value)
+            total_count = current_count + new_count
+
+            if total_count > MAX_OPTIONS:
+                raise serializers.ValidationError(
+                    f"Cannot add {new_count} options. Poll already has {current_count} options. "
+                    f"Maximum allowed: {MAX_OPTIONS}. Total would be: {total_count}"
+                )
+
+            # Check minimum after addition
+            if total_count < MIN_OPTIONS:
+                raise serializers.ValidationError(
+                    f"After adding these options, poll would have {total_count} options. "
+                    f"Minimum required: {MIN_OPTIONS}"
+                )
+
+        return value
+
+    def validate(self, attrs):
+        """Validate that options can be added."""
+        poll = self.context.get("poll")
+        if not poll:
+            return attrs
+
+        # Check if poll has votes and option modification is not allowed
+        has_votes = poll.votes.exists()
+        allow_option_modification = poll.settings.get("allow_option_modification_after_votes", False)
+
+        if has_votes and not allow_option_modification:
+            raise serializers.ValidationError(
+                {
+                    "options": "Cannot modify options after votes have been cast. "
+                    "Set 'allow_option_modification_after_votes' to true in poll settings to allow."
+                }
+            )
+
+        return attrs
 
     def create(self, validated_data):
         """Create multiple options for a poll."""

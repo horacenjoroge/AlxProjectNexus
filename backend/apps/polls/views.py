@@ -167,10 +167,17 @@ class PollViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Check if poll has votes (might want to restrict adding options after votes)
-        if poll.votes.exists():
+        # Check if poll has votes and option modification is not allowed
+        # This is also validated in serializer, but we check here for early return
+        has_votes = poll.votes.exists()
+        allow_option_modification = poll.settings.get("allow_option_modification_after_votes", False)
+
+        if has_votes and not allow_option_modification:
             return Response(
-                {"error": "Cannot add options to poll with existing votes"},
+                {
+                    "error": "Cannot add options to poll with existing votes. "
+                    "Set 'allow_option_modification_after_votes' to true in poll settings to allow."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
