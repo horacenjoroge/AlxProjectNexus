@@ -11,6 +11,7 @@ from apps.votes.models import Vote, VoteAttempt
 from core.exceptions import (
     CaptchaVerificationError,
     DuplicateVoteError,
+    FingerprintValidationError,
     FraudDetectedError,
     IPBlockedError,
     InvalidPollError,
@@ -19,8 +20,12 @@ from core.exceptions import (
     PollNotFoundError,
 )
 from core.utils.fingerprint_validation import (
+    check_fingerprint_ip_combination,
     check_fingerprint_suspicious,
+    detect_suspicious_fingerprint_changes,
+    require_fingerprint_for_anonymous,
     update_fingerprint_cache,
+    validate_fingerprint_format,
 )
 from core.utils.fraud_detection import detect_fraud, log_fraud_alert
 from core.utils.idempotency import (
@@ -79,9 +84,42 @@ def cast_vote(
         DuplicateVoteError: If the user has already voted on this poll
         FraudDetectedError: If fingerprint validation blocks the vote
     """
-    # Generate idempotency key if not provided
+    # Step 2: Extract request data (before idempotency key generation)
+    fingerprint = getattr(request, "fingerprint", "") if request else ""
+    ip_address = None
+    user_agent = ""
+
+    if request:
+        ip_address = extract_ip_address(request)
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
+    
+    # Step 2.1: Require fingerprint for anonymous votes
+    try:
+        is_valid, error_message = require_fingerprint_for_anonymous(user, fingerprint)
+        if not is_valid:
+            raise FingerprintValidationError(error_message or "Fingerprint validation failed")
+    except FingerprintValidationError:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking fingerprint requirement: {e}")
+        # Fail open for system errors
+    
+    # Step 2.2: Validate fingerprint format if provided
+    if fingerprint:
+        is_valid, error_message = validate_fingerprint_format(fingerprint)
+        if not is_valid:
+            raise FingerprintValidationError(error_message or "Invalid fingerprint format")
+    
+    # Generate idempotency key if not provided (now includes fingerprint+IP for anonymous)
     if not idempotency_key:
-        idempotency_key = generate_idempotency_key(user.id, poll_id, choice_id)
+        user_id = user.id if user and user.is_authenticated else None
+        idempotency_key = generate_idempotency_key(
+            user_id=user_id,
+            poll_id=poll_id,
+            choice_id=choice_id,
+            fingerprint=fingerprint,
+            ip_address=ip_address,
+        )
 
     # Step 1: Idempotency check (fast path - return existing vote if duplicate)
     is_duplicate, cached_result = check_idempotency(idempotency_key)
@@ -109,15 +147,6 @@ def cast_vote(
         except Vote.DoesNotExist:
             pass
 
-    # Step 2: Extract request data
-    fingerprint = getattr(request, "fingerprint", "") if request else ""
-    ip_address = None
-    user_agent = ""
-
-    if request:
-        ip_address = extract_ip_address(request)
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-    
     # Step 2.5: Check IP reputation and block status
     if ip_address:
         try:
@@ -236,13 +265,17 @@ def cast_vote(
         except PollOption.DoesNotExist:
             raise InvalidVoteError(f"Choice {choice_id} does not belong to poll {poll_id}")
 
-        # Step 6: Fingerprint validation (if enabled)
+        # Step 6: Fingerprint validation and suspicious change detection
+        fingerprint_missing = False
+        fraud_reasons_list = []
+        
         if fingerprint:
             try:
+                # Check for suspicious fingerprint patterns
                 validation_result = check_fingerprint_suspicious(
                     fingerprint=fingerprint,
                     poll_id=poll_id,
-                    user_id=user.id,
+                    user_id=user.id if user else None,
                     ip_address=ip_address,
                     request=request,
                 )
@@ -267,10 +300,42 @@ def cast_vote(
                         f"Vote blocked due to suspicious activity: {', '.join(validation_result.get('reasons', []))}"
                     )
 
+                # Check for suspicious fingerprint changes
+                user_id = user.id if user and user.is_authenticated else None
+                change_result = detect_suspicious_fingerprint_changes(
+                    fingerprint=fingerprint,
+                    user_id=user_id,
+                    ip_address=ip_address,
+                    poll_id=poll_id,
+                )
+                
+                if change_result.get("block_vote", False):
+                    raise FraudDetectedError(
+                        f"Vote blocked due to suspicious fingerprint changes: {', '.join(change_result.get('reasons', []))}"
+                    )
+                
+                if change_result.get("suspicious", False):
+                    fraud_reasons_list.extend(change_result.get("reasons", []))
+
+                # Check fingerprint+IP combination
+                ip_combo_result = check_fingerprint_ip_combination(
+                    fingerprint=fingerprint,
+                    ip_address=ip_address,
+                    poll_id=poll_id,
+                )
+                
+                if ip_combo_result.get("block_vote", False):
+                    raise FraudDetectedError(
+                        f"Vote blocked: {', '.join(ip_combo_result.get('reasons', []))}"
+                    )
+                
+                if ip_combo_result.get("suspicious", False):
+                    fraud_reasons_list.extend(ip_combo_result.get("reasons", []))
+
                 # Log warning if suspicious but not blocking
                 if validation_result.get("suspicious", False):
                     logger.warning(
-                        f"Suspicious fingerprint detected for user {user.id}, poll {poll_id}: "
+                        f"Suspicious fingerprint detected for user {user.id if user else 'anonymous'}, poll {poll_id}: "
                         f"{', '.join(validation_result.get('reasons', []))}"
                     )
 
@@ -282,11 +347,18 @@ def cast_vote(
                     except Exception as e:
                         logger.error(f"Failed to trigger async fingerprint analysis: {e}")
 
-            except (InvalidVoteError, FraudDetectedError):
+            except (InvalidVoteError, FraudDetectedError, FingerprintValidationError):
                 raise
             except Exception as e:
                 logger.error(f"Error in fingerprint validation: {e}")
                 # Don't block vote if validation fails, but log error
+        else:
+            # Flag vote with missing fingerprint
+            fingerprint_missing = True
+            fraud_reasons_list.append("Missing browser fingerprint")
+            logger.warning(
+                f"Vote from user {user.id if user else 'anonymous'} (IP: {ip_address}) missing fingerprint"
+            )
 
         # Step 7: Fraud detection
         fraud_result = detect_fraud(
@@ -298,6 +370,15 @@ def cast_vote(
             fingerprint=fingerprint,
             request=request,
         )
+        
+        # Combine fraud reasons from fingerprint validation and fraud detection
+        all_fraud_reasons = fraud_reasons_list + fraud_result.get("reasons", [])
+        
+        # Mark vote as invalid if fingerprint is missing (for anonymous votes) or fraud detected
+        should_mark_invalid = (
+            fraud_result.get("should_mark_invalid", False) or
+            (fingerprint_missing and (not user or not user.is_authenticated))
+        )
 
         # Step 8: Create vote atomically
         vote = Vote.objects.create(
@@ -308,9 +389,9 @@ def cast_vote(
             voter_token=voter_token,
             ip_address=ip_address,
             user_agent=user_agent,
-            fingerprint=fingerprint,
-            is_valid=not fraud_result["should_mark_invalid"],
-            fraud_reasons=", ".join(fraud_result["reasons"]) if fraud_result["reasons"] else "",
+            fingerprint=fingerprint or "",  # Store empty string if missing
+            is_valid=not should_mark_invalid,
+            fraud_reasons=", ".join(all_fraud_reasons) if all_fraud_reasons else "",
             risk_score=fraud_result["risk_score"],
         )
 

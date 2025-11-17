@@ -10,21 +10,33 @@ from typing import Optional
 from django.core.cache import cache
 
 
-def generate_idempotency_key(user_id, poll_id, choice_id):
+def generate_idempotency_key(user_id, poll_id, choice_id, fingerprint: Optional[str] = None, ip_address: Optional[str] = None):
     """
     Generate a deterministic idempotency key for a vote operation.
     Same inputs will always generate the same key.
+    
+    For anonymous votes, includes fingerprint and IP to ensure uniqueness.
 
     Args:
         user_id: The ID of the user making the vote
         poll_id: The ID of the poll being voted on
         choice_id: The ID of the choice being selected
+        fingerprint: Browser fingerprint hash (optional, used for anonymous votes)
+        ip_address: IP address (optional, used for anonymous votes)
 
     Returns:
         str: A unique, deterministic idempotency key (64-character hex string)
     """
-    # Use deterministic format: user:poll:choice
-    data = f"{user_id}:{poll_id}:{choice_id}"
+    # For authenticated users, use user:poll:choice
+    # For anonymous users, include fingerprint and IP for better identification
+    if user_id:
+        data = f"{user_id}:{poll_id}:{choice_id}"
+    else:
+        # Combine fingerprint and IP for anonymous votes
+        fp = fingerprint or ""
+        ip = ip_address or ""
+        data = f"anon:{poll_id}:{choice_id}:{fp}:{ip}"
+    
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
 

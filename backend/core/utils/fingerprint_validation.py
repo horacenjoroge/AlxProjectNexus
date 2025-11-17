@@ -15,6 +15,232 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+def validate_fingerprint_format(fingerprint: str) -> tuple[bool, Optional[str]]:
+    """
+    Validate fingerprint format.
+    
+    Args:
+        fingerprint: Browser fingerprint hash to validate
+        
+    Returns:
+        tuple: (is_valid: bool, error_message: Optional[str])
+    """
+    if not fingerprint:
+        return False, "Fingerprint is required"
+    
+    # SHA256 hex digest should be 64 characters
+    if len(fingerprint) != 64:
+        return False, f"Invalid fingerprint format: expected 64 characters, got {len(fingerprint)}"
+    
+    # Check if it's valid hexadecimal
+    try:
+        int(fingerprint, 16)
+    except ValueError:
+        return False, "Invalid fingerprint format: not hexadecimal"
+    
+    return True, None
+
+
+def require_fingerprint_for_anonymous(user: Optional[object], fingerprint: Optional[str]) -> tuple[bool, Optional[str]]:
+    """
+    Check if fingerprint is required for anonymous votes.
+    
+    Args:
+        user: User object (None for anonymous)
+        fingerprint: Browser fingerprint hash
+        
+    Returns:
+        tuple: (is_valid: bool, error_message: Optional[str])
+    """
+    # If user is authenticated, fingerprint is optional
+    if user and user.is_authenticated:
+        return True, None
+    
+    # For anonymous users, fingerprint is required
+    if not fingerprint:
+        return False, "Fingerprint is required for anonymous votes"
+    
+    # Validate format
+    is_valid, error_message = validate_fingerprint_format(fingerprint)
+    if not is_valid:
+        return False, error_message
+    
+    return True, None
+
+
+def detect_suspicious_fingerprint_changes(
+    fingerprint: str,
+    user_id: Optional[int],
+    ip_address: Optional[str],
+    poll_id: int,
+) -> Dict:
+    """
+    Detect suspicious fingerprint changes for a user/IP combination.
+    
+    Tracks fingerprint history and flags rapid changes or changes from different IPs.
+    
+    Args:
+        fingerprint: Current browser fingerprint hash
+        user_id: User ID (None for anonymous)
+        ip_address: Current IP address
+        poll_id: Poll ID
+        
+    Returns:
+        dict: {
+            "suspicious": bool,
+            "reasons": List[str],
+            "risk_score": int (0-100),
+            "block_vote": bool
+        }
+    """
+    if not fingerprint:
+        return {"suspicious": False, "reasons": [], "risk_score": 0, "block_vote": False}
+    
+    reasons = []
+    risk_score = 0
+    block_vote = False
+    
+    try:
+        from apps.votes.models import Vote
+        
+        # Look for previous votes from this user/IP combination
+        query = Vote.objects.filter(poll_id=poll_id)
+        
+        if user_id:
+            # For authenticated users, check their vote history
+            query = query.filter(user_id=user_id)
+        elif ip_address:
+            # For anonymous users, check by IP
+            query = query.filter(ip_address=ip_address)
+        else:
+            # No way to identify voter, skip check
+            return {"suspicious": False, "reasons": [], "risk_score": 0, "block_vote": False}
+        
+        # Get recent votes (last 24 hours)
+        time_window_hours = getattr(settings, "FINGERPRINT_TIME_WINDOW_HOURS", 24)
+        recent_cutoff = timezone.now() - timedelta(hours=time_window_hours)
+        recent_votes = query.filter(created_at__gte=recent_cutoff).order_by("-created_at")[:10]
+        
+        if recent_votes:
+            # Check for fingerprint changes
+            distinct_fingerprints = set(v.fingerprint for v in recent_votes if v.fingerprint)
+            
+            if len(distinct_fingerprints) > 1:
+                # Multiple fingerprints detected
+                if fingerprint not in distinct_fingerprints:
+                    # New fingerprint not seen before for this user/IP
+                    reasons.append("Fingerprint changed from previous votes")
+                    risk_score += 30
+                    
+                    # If user is authenticated and fingerprint changed, it's more suspicious
+                    if user_id:
+                        reasons.append("Authenticated user using different fingerprint")
+                        risk_score += 20
+                    
+                    # Check if fingerprint is from a different IP
+                    if ip_address:
+                        fingerprint_votes = Vote.objects.filter(
+                            fingerprint=fingerprint,
+                            poll_id=poll_id,
+                            created_at__gte=recent_cutoff,
+                        ).exclude(ip_address=ip_address)
+                        
+                        if fingerprint_votes.exists():
+                            reasons.append("Fingerprint previously seen from different IP")
+                            risk_score += 40
+                            block_vote = True  # Critical: same fingerprint from different IPs
+            
+            # Check for rapid fingerprint changes (multiple changes in short time)
+            if len(recent_votes) >= 2:
+                first_vote = recent_votes[-1]
+                last_vote = recent_votes[0]
+                time_diff_minutes = (last_vote.created_at - first_vote.created_at).total_seconds() / 60
+                
+                if time_diff_minutes <= 60 and len(distinct_fingerprints) >= 3:  # 3+ fingerprints in 1 hour
+                    reasons.append(f"Rapid fingerprint changes: {len(distinct_fingerprints)} fingerprints in {time_diff_minutes:.1f} minutes")
+                    risk_score += 50
+                    block_vote = True
+        
+    except Exception as e:
+        logger.error(f"Error detecting suspicious fingerprint changes: {e}")
+        # On error, allow vote but log warning
+        return {"suspicious": False, "reasons": [], "risk_score": 0, "block_vote": False}
+    
+    return {
+        "suspicious": len(reasons) > 0,
+        "reasons": reasons,
+        "risk_score": min(risk_score, 100),
+        "block_vote": block_vote,
+    }
+
+
+def check_fingerprint_ip_combination(
+    fingerprint: str,
+    ip_address: Optional[str],
+    poll_id: int,
+) -> Dict:
+    """
+    Check for suspicious patterns when same fingerprint is used from different IPs.
+    
+    Args:
+        fingerprint: Browser fingerprint hash
+        ip_address: Current IP address
+        poll_id: Poll ID
+        
+    Returns:
+        dict: {
+            "suspicious": bool,
+            "reasons": List[str],
+            "risk_score": int (0-100),
+            "block_vote": bool
+        }
+    """
+    if not fingerprint or not ip_address:
+        return {"suspicious": False, "reasons": [], "risk_score": 0, "block_vote": False}
+    
+    reasons = []
+    risk_score = 0
+    block_vote = False
+    
+    try:
+        from apps.votes.models import Vote
+        
+        # Check if this fingerprint has been used from different IPs
+        time_window_hours = getattr(settings, "FINGERPRINT_TIME_WINDOW_HOURS", 24)
+        recent_cutoff = timezone.now() - timedelta(hours=time_window_hours)
+        
+        fingerprint_votes = Vote.objects.filter(
+            fingerprint=fingerprint,
+            poll_id=poll_id,
+            created_at__gte=recent_cutoff,
+        ).exclude(ip_address=ip_address).values_list("ip_address", flat=True).distinct()
+        
+        distinct_ips = [ip for ip in fingerprint_votes if ip]
+        
+        if distinct_ips:
+            ip_count = len(distinct_ips)
+            reasons.append(f"Same fingerprint used from {ip_count} different IP address(es)")
+            risk_score += 40
+            
+            # If same fingerprint from 2+ different IPs, block vote
+            if ip_count >= 2:
+                block_vote = True
+                reasons.append("Fingerprint appears to be shared across multiple IPs (potential fraud)")
+                risk_score += 30
+        
+    except Exception as e:
+        logger.error(f"Error checking fingerprint-IP combination: {e}")
+        # On error, allow vote but log warning
+        return {"suspicious": False, "reasons": [], "risk_score": 0, "block_vote": False}
+    
+    return {
+        "suspicious": len(reasons) > 0,
+        "reasons": reasons,
+        "risk_score": min(risk_score, 100),
+        "block_vote": block_vote,
+    }
+
+
 def get_fingerprint_cache_key(fingerprint: str, poll_id: int) -> str:
     """Generate Redis cache key for fingerprint activity."""
     return f"fp:activity:{fingerprint}:{poll_id}"

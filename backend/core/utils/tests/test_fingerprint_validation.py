@@ -9,9 +9,13 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from core.utils.fingerprint_validation import (
+    check_fingerprint_ip_combination,
     check_fingerprint_suspicious,
+    detect_suspicious_fingerprint_changes,
     get_fingerprint_cache_key,
+    require_fingerprint_for_anonymous,
     update_fingerprint_cache,
+    validate_fingerprint_format,
 )
 
 
@@ -425,4 +429,335 @@ class TestPermanentFingerprintBlocking:
 
         # Should not be blocked (is_active=False)
         assert result["block_vote"] is False or not result.get("suspicious", False)
+
+
+@pytest.mark.unit
+class TestFingerprintFormatValidation:
+    """Test fingerprint format validation."""
+
+    def test_validate_fingerprint_format_valid(self):
+        """Test that valid SHA256 fingerprint passes validation."""
+        # Valid SHA256 hex (64 characters)
+        valid_fp = "a" * 64
+        is_valid, error_message = validate_fingerprint_format(valid_fp)
+        assert is_valid is True
+        assert error_message is None
+
+    def test_validate_fingerprint_format_missing(self):
+        """Test that missing fingerprint fails validation."""
+        is_valid, error_message = validate_fingerprint_format("")
+        assert is_valid is False
+        assert "required" in error_message.lower()
+
+    def test_validate_fingerprint_format_too_short(self):
+        """Test that fingerprint shorter than 64 chars fails validation."""
+        short_fp = "a" * 32
+        is_valid, error_message = validate_fingerprint_format(short_fp)
+        assert is_valid is False
+        assert "64" in error_message
+
+    def test_validate_fingerprint_format_too_long(self):
+        """Test that fingerprint longer than 64 chars fails validation."""
+        long_fp = "a" * 65
+        is_valid, error_message = validate_fingerprint_format(long_fp)
+        assert is_valid is False
+        assert "64" in error_message
+
+    def test_validate_fingerprint_format_invalid_hex(self):
+        """Test that non-hexadecimal fingerprint fails validation."""
+        invalid_fp = "g" * 64  # 'g' is not valid hex
+        is_valid, error_message = validate_fingerprint_format(invalid_fp)
+        assert is_valid is False
+        assert "hexadecimal" in error_message.lower()
+
+
+@pytest.mark.unit
+class TestRequireFingerprintForAnonymous:
+    """Test fingerprint requirement for anonymous votes."""
+
+    def test_require_fingerprint_for_anonymous_missing(self):
+        """Test that anonymous votes require fingerprint."""
+        is_valid, error_message = require_fingerprint_for_anonymous(None, None)
+        assert is_valid is False
+        assert "required" in error_message.lower()
+        assert "anonymous" in error_message.lower()
+
+    def test_require_fingerprint_for_anonymous_invalid_format(self):
+        """Test that anonymous votes require valid fingerprint format."""
+        invalid_fp = "short"
+        is_valid, error_message = require_fingerprint_for_anonymous(None, invalid_fp)
+        assert is_valid is False
+        assert "format" in error_message.lower() or "64" in error_message
+
+    def test_require_fingerprint_for_anonymous_valid(self):
+        """Test that anonymous votes with valid fingerprint pass."""
+        valid_fp = "a" * 64
+        is_valid, error_message = require_fingerprint_for_anonymous(None, valid_fp)
+        assert is_valid is True
+        assert error_message is None
+
+    def test_require_fingerprint_for_authenticated_optional(self):
+        """Test that authenticated users don't require fingerprint."""
+        from django.contrib.auth.models import User
+
+        user = User(username="testuser")
+        user.is_authenticated = True
+
+        # Missing fingerprint should be OK for authenticated users
+        is_valid, error_message = require_fingerprint_for_anonymous(user, None)
+        assert is_valid is True
+        assert error_message is None
+
+        # Valid fingerprint should also be OK
+        valid_fp = "a" * 64
+        is_valid, error_message = require_fingerprint_for_anonymous(user, valid_fp)
+        assert is_valid is True
+        assert error_message is None
+
+
+@pytest.mark.django_db
+class TestDetectSuspiciousFingerprintChanges:
+    """Test detection of suspicious fingerprint changes."""
+
+    def test_detect_fingerprint_change_for_user(self, user):
+        """Test detection of fingerprint change for authenticated user."""
+        from apps.polls.models import Poll, PollOption
+        from apps.votes.models import Vote
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        # Create vote with first fingerprint
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=option,
+            fingerprint="fingerprint1" + "a" * 52,  # 64 chars
+            ip_address="192.168.1.1",
+            voter_token="token1",
+            idempotency_key="key1",
+        )
+
+        # Check with different fingerprint
+        result = detect_suspicious_fingerprint_changes(
+            fingerprint="fingerprint2" + "b" * 52,  # Different fingerprint
+            user_id=user.id,
+            ip_address="192.168.1.1",
+            poll_id=poll.id,
+        )
+
+        assert result["suspicious"] is True
+        assert any("changed" in reason.lower() for reason in result["reasons"])
+
+    def test_detect_fingerprint_change_for_anonymous(self, user):
+        """Test detection of fingerprint change for anonymous user (by IP)."""
+        from apps.polls.models import Poll, PollOption
+        from apps.votes.models import Vote
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        # Create vote with first fingerprint from IP
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=option,
+            fingerprint="fingerprint1" + "a" * 52,
+            ip_address="192.168.1.1",
+            voter_token="token1",
+            idempotency_key="key1",
+        )
+
+        # Check with different fingerprint from same IP
+        result = detect_suspicious_fingerprint_changes(
+            fingerprint="fingerprint2" + "b" * 52,
+            user_id=None,
+            ip_address="192.168.1.1",
+            poll_id=poll.id,
+        )
+
+        assert result["suspicious"] is True
+
+    def test_detect_rapid_fingerprint_changes(self, user):
+        """Test detection of rapid fingerprint changes."""
+        from apps.polls.models import Poll, PollOption
+        from apps.votes.models import Vote
+        from freezegun import freeze_time
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        # Create multiple votes with different fingerprints in short time
+        with freeze_time("2024-01-01 10:00:00"):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=option,
+                fingerprint="fp1" + "a" * 61,
+                ip_address="192.168.1.1",
+                voter_token="token1",
+                idempotency_key="key1",
+            )
+
+        with freeze_time("2024-01-01 10:10:00"):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=option,
+                fingerprint="fp2" + "b" * 61,
+                ip_address="192.168.1.1",
+                voter_token="token2",
+                idempotency_key="key2",
+            )
+
+        with freeze_time("2024-01-01 10:20:00"):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=option,
+                fingerprint="fp3" + "c" * 61,
+                ip_address="192.168.1.1",
+                voter_token="token3",
+                idempotency_key="key3",
+            )
+
+        # Check with another different fingerprint
+        result = detect_suspicious_fingerprint_changes(
+            fingerprint="fp4" + "d" * 61,
+            user_id=user.id,
+            ip_address="192.168.1.1",
+            poll_id=poll.id,
+        )
+
+        # Should detect rapid changes
+        assert result["suspicious"] is True
+        assert any("rapid" in reason.lower() for reason in result["reasons"])
+
+    def test_legitimate_fingerprint_change_allowed(self, user):
+        """Test that legitimate fingerprint changes are allowed."""
+        from apps.polls.models import Poll, PollOption
+        from apps.votes.models import Vote
+        from datetime import timedelta
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        # Create old vote (outside time window)
+        old_time = timezone.now() - timedelta(days=2)
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=option,
+            fingerprint="old_fp" + "a" * 55,
+            ip_address="192.168.1.1",
+            voter_token="token1",
+            idempotency_key="key1",
+            created_at=old_time,
+        )
+
+        # Check with different fingerprint (should be OK - old vote is outside window)
+        result = detect_suspicious_fingerprint_changes(
+            fingerprint="new_fp" + "b" * 55,
+            user_id=user.id,
+            ip_address="192.168.1.1",
+            poll_id=poll.id,
+        )
+
+        # Should not be suspicious (old vote is outside time window)
+        assert result["suspicious"] is False
+
+
+@pytest.mark.django_db
+class TestFingerprintIPCombination:
+    """Test fingerprint+IP combination checks."""
+
+    def test_same_fingerprint_different_ips_flagged(self, user):
+        """Test that same fingerprint from different IPs is flagged."""
+        from apps.polls.models import Poll, PollOption
+        from apps.votes.models import Vote
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        fingerprint = "shared_fp" + "a" * 54
+
+        # Create vote with fingerprint from IP1
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=option,
+            fingerprint=fingerprint,
+            ip_address="192.168.1.1",
+            voter_token="token1",
+            idempotency_key="key1",
+        )
+
+        # Create vote with same fingerprint from IP2
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=option,
+            fingerprint=fingerprint,
+            ip_address="192.168.1.2",
+            voter_token="token2",
+            idempotency_key="key2",
+        )
+
+        # Check with same fingerprint from IP3
+        result = check_fingerprint_ip_combination(
+            fingerprint=fingerprint,
+            ip_address="192.168.1.3",
+            poll_id=poll.id,
+        )
+
+        assert result["suspicious"] is True
+        assert result["block_vote"] is True  # Should block if 2+ different IPs
+        assert any("different ip" in reason.lower() for reason in result["reasons"])
+
+    def test_same_fingerprint_same_ip_allowed(self, user):
+        """Test that same fingerprint from same IP is allowed."""
+        from apps.polls.models import Poll, PollOption
+        from apps.votes.models import Vote
+
+        poll = Poll.objects.create(title="Test Poll", created_by=user)
+        option = PollOption.objects.create(poll=poll, text="Option 1")
+
+        fingerprint = "consistent_fp" + "a" * 54
+
+        # Create vote with fingerprint from IP
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=option,
+            fingerprint=fingerprint,
+            ip_address="192.168.1.1",
+            voter_token="token1",
+            idempotency_key="key1",
+        )
+
+        # Check with same fingerprint from same IP
+        result = check_fingerprint_ip_combination(
+            fingerprint=fingerprint,
+            ip_address="192.168.1.1",
+            poll_id=poll.id,
+        )
+
+        # Should not be suspicious (same IP)
+        assert result["suspicious"] is False
+
+    def test_missing_fingerprint_or_ip_skips_check(self):
+        """Test that missing fingerprint or IP skips the check."""
+        result1 = check_fingerprint_ip_combination(
+            fingerprint="",
+            ip_address="192.168.1.1",
+            poll_id=1,
+        )
+        assert result1["suspicious"] is False
+
+        result2 = check_fingerprint_ip_combination(
+            fingerprint="a" * 64,
+            ip_address=None,
+            poll_id=1,
+        )
+        assert result2["suspicious"] is False
 

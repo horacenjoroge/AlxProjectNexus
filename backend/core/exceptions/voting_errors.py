@@ -87,3 +87,10 @@ class IPBlockedError(VotingError):
 
     default_status_code = 403
     default_message = "Your IP address has been blocked"
+
+
+class FingerprintValidationError(VotingError):
+    """Raised when fingerprint validation fails."""
+
+    default_status_code = 400
+    default_message = "Fingerprint validation failed"

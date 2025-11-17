@@ -7,6 +7,7 @@ import logging
 from core.exceptions import (
     CaptchaVerificationError,
     DuplicateVoteError,
+    FingerprintValidationError,
     FraudDetectedError,
     IPBlockedError,
     InvalidPollError,
@@ -178,6 +179,11 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
             return Response(
                 {"error": str(e), "error_code": "IPBlockedError"},
                 status=status.HTTP_403_FORBIDDEN,
+            )
+        except FingerprintValidationError as e:
+            return Response(
+                {"error": str(e), "error_code": "FingerprintValidationError"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             logger.error(f"Unexpected error in cast_vote: {e}", exc_info=True)
