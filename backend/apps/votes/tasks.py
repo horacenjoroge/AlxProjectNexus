@@ -4,11 +4,18 @@ Celery tasks for votes app.
 
 import logging
 from datetime import timedelta
+from typing import Optional
 
 from celery import shared_task
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
+
+from core.utils.pattern_analysis import (
+    analyze_vote_patterns,
+    flag_suspicious_votes,
+    generate_pattern_alerts,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -113,4 +120,125 @@ def analyze_fingerprint_patterns(fingerprint: str, poll_id: int):
 
     except Exception as e:
         logger.error(f"Error in async fingerprint analysis: {e}")
+
+
+@shared_task
+def analyze_vote_patterns_task(poll_id: Optional[int] = None, time_window_hours: int = 24):
+    """
+    Background task to analyze vote patterns for suspicious activity.
+    
+    This task runs pattern analysis on votes and generates alerts for
+    suspicious patterns like bot attacks, coordinated voting, etc.
+    
+    Args:
+        poll_id: Poll ID to analyze (None for all active polls)
+        time_window_hours: Time window to analyze (default: 24 hours)
+    """
+    try:
+        logger.info(f"Starting vote pattern analysis for poll_id={poll_id}, window={time_window_hours}h")
+        
+        # Run pattern analysis
+        results = analyze_vote_patterns(poll_id=poll_id, time_window_hours=time_window_hours)
+        
+        # Generate alerts for detected patterns
+        if poll_id:
+            alerts = generate_pattern_alerts(poll_id, results["patterns_detected"])
+            logger.info(f"Generated {len(alerts)} fraud alerts for poll {poll_id}")
+        
+        # Flag high-risk votes
+        if poll_id:
+            flagged_count = flag_suspicious_votes(poll_id, results["patterns_detected"])
+            if flagged_count > 0:
+                logger.warning(f"Flagged {flagged_count} suspicious votes for poll {poll_id}")
+        
+        logger.info(
+            f"Pattern analysis completed: {results['total_suspicious_patterns']} patterns detected, "
+            f"highest risk: {results['highest_risk_score']}, alerts: {results['alerts_generated']}"
+        )
+        
+        return {
+            "success": True,
+            "poll_id": poll_id,
+            "patterns_detected": results["total_suspicious_patterns"],
+            "alerts_generated": results["alerts_generated"],
+            "highest_risk_score": results["highest_risk_score"],
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in vote pattern analysis task: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e),
+            "poll_id": poll_id,
+        }
+
+
+@shared_task
+def periodic_pattern_analysis():
+    """
+    Periodic task to analyze vote patterns across all active polls.
+    
+    This task is scheduled to run periodically (e.g., every hour) to detect
+    suspicious voting patterns across the entire system.
+    """
+    try:
+        from apps.polls.models import Poll
+        
+        logger.info("Starting periodic pattern analysis for all active polls")
+        
+        # Get all active polls
+        active_polls = Poll.objects.filter(is_active=True)
+        poll_count = active_polls.count()
+        
+        logger.info(f"Analyzing {poll_count} active polls")
+        
+        total_patterns = 0
+        total_alerts = 0
+        highest_risk = 0
+        
+        # Analyze each poll
+        for poll in active_polls:
+            try:
+                results = analyze_vote_patterns(poll_id=poll.id, time_window_hours=24)
+                
+                # Generate alerts
+                alerts = generate_pattern_alerts(poll.id, results["patterns_detected"])
+                
+                # Flag high-risk votes
+                flagged_count = flag_suspicious_votes(poll.id, results["patterns_detected"])
+                
+                total_patterns += results["total_suspicious_patterns"]
+                total_alerts += len(alerts)
+                highest_risk = max(highest_risk, results["highest_risk_score"])
+                
+                if results["total_suspicious_patterns"] > 0:
+                    logger.warning(
+                        f"Poll {poll.id} ({poll.title}): "
+                        f"{results['total_suspicious_patterns']} patterns detected, "
+                        f"{len(alerts)} alerts generated, {flagged_count} votes flagged"
+                    )
+                    
+            except Exception as e:
+                logger.error(f"Error analyzing poll {poll.id}: {e}")
+                continue
+        
+        logger.info(
+            f"Periodic analysis completed: {total_patterns} patterns, "
+            f"{total_alerts} alerts, highest risk: {highest_risk}"
+        )
+        
+        return {
+            "success": True,
+            "polls_analyzed": poll_count,
+            "total_patterns": total_patterns,
+            "total_alerts": total_alerts,
+            "highest_risk_score": highest_risk,
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in periodic pattern analysis: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e),
+        }
 

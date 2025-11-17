@@ -1,0 +1,453 @@
+"""
+Tests for vote pattern analysis.
+"""
+
+import pytest
+from datetime import timedelta
+from freezegun import freeze_time
+
+from django.utils import timezone
+
+from core.utils.pattern_analysis import (
+    detect_single_ip_single_option_pattern,
+    detect_time_clustered_votes,
+    detect_geographic_anomalies,
+    detect_user_agent_anomalies,
+    analyze_vote_patterns,
+    generate_pattern_alerts,
+    flag_suspicious_votes,
+)
+
+
+@pytest.mark.django_db
+class TestSingleIPSingleOptionPattern:
+    """Test detection of single IP single option pattern."""
+
+    def test_detect_single_ip_single_option(self, poll, choices):
+        """Test detection of all votes from one IP to same option."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+        ip_address = "192.168.1.1"
+
+        # Create 5 votes from same IP to same option
+        for i in range(5):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address=ip_address,
+                voter_token=f"token{i}",
+                idempotency_key=f"key{i}",
+            )
+
+        patterns = detect_single_ip_single_option_pattern(poll.id, time_window_hours=24)
+
+        assert len(patterns) == 1
+        assert patterns[0]["ip_address"] == ip_address
+        assert patterns[0]["option_id"] == choices[0].id
+        assert patterns[0]["vote_count"] == 5
+        assert patterns[0]["risk_score"] >= 50
+
+    def test_legitimate_pattern_not_flagged(self, poll, choices):
+        """Test that legitimate voting patterns are not flagged."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+        ip_address = "192.168.1.1"
+
+        # Create votes to different options (legitimate)
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=choices[0],
+            ip_address=ip_address,
+            voter_token="token1",
+            idempotency_key="key1",
+        )
+        Vote.objects.create(
+            user=user,
+            poll=poll,
+            option=choices[1],
+            ip_address=ip_address,
+            voter_token="token2",
+            idempotency_key="key2",
+        )
+
+        patterns = detect_single_ip_single_option_pattern(poll.id, time_window_hours=24)
+
+        # Should not be flagged (votes go to different options)
+        assert len(patterns) == 0
+
+    def test_below_threshold_not_flagged(self, poll, choices):
+        """Test that patterns below threshold are not flagged."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+        ip_address = "192.168.1.1"
+
+        # Create only 2 votes (below threshold of 5)
+        for i in range(2):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address=ip_address,
+                voter_token=f"token{i}",
+                idempotency_key=f"key{i}",
+            )
+
+        patterns = detect_single_ip_single_option_pattern(poll.id, time_window_hours=24)
+
+        # Should not be flagged (below threshold)
+        assert len(patterns) == 0
+
+
+@pytest.mark.django_db
+class TestTimeClusteredVotes:
+    """Test detection of time-clustered votes."""
+
+    def test_detect_time_clustered_votes(self, poll, choices):
+        """Test detection of votes clustered in time."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+
+        # Create 10 votes within 30 seconds (bot attack pattern)
+        with freeze_time("2024-01-01 10:00:00"):
+            for i in range(10):
+                Vote.objects.create(
+                    user=user,
+                    poll=poll,
+                    option=choices[0],
+                    ip_address="192.168.1.1",
+                    voter_token=f"token{i}",
+                    idempotency_key=f"key{i}",
+                )
+
+        clusters = detect_time_clustered_votes(
+            poll.id, cluster_window_seconds=60, min_votes_in_cluster=10
+        )
+
+        assert len(clusters) == 1
+        assert clusters[0]["vote_count"] == 10
+        assert clusters[0]["risk_score"] >= 40
+
+    def test_legitimate_votes_not_clustered(self, poll, choices):
+        """Test that legitimate votes spread over time are not flagged."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+
+        # Create votes spread over 2 hours
+        with freeze_time("2024-01-01 10:00:00"):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address="192.168.1.1",
+                voter_token="token1",
+                idempotency_key="key1",
+            )
+
+        with freeze_time("2024-01-01 11:00:00"):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[1],
+                ip_address="192.168.1.1",
+                voter_token="token2",
+                idempotency_key="key2",
+            )
+
+        clusters = detect_time_clustered_votes(
+            poll.id, cluster_window_seconds=60, min_votes_in_cluster=10
+        )
+
+        # Should not be flagged (votes are spread out)
+        assert len(clusters) == 0
+
+
+@pytest.mark.django_db
+class TestGeographicAnomalies:
+    """Test detection of geographic anomalies."""
+
+    def test_detect_impossible_travel(self, poll, choices):
+        """Test detection of impossible travel (rapid IP changes)."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+
+        # Create votes from different IPs in short time
+        with freeze_time("2024-01-01 10:00:00"):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address="192.168.1.1",
+                voter_token="token1",
+                idempotency_key="key1",
+            )
+
+        with freeze_time("2024-01-01 10:00:30"):  # 30 seconds later
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[1],
+                ip_address="192.168.1.2",  # Different IP
+                voter_token="token2",
+                idempotency_key="key2",
+            )
+
+        anomalies = detect_geographic_anomalies(poll.id, time_window_hours=24)
+
+        assert len(anomalies) >= 1
+        assert any("impossible_travel" in a["anomaly_type"] for a in anomalies)
+
+    def test_legitimate_geographic_changes(self, poll, choices):
+        """Test that legitimate geographic changes are not flagged."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+
+        # Create votes from different IPs with reasonable time gap
+        with freeze_time("2024-01-01 10:00:00"):
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address="192.168.1.1",
+                voter_token="token1",
+                idempotency_key="key1",
+            )
+
+        with freeze_time("2024-01-01 12:00:00"):  # 2 hours later (reasonable)
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[1],
+                ip_address="192.168.1.2",
+                voter_token="token2",
+                idempotency_key="key2",
+            )
+
+        anomalies = detect_geographic_anomalies(poll.id, time_window_hours=24)
+
+        # Should not be flagged (reasonable time gap)
+        assert len(anomalies) == 0
+
+
+@pytest.mark.django_db
+class TestUserAgentAnomalies:
+    """Test detection of user agent anomalies."""
+
+    def test_detect_same_ua_across_many_voters(self, poll, choices):
+        """Test detection of same user agent across many voters."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        suspicious_ua = "Mozilla/5.0 (Bot/1.0)"
+
+        # Create votes from different users with same UA
+        for i in range(10):
+            user = User.objects.create_user(username=f"user{i}", password="pass")
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address=f"192.168.1.{i}",
+                user_agent=suspicious_ua,
+                voter_token=f"token{i}",
+                idempotency_key=f"key{i}",
+            )
+
+        anomalies = detect_user_agent_anomalies(
+            poll.id, time_window_hours=24, min_voters_threshold=10
+        )
+
+        assert len(anomalies) >= 1
+        assert any(anomaly["user_agent"] == suspicious_ua for anomaly in anomalies)
+        assert any(anomaly["unique_voters"] >= 10 for anomaly in anomalies)
+
+    def test_legitimate_diverse_user_agents(self, poll, choices):
+        """Test that legitimate diverse user agents are not flagged."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        # Create votes with different user agents
+        user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "Mozilla/5.0 (X11; Linux x86_64)",
+        ]
+
+        for i, ua in enumerate(user_agents):
+            user = User.objects.create_user(username=f"user{i}", password="pass")
+            Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address=f"192.168.1.{i}",
+                user_agent=ua,
+                voter_token=f"token{i}",
+                idempotency_key=f"key{i}",
+            )
+
+        anomalies = detect_user_agent_anomalies(
+            poll.id, time_window_hours=24, min_voters_threshold=10
+        )
+
+        # Should not be flagged (diverse user agents)
+        assert len(anomalies) == 0
+
+
+@pytest.mark.django_db
+class TestPatternAnalysisIntegration:
+    """Integration tests for pattern analysis."""
+
+    def test_analyze_vote_patterns_detects_all_patterns(self, poll, choices):
+        """Test that analyze_vote_patterns detects all pattern types."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+
+        # Create suspicious pattern: single IP, single option, clustered in time
+        with freeze_time("2024-01-01 10:00:00"):
+            for i in range(10):
+                Vote.objects.create(
+                    user=user,
+                    poll=poll,
+                    option=choices[0],
+                    ip_address="192.168.1.1",
+                    user_agent="SuspiciousBot/1.0",
+                    voter_token=f"token{i}",
+                    idempotency_key=f"key{i}",
+                )
+
+        results = analyze_vote_patterns(poll_id=poll.id, time_window_hours=24)
+
+        assert results["total_suspicious_patterns"] > 0
+        assert results["highest_risk_score"] > 0
+        assert len(results["patterns_detected"]["single_ip_single_option"]) > 0
+        assert len(results["patterns_detected"]["time_clustered"]) > 0
+
+    def test_generate_pattern_alerts(self, poll, choices):
+        """Test that pattern alerts are generated."""
+        from apps.analytics.models import FraudAlert
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+        ip_address = "192.168.1.1"
+
+        # Create suspicious pattern
+        votes = []
+        for i in range(10):
+            vote = Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address=ip_address,
+                voter_token=f"token{i}",
+                idempotency_key=f"key{i}",
+            )
+            votes.append(vote)
+
+        patterns = {
+            "single_ip_single_option": [{
+                "ip_address": ip_address,
+                "option_id": choices[0].id,
+                "vote_count": 10,
+                "risk_score": 80,
+                "pattern_type": "single_ip_single_option",
+            }],
+            "time_clustered": [],
+            "geographic_anomalies": [],
+            "user_agent_anomalies": [],
+        }
+
+        alerts = generate_pattern_alerts(poll.id, patterns)
+
+        assert len(alerts) > 0
+        assert FraudAlert.objects.filter(poll=poll).count() > 0
+
+    def test_flag_suspicious_votes(self, poll, choices):
+        """Test that suspicious votes are flagged."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        user = User.objects.create_user(username="testuser", password="pass")
+        ip_address = "192.168.1.1"
+
+        # Create suspicious votes
+        votes = []
+        for i in range(10):
+            vote = Vote.objects.create(
+                user=user,
+                poll=poll,
+                option=choices[0],
+                ip_address=ip_address,
+                voter_token=f"token{i}",
+                idempotency_key=f"key{i}",
+                is_valid=True,
+            )
+            votes.append(vote)
+
+        patterns = {
+            "single_ip_single_option": [{
+                "ip_address": ip_address,
+                "option_id": choices[0].id,
+                "vote_count": 10,
+                "risk_score": 85,  # High risk
+                "pattern_type": "single_ip_single_option",
+            }],
+            "time_clustered": [],
+            "geographic_anomalies": [],
+            "user_agent_anomalies": [],
+        }
+
+        flagged_count = flag_suspicious_votes(poll.id, patterns)
+
+        assert flagged_count > 0
+        # Check that votes were flagged
+        for vote in votes:
+            vote.refresh_from_db()
+            assert vote.is_valid is False
+            assert "pattern analysis" in vote.fraud_reasons.lower()
+
+    def test_legitimate_patterns_not_flagged(self, poll, choices):
+        """Test that legitimate voting patterns are not flagged."""
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+
+        users = []
+        for i in range(5):
+            user = User.objects.create_user(username=f"user{i}", password="pass")
+            users.append(user)
+
+        # Create legitimate votes: different users, different options, spread over time
+        with freeze_time("2024-01-01 10:00:00"):
+            for i, user in enumerate(users):
+                Vote.objects.create(
+                    user=user,
+                    poll=poll,
+                    option=choices[i % len(choices)],
+                    ip_address=f"192.168.1.{i}",
+                    user_agent=f"Mozilla/5.0 (User {i})",
+                    voter_token=f"token{i}",
+                    idempotency_key=f"key{i}",
+                )
+
+        results = analyze_vote_patterns(poll_id=poll.id, time_window_hours=24)
+
+        # Should have minimal or no suspicious patterns
+        assert results["total_suspicious_patterns"] == 0 or results["highest_risk_score"] < 50
+

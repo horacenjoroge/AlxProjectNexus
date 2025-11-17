@@ -231,6 +231,14 @@ IP_VIOLATION_THRESHOLD = env.int("IP_VIOLATION_THRESHOLD", default=5)  # Block a
 IP_REPUTATION_THRESHOLD = env.int("IP_REPUTATION_THRESHOLD", default=30)  # Block if score below this
 IP_AUTO_UNBLOCK_HOURS = env.int("IP_AUTO_UNBLOCK_HOURS", default=24)  # Auto-unblock after N hours
 
+# Pattern Analysis Settings
+PATTERN_ANALYSIS_MIN_VOTES = env.int("PATTERN_ANALYSIS_MIN_VOTES", default=5)  # Minimum votes to flag single IP pattern
+PATTERN_ANALYSIS_TIME_WINDOW_HOURS = env.int("PATTERN_ANALYSIS_TIME_WINDOW_HOURS", default=24)  # Default analysis window
+PATTERN_ANALYSIS_CLUSTER_WINDOW_SECONDS = env.int("PATTERN_ANALYSIS_CLUSTER_WINDOW_SECONDS", default=60)  # Time cluster window
+PATTERN_ANALYSIS_MIN_VOTES_IN_CLUSTER = env.int("PATTERN_ANALYSIS_MIN_VOTES_IN_CLUSTER", default=10)  # Min votes in cluster
+PATTERN_ANALYSIS_UA_MIN_VOTERS = env.int("PATTERN_ANALYSIS_UA_MIN_VOTERS", default=10)  # Min voters for UA anomaly
+VPN_PROXY_IP_RANGES = env.list("VPN_PROXY_IP_RANGES", default=[])  # List of VPN/proxy IP prefixes to flag
+
 # Logging
 LOGGING = {
     "version": 1,
