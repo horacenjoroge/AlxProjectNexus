@@ -182,7 +182,10 @@ class TestAnalyticsEndpoints:
         poll.created_by = user
         poll.save()
 
-        # Create votes at different times
+        # Create votes at different times (use different user for second vote)
+        import uuid
+        user2 = User.objects.create_user(username=f"testuser2_{uuid.uuid4().hex[:8]}", password="pass")
+        
         with freeze_time("2024-01-01 10:00:00"):
             Vote.objects.create(
                 user=user,
@@ -195,7 +198,7 @@ class TestAnalyticsEndpoints:
 
         with freeze_time("2024-01-05 10:00:00"):
             Vote.objects.create(
-                user=user,
+                user=user2,
                 poll=poll,
                 option=choices[1],
                 ip_address="192.168.1.1",

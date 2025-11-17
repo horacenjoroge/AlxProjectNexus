@@ -28,10 +28,11 @@ class TestTotalVotesOverTime:
 
     def test_get_total_votes_over_time_hourly(self, poll, choices):
         """Test hourly time series data."""
+        import uuid
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create votes at different hours
         with freeze_time("2024-01-01 10:00:00"):
@@ -44,12 +45,14 @@ class TestTotalVotesOverTime:
                 idempotency_key="key1",
             )
 
+        # Create second user for second vote (same user can only vote once per poll)
+        user2 = User.objects.create_user(username=f"testuser2_{uuid.uuid4().hex[:8]}", password="pass")
         with freeze_time("2024-01-01 11:00:00"):
             Vote.objects.create(
-                user=user,
+                user=user2,
                 poll=poll,
                 option=choices[1],
-                ip_address="192.168.1.1",
+                ip_address="192.168.1.2",
                 voter_token="token2",
                 idempotency_key="key2",
             )
@@ -65,7 +68,8 @@ class TestTotalVotesOverTime:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create votes on different days
         with freeze_time("2024-01-01 10:00:00"):
@@ -78,12 +82,13 @@ class TestTotalVotesOverTime:
                 idempotency_key="key1",
             )
 
+        # Use anonymous vote for second vote (same user can only vote once per poll)
         with freeze_time("2024-01-02 10:00:00"):
             Vote.objects.create(
-                user=user,
+                user=None,
                 poll=poll,
                 option=choices[1],
-                ip_address="192.168.1.1",
+                ip_address="192.168.1.2",
                 voter_token="token2",
                 idempotency_key="key2",
             )
@@ -109,7 +114,8 @@ class TestVotesByHour:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create votes at different hours
         with freeze_time("2024-01-01 10:00:00"):
@@ -122,12 +128,14 @@ class TestVotesByHour:
                 idempotency_key="key1",
             )
 
+        # Create second user for second vote (same user can only vote once per poll)
+        user2 = User.objects.create_user(username=f"testuser2_{uuid.uuid4().hex[:8]}", password="pass")
         with freeze_time("2024-01-01 11:00:00"):
             Vote.objects.create(
-                user=user,
+                user=user2,
                 poll=poll,
                 option=choices[1],
-                ip_address="192.168.1.1",
+                ip_address="192.168.1.2",
                 voter_token="token2",
                 idempotency_key="key2",
             )
@@ -150,7 +158,8 @@ class TestVotesByDay:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create votes on different days
         with freeze_time("2024-01-01 10:00:00"):
@@ -229,7 +238,8 @@ class TestParticipationRate:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         Vote.objects.create(
             user=user,
@@ -255,7 +265,8 @@ class TestAverageTimeToVote:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create vote 1 hour after poll start
         vote_time = poll.starts_at + timedelta(hours=1)
@@ -290,7 +301,8 @@ class TestDropOffRate:
         from apps.votes.models import Vote, VoteAttempt
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create successful vote
         Vote.objects.create(
@@ -384,7 +396,8 @@ class TestComprehensiveAnalytics:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         Vote.objects.create(
             user=user,
@@ -430,7 +443,8 @@ class TestAnalyticsSummary:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         Vote.objects.create(
             user=user,
@@ -489,17 +503,19 @@ class TestAnalyticsWithVariousDataVolumes:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
-        # Create votes across multiple hours
+        # Create votes across multiple hours (use different users to avoid unique constraint)
         for hour in range(10):
+            vote_user = User.objects.create_user(username=f"testuser_h{hour}_{uuid.uuid4().hex[:8]}", password="pass")
             vote_time = poll.starts_at + timedelta(hours=hour)
             with freeze_time(vote_time):
                 Vote.objects.create(
-                    user=user,
+                    user=vote_user,
                     poll=poll,
                     option=choices[0],
-                    ip_address="192.168.1.1",
+                    ip_address=f"192.168.1.{hour % 10}",
                     voter_token=f"token{hour}",
                     idempotency_key=f"key{hour}",
                 )
@@ -560,17 +576,19 @@ class TestAnalyticsPerformance:
         from django.contrib.auth.models import User
         import time
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
-        # Create votes across many time buckets
+        # Create votes across many time buckets (use different users to avoid unique constraint)
         for hour in range(100):
+            vote_user = User.objects.create_user(username=f"testuser_h{hour}_{uuid.uuid4().hex[:8]}", password="pass")
             vote_time = poll.starts_at + timedelta(hours=hour)
             with freeze_time(vote_time):
                 Vote.objects.create(
-                    user=user,
+                    user=vote_user,
                     poll=poll,
                     option=choices[0],
-                    ip_address="192.168.1.1",
+                    ip_address=f"192.168.1.{hour % 10}",
                     voter_token=f"token{hour}",
                     idempotency_key=f"key{hour}",
                 )

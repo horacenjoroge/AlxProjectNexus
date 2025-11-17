@@ -2,6 +2,7 @@
 Integration tests for fingerprint validation in vote casting.
 """
 
+import hashlib
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
@@ -9,6 +10,11 @@ from django.utils import timezone
 
 from apps.votes.services import cast_vote
 from core.exceptions import FingerprintValidationError, FraudDetectedError
+
+
+def make_fingerprint(seed: str) -> str:
+    """Generate a valid 64-character hex fingerprint from a seed string."""
+    return hashlib.sha256(seed.encode()).hexdigest()
 
 
 @pytest.mark.django_db
@@ -39,7 +45,8 @@ class TestFingerprintValidationInVoteCasting:
         """Test that anonymous votes with valid fingerprint succeed."""
         factory = RequestFactory()
         request = factory.post("/api/votes/cast/")
-        request.fingerprint = "a" * 64  # Valid fingerprint
+        fingerprint = make_fingerprint("valid_fp")
+        request.fingerprint = fingerprint
         request.META["REMOTE_ADDR"] = "192.168.1.1"
 
         anonymous_user = AnonymousUser()
@@ -52,7 +59,7 @@ class TestFingerprintValidationInVoteCasting:
         )
 
         assert vote is not None
-        assert vote.fingerprint == "a" * 64
+        assert vote.fingerprint == fingerprint
         assert is_new is True
 
     def test_authenticated_vote_without_fingerprint_succeeds(self, user, poll, choices):
@@ -117,7 +124,7 @@ class TestFingerprintValidationInVoteCasting:
         from apps.votes.models import Vote
 
         factory = RequestFactory()
-        fingerprint = "shared_fp" + "a" * 54
+        fingerprint = make_fingerprint("shared_fp")
 
         # First vote from IP1
         request1 = factory.post("/api/votes/cast/")
@@ -166,7 +173,7 @@ class TestFingerprintValidationInVoteCasting:
         from core.utils.idempotency import generate_idempotency_key
 
         factory = RequestFactory()
-        fingerprint = "test_fp" + "a" * 54
+        fingerprint = make_fingerprint("test_fp")
         ip_address = "192.168.1.1"
 
         request = factory.post("/api/votes/cast/")
@@ -220,7 +227,7 @@ class TestFingerprintValidationInVoteCasting:
             user=user,
             poll=poll,
             option=choices[0],
-            fingerprint="old_fp" + "a" * 55,
+            fingerprint=make_fingerprint("old_fp"),
             ip_address="192.168.1.1",
             voter_token="token1",
             idempotency_key="key1",
@@ -229,7 +236,8 @@ class TestFingerprintValidationInVoteCasting:
 
         # Cast vote with different fingerprint (should be OK - old vote is outside time window)
         request = factory.post("/api/votes/cast/")
-        request.fingerprint = "new_fp" + "b" * 55
+        fingerprint = make_fingerprint("new_fp")
+        request.fingerprint = fingerprint
         request.META["REMOTE_ADDR"] = "192.168.1.1"
 
         vote, is_new = cast_vote(
@@ -242,5 +250,5 @@ class TestFingerprintValidationInVoteCasting:
         # Should succeed (legitimate change)
         assert vote is not None
         assert is_new is True
-        assert vote.fingerprint == "new_fp" + "b" * 55
+        assert vote.fingerprint == fingerprint
 

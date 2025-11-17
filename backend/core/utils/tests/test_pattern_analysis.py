@@ -28,13 +28,14 @@ class TestSingleIPSingleOptionPattern:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
         ip_address = "192.168.1.1"
 
-        # Create 5 votes from same IP to same option
+        # Create 5 votes from same IP to same option (use different users to avoid unique constraint)
         for i in range(5):
+            vote_user = User.objects.create_user(username=f"testuser_{i}_{uuid.uuid4().hex[:8]}", password="pass")
             Vote.objects.create(
-                user=user,
+                user=vote_user,
                 poll=poll,
                 option=choices[0],
                 ip_address=ip_address,
@@ -55,12 +56,14 @@ class TestSingleIPSingleOptionPattern:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
         ip_address = "192.168.1.1"
 
-        # Create votes to different options (legitimate)
+        # Create votes to different options (legitimate) - use different users
+        user1 = User.objects.create_user(username=f"testuser1_{uuid.uuid4().hex[:8]}", password="pass")
+        user2 = User.objects.create_user(username=f"testuser2_{uuid.uuid4().hex[:8]}", password="pass")
         Vote.objects.create(
-            user=user,
+            user=user1,
             poll=poll,
             option=choices[0],
             ip_address=ip_address,
@@ -68,7 +71,7 @@ class TestSingleIPSingleOptionPattern:
             idempotency_key="key1",
         )
         Vote.objects.create(
-            user=user,
+            user=user2,
             poll=poll,
             option=choices[1],
             ip_address=ip_address,
@@ -86,13 +89,14 @@ class TestSingleIPSingleOptionPattern:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
         ip_address = "192.168.1.1"
 
-        # Create only 2 votes (below threshold of 5)
+        # Create only 2 votes (below threshold of 5) - use different users
         for i in range(2):
+            vote_user = User.objects.create_user(username=f"testuser_{i}_{uuid.uuid4().hex[:8]}", password="pass")
             Vote.objects.create(
-                user=user,
+                user=vote_user,
                 poll=poll,
                 option=choices[0],
                 ip_address=ip_address,
@@ -115,7 +119,8 @@ class TestTimeClusteredVotes:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create 10 votes within 30 seconds (bot attack pattern)
         with freeze_time("2024-01-01 10:00:00"):
@@ -142,7 +147,8 @@ class TestTimeClusteredVotes:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create votes spread over 2 hours
         with freeze_time("2024-01-01 10:00:00"):
@@ -182,7 +188,8 @@ class TestGeographicAnomalies:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create votes from different IPs in short time
         with freeze_time("2024-01-01 10:00:00"):
@@ -215,7 +222,8 @@ class TestGeographicAnomalies:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create votes from different IPs with reasonable time gap
         with freeze_time("2024-01-01 10:00:00"):
@@ -317,7 +325,8 @@ class TestPatternAnalysisIntegration:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create suspicious pattern: single IP, single option, clustered in time
         with freeze_time("2024-01-01 10:00:00"):
@@ -345,7 +354,8 @@ class TestPatternAnalysisIntegration:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
         ip_address = "192.168.1.1"
 
         # Create suspicious pattern
@@ -384,7 +394,8 @@ class TestPatternAnalysisIntegration:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user = User.objects.create_user(username="testuser", password="pass")
+        import uuid
+        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
         ip_address = "192.168.1.1"
 
         # Create suspicious votes

@@ -2,6 +2,7 @@
 Tests for fingerprint validation utilities.
 """
 
+import hashlib
 import pytest
 from django.core.cache import cache
 from django.test import RequestFactory
@@ -19,14 +20,20 @@ from core.utils.fingerprint_validation import (
 )
 
 
+def make_fingerprint(seed: str) -> str:
+    """Generate a valid 64-character hex fingerprint from a seed string."""
+    return hashlib.sha256(seed.encode()).hexdigest()
+
+
 @pytest.mark.unit
 class TestFingerprintValidation:
     """Test fingerprint validation functions."""
 
     def test_get_fingerprint_cache_key(self):
         """Test cache key generation."""
-        key = get_fingerprint_cache_key("abc123", 1)
-        assert key == "fp:activity:abc123:1"
+        fp = make_fingerprint("abc123")
+        key = get_fingerprint_cache_key(fp, 1)
+        assert key == f"fp:activity:{fp}:1"
 
     def test_check_fingerprint_suspicious_no_fingerprint(self):
         """Test that empty fingerprint returns not suspicious."""
@@ -37,7 +44,8 @@ class TestFingerprintValidation:
     def test_check_fingerprint_suspicious_clean_fingerprint(self, db):
         """Test clean fingerprint passes validation."""
         cache.clear()
-        result = check_fingerprint_suspicious("clean_fp_123", 1, 1)
+        fp = make_fingerprint("clean_fp_123")
+        result = check_fingerprint_suspicious(fp, 1, 1)
         assert result["suspicious"] is False
         assert result["risk_score"] == 0
         assert result["block_vote"] is False
@@ -45,9 +53,10 @@ class TestFingerprintValidation:
     def test_update_fingerprint_cache(self):
         """Test updating fingerprint cache."""
         cache.clear()
-        update_fingerprint_cache("test_fp", 1, 1, "192.168.1.1")
+        fp = make_fingerprint("test_fp")
+        update_fingerprint_cache(fp, 1, 1, "192.168.1.1")
 
-        cache_key = get_fingerprint_cache_key("test_fp", 1)
+        cache_key = get_fingerprint_cache_key(fp, 1)
         cached_data = cache.get(cache_key)
 
         assert cached_data is not None
@@ -58,10 +67,11 @@ class TestFingerprintValidation:
     def test_update_fingerprint_cache_increments_count(self):
         """Test that cache increments count on multiple updates."""
         cache.clear()
-        update_fingerprint_cache("test_fp", 1, 1, "192.168.1.1")
-        update_fingerprint_cache("test_fp", 1, 1, "192.168.1.1")
+        fp = make_fingerprint("test_fp")
+        update_fingerprint_cache(fp, 1, 1, "192.168.1.1")
+        update_fingerprint_cache(fp, 1, 1, "192.168.1.1")
 
-        cache_key = get_fingerprint_cache_key("test_fp", 1)
+        cache_key = get_fingerprint_cache_key(fp, 1)
         cached_data = cache.get(cache_key)
 
         assert cached_data["count"] == 2
@@ -69,10 +79,11 @@ class TestFingerprintValidation:
     def test_update_fingerprint_cache_tracks_multiple_users(self):
         """Test that cache tracks multiple users."""
         cache.clear()
-        update_fingerprint_cache("test_fp", 1, 1, "192.168.1.1")
-        update_fingerprint_cache("test_fp", 1, 2, "192.168.1.2")
+        fp = make_fingerprint("test_fp")
+        update_fingerprint_cache(fp, 1, 1, "192.168.1.1")
+        update_fingerprint_cache(fp, 1, 2, "192.168.1.2")
 
-        cache_key = get_fingerprint_cache_key("test_fp", 1)
+        cache_key = get_fingerprint_cache_key(fp, 1)
         cached_data = cache.get(cache_key)
 
         assert cached_data["user_count"] == 2
@@ -81,10 +92,11 @@ class TestFingerprintValidation:
     def test_update_fingerprint_cache_tracks_multiple_ips(self):
         """Test that cache tracks multiple IPs."""
         cache.clear()
-        update_fingerprint_cache("test_fp", 1, 1, "192.168.1.1")
-        update_fingerprint_cache("test_fp", 1, 1, "192.168.1.2")
+        fp = make_fingerprint("test_fp")
+        update_fingerprint_cache(fp, 1, 1, "192.168.1.1")
+        update_fingerprint_cache(fp, 1, 1, "192.168.1.2")
 
-        cache_key = get_fingerprint_cache_key("test_fp", 1)
+        cache_key = get_fingerprint_cache_key(fp, 1)
         cached_data = cache.get(cache_key)
 
         assert cached_data["ip_count"] == 2
@@ -113,18 +125,19 @@ class TestFingerprintSuspiciousDetection:
             user=user,
             poll=poll,
             option=option,
-            fingerprint="suspicious_fp",
+            fingerprint=make_fingerprint("suspicious_fp"),
             ip_address="192.168.1.1",
             voter_token="token1",
             idempotency_key="key1",
         )
 
         # Update cache
-        update_fingerprint_cache("suspicious_fp", poll.id, user.id, "192.168.1.1")
+        fp = make_fingerprint("suspicious_fp")
+        update_fingerprint_cache(fp, poll.id, user.id, "192.168.1.1")
 
         # Check with different user
         result = check_fingerprint_suspicious(
-            "suspicious_fp", poll.id, user2.id, "192.168.1.2"
+            fp, poll.id, user2.id, "192.168.1.2"
         )
 
         assert result["suspicious"] is True
@@ -147,7 +160,7 @@ class TestFingerprintSuspiciousDetection:
                 user=user,
                 poll=poll,
                 option=option,
-                fingerprint="rapid_fp",
+                fingerprint=make_fingerprint("rapid_fp"),
                 ip_address="192.168.1.1",
                 voter_token="token1",
                 idempotency_key="key1",
@@ -158,7 +171,7 @@ class TestFingerprintSuspiciousDetection:
                 user=user,
                 poll=poll,
                 option=option,
-                fingerprint="rapid_fp",
+                fingerprint=make_fingerprint("rapid_fp"),
                 ip_address="192.168.1.1",
                 voter_token="token2",
                 idempotency_key="key2",
@@ -169,15 +182,16 @@ class TestFingerprintSuspiciousDetection:
                 user=user,
                 poll=poll,
                 option=option,
-                fingerprint="rapid_fp",
+                fingerprint=make_fingerprint("rapid_fp"),
                 ip_address="192.168.1.1",
                 voter_token="token3",
                 idempotency_key="key3",
             )
 
         # Check fingerprint (should detect rapid votes)
+        fp = make_fingerprint("rapid_fp")
         result = check_fingerprint_suspicious(
-            "rapid_fp", poll.id, user.id, "192.168.1.1"
+            fp, poll.id, user.id, "192.168.1.1"
         )
 
         # Should detect rapid votes pattern
@@ -199,7 +213,7 @@ class TestFingerprintSuspiciousDetection:
             user=user,
             poll=poll,
             option=option,
-            fingerprint="multi_ip_fp",
+            fingerprint=make_fingerprint("multi_ip_fp"),
             ip_address="192.168.1.1",
             voter_token="token1",
             idempotency_key="key1",
@@ -209,15 +223,16 @@ class TestFingerprintSuspiciousDetection:
             user=user,
             poll=poll,
             option=option,
-            fingerprint="multi_ip_fp",
+            fingerprint=make_fingerprint("multi_ip_fp"),
             ip_address="192.168.1.2",
             voter_token="token2",
             idempotency_key="key2",
         )
 
         # Check fingerprint
+        fp = make_fingerprint("multi_ip_fp")
         result = check_fingerprint_suspicious(
-            "multi_ip_fp", poll.id, user.id, "192.168.1.3"
+            fp, poll.id, user.id, "192.168.1.3"
         )
 
         assert result["suspicious"] is True
@@ -240,7 +255,7 @@ class TestFingerprintSuspiciousDetection:
             user=user,
             poll=poll,
             option=option,
-            fingerprint="old_fp",
+            fingerprint=make_fingerprint("old_fp"),
             ip_address="192.168.1.1",
             voter_token="token1",
             idempotency_key="key1",
@@ -252,14 +267,15 @@ class TestFingerprintSuspiciousDetection:
             user=user,
             poll=poll,
             option=option,
-            fingerprint="recent_fp",
+            fingerprint=make_fingerprint("recent_fp"),
             ip_address="192.168.1.1",
             voter_token="token2",
             idempotency_key="key2",
         )
 
         # Check - should only query recent votes
-        result = check_fingerprint_suspicious("recent_fp", poll.id, user.id, "192.168.1.1")
+        fp = make_fingerprint("recent_fp")
+        result = check_fingerprint_suspicious(fp, poll.id, user.id, "192.168.1.1")
 
         # Should not be suspicious (only 1 recent vote)
         assert result["suspicious"] is False
@@ -279,18 +295,19 @@ class TestFingerprintValidationIntegration:
         option = PollOption.objects.create(poll=poll, text="Option 1")
 
         # First check - cache miss, should query database
-        result1 = check_fingerprint_suspicious("perf_fp", poll.id, user.id, "192.168.1.1")
+        fp = make_fingerprint("perf_fp")
+        result1 = check_fingerprint_suspicious(fp, poll.id, user.id, "192.168.1.1")
         assert result1["suspicious"] is False
 
         # Update cache
-        update_fingerprint_cache("perf_fp", poll.id, user.id, "192.168.1.1")
+        update_fingerprint_cache(fp, poll.id, user.id, "192.168.1.1")
 
         # Second check - cache hit, should be fast
-        result2 = check_fingerprint_suspicious("perf_fp", poll.id, user.id, "192.168.1.1")
+        result2 = check_fingerprint_suspicious(fp, poll.id, user.id, "192.168.1.1")
         assert result2["suspicious"] is False
 
         # Verify cache was used (no database query needed)
-        cache_key = get_fingerprint_cache_key("perf_fp", poll.id)
+        cache_key = get_fingerprint_cache_key(fp, poll.id)
         cached_data = cache.get(cache_key)
         assert cached_data is not None
         assert cached_data["count"] >= 1
@@ -310,7 +327,7 @@ class TestPermanentFingerprintBlocking:
 
         # Create permanent block
         FingerprintBlock.objects.create(
-            fingerprint="blocked_fp_123",
+            fingerprint=make_fingerprint("blocked_fp_123"),
             reason="Used by multiple users",
             first_seen_user=user,
             total_users=2,
@@ -318,8 +335,9 @@ class TestPermanentFingerprintBlocking:
         )
 
         # Try to check fingerprint
+        fp = make_fingerprint("blocked_fp_123")
         result = check_fingerprint_suspicious(
-            "blocked_fp_123", poll.id, user.id, "192.168.1.1"
+            fp, poll.id, user.id, "192.168.1.1"
         )
 
         assert result["suspicious"] is True
@@ -343,31 +361,32 @@ class TestPermanentFingerprintBlocking:
             user=user,
             poll=poll,
             option=option,
-            fingerprint="suspicious_fp",
+            fingerprint=make_fingerprint("suspicious_fp"),
             ip_address="192.168.1.1",
             voter_token="token1",
             idempotency_key="key1",
         )
 
         # Update cache to mark as suspicious
-        update_fingerprint_cache("suspicious_fp", poll.id, user.id, "192.168.1.1")
+        fp = make_fingerprint("suspicious_fp")
+        update_fingerprint_cache(fp, poll.id, user.id, "192.168.1.1")
 
         # Try to vote with different user (should trigger permanent block)
         factory = RequestFactory()
         request = factory.post("/api/votes/")
-        request.fingerprint = "suspicious_fp"
+        request.fingerprint = make_fingerprint("suspicious_fp")
         request.META["REMOTE_ADDR"] = "192.168.1.2"
 
         # Check fingerprint (should block and create permanent block)
         result = check_fingerprint_suspicious(
-            "suspicious_fp", poll.id, user2.id, "192.168.1.2"
+            fp, poll.id, user2.id, "192.168.1.2"
         )
 
         assert result["block_vote"] is True
 
         # Verify permanent block was created
         block = FingerprintBlock.objects.filter(
-            fingerprint="suspicious_fp", is_active=True
+            fingerprint=make_fingerprint("suspicious_fp"), is_active=True
         ).first()
         assert block is not None
         assert block.reason
@@ -385,7 +404,7 @@ class TestPermanentFingerprintBlocking:
 
         # Create permanent block
         block = FingerprintBlock.objects.create(
-            fingerprint="persistent_blocked_fp",
+            fingerprint=make_fingerprint("persistent_blocked_fp"),
             reason="Used by multiple users",
             first_seen_user=user,
             total_users=2,
@@ -397,8 +416,9 @@ class TestPermanentFingerprintBlocking:
         cache.clear()
 
         # Try to check fingerprint (should still be blocked)
+        fp = make_fingerprint("persistent_blocked_fp")
         result = check_fingerprint_suspicious(
-            "persistent_blocked_fp", poll.id, user.id, "192.168.1.1"
+            fp, poll.id, user.id, "192.168.1.1"
         )
 
         assert result["block_vote"] is True
@@ -414,7 +434,7 @@ class TestPermanentFingerprintBlocking:
 
         # Create and then unblock fingerprint
         block = FingerprintBlock.objects.create(
-            fingerprint="unblocked_fp",
+            fingerprint=make_fingerprint("unblocked_fp"),
             reason="Test block",
             first_seen_user=user,
             total_users=1,
@@ -423,8 +443,9 @@ class TestPermanentFingerprintBlocking:
         block.unblock()
 
         # Try to check fingerprint (should not be blocked)
+        fp = make_fingerprint("unblocked_fp")
         result = check_fingerprint_suspicious(
-            "unblocked_fp", poll.id, user.id, "192.168.1.1"
+            fp, poll.id, user.id, "192.168.1.1"
         )
 
         # Should not be blocked (is_active=False)
@@ -532,7 +553,7 @@ class TestDetectSuspiciousFingerprintChanges:
             user=user,
             poll=poll,
             option=option,
-            fingerprint="fingerprint1" + "a" * 52,  # 64 chars
+            fingerprint=make_fingerprint("fingerprint1"),
             ip_address="192.168.1.1",
             voter_token="token1",
             idempotency_key="key1",
@@ -540,7 +561,7 @@ class TestDetectSuspiciousFingerprintChanges:
 
         # Check with different fingerprint
         result = detect_suspicious_fingerprint_changes(
-            fingerprint="fingerprint2" + "b" * 52,  # Different fingerprint
+            fingerprint=make_fingerprint("fingerprint2"),  # Different fingerprint
             user_id=user.id,
             ip_address="192.168.1.1",
             poll_id=poll.id,
@@ -558,19 +579,21 @@ class TestDetectSuspiciousFingerprintChanges:
         option = PollOption.objects.create(poll=poll, text="Option 1")
 
         # Create vote with first fingerprint from IP
+        fp1 = make_fingerprint("fingerprint1")
         Vote.objects.create(
             user=user,
             poll=poll,
             option=option,
-            fingerprint="fingerprint1" + "a" * 52,
+            fingerprint=fp1,
             ip_address="192.168.1.1",
             voter_token="token1",
             idempotency_key="key1",
         )
 
         # Check with different fingerprint from same IP
+        fp2 = make_fingerprint("fingerprint2")
         result = detect_suspicious_fingerprint_changes(
-            fingerprint="fingerprint2" + "b" * 52,
+            fingerprint=fp2,
             user_id=None,
             ip_address="192.168.1.1",
             poll_id=poll.id,
@@ -593,7 +616,7 @@ class TestDetectSuspiciousFingerprintChanges:
                 user=user,
                 poll=poll,
                 option=option,
-                fingerprint="fp1" + "a" * 61,
+                fingerprint=make_fingerprint("fp1"),
                 ip_address="192.168.1.1",
                 voter_token="token1",
                 idempotency_key="key1",
@@ -604,7 +627,7 @@ class TestDetectSuspiciousFingerprintChanges:
                 user=user,
                 poll=poll,
                 option=option,
-                fingerprint="fp2" + "b" * 61,
+                fingerprint=make_fingerprint("fp2"),
                 ip_address="192.168.1.1",
                 voter_token="token2",
                 idempotency_key="key2",
@@ -615,7 +638,7 @@ class TestDetectSuspiciousFingerprintChanges:
                 user=user,
                 poll=poll,
                 option=option,
-                fingerprint="fp3" + "c" * 61,
+                fingerprint=make_fingerprint("fp3"),
                 ip_address="192.168.1.1",
                 voter_token="token3",
                 idempotency_key="key3",
@@ -623,7 +646,7 @@ class TestDetectSuspiciousFingerprintChanges:
 
         # Check with another different fingerprint
         result = detect_suspicious_fingerprint_changes(
-            fingerprint="fp4" + "d" * 61,
+            fingerprint=make_fingerprint("fp4"),
             user_id=user.id,
             ip_address="192.168.1.1",
             poll_id=poll.id,
@@ -648,7 +671,7 @@ class TestDetectSuspiciousFingerprintChanges:
             user=user,
             poll=poll,
             option=option,
-            fingerprint="old_fp" + "a" * 55,
+            fingerprint=make_fingerprint("old_fp_v2"),
             ip_address="192.168.1.1",
             voter_token="token1",
             idempotency_key="key1",
@@ -657,7 +680,7 @@ class TestDetectSuspiciousFingerprintChanges:
 
         # Check with different fingerprint (should be OK - old vote is outside window)
         result = detect_suspicious_fingerprint_changes(
-            fingerprint="new_fp" + "b" * 55,
+            fingerprint=make_fingerprint("new_fp_v2"),
             user_id=user.id,
             ip_address="192.168.1.1",
             poll_id=poll.id,
@@ -679,7 +702,7 @@ class TestFingerprintIPCombination:
         poll = Poll.objects.create(title="Test Poll", created_by=user)
         option = PollOption.objects.create(poll=poll, text="Option 1")
 
-        fingerprint = "shared_fp" + "a" * 54
+        fingerprint = make_fingerprint("shared_fp")
 
         # Create vote with fingerprint from IP1
         Vote.objects.create(
@@ -722,7 +745,7 @@ class TestFingerprintIPCombination:
         poll = Poll.objects.create(title="Test Poll", created_by=user)
         option = PollOption.objects.create(poll=poll, text="Option 1")
 
-        fingerprint = "consistent_fp" + "a" * 54
+        fingerprint = make_fingerprint("consistent_fp")
 
         # Create vote with fingerprint from IP
         Vote.objects.create(

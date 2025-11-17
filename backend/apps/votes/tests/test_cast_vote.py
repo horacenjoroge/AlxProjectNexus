@@ -3,6 +3,7 @@ Comprehensive tests for cast_vote() core voting service.
 Tests atomic operations, idempotency, validation, and race conditions.
 """
 
+import hashlib
 import pytest
 from django.core.cache import cache
 from django.test import RequestFactory
@@ -18,6 +19,11 @@ from core.exceptions import (
     PollClosedError,
     PollNotFoundError,
 )
+
+
+def make_fingerprint(seed: str) -> str:
+    """Generate a valid 64-character hex fingerprint from a seed string."""
+    return hashlib.sha256(seed.encode()).hexdigest()
 
 
 @pytest.mark.django_db
@@ -439,7 +445,7 @@ class TestCastVoteDatabaseRollback:
         from apps.votes.models import Vote
 
         # Create permanent block for fingerprint
-        fingerprint = "blocked_fp_123"
+        fingerprint = make_fingerprint("blocked_fp_123")
         FingerprintBlock.objects.create(
             fingerprint=fingerprint,
             reason="Test block",
@@ -503,7 +509,8 @@ class TestCastVoteEdgeCases:
         """Test voting with fingerprint."""
         factory = RequestFactory()
         request = factory.post("/api/votes/")
-        request.fingerprint = "test_fingerprint_123"
+        fingerprint = make_fingerprint("test_fingerprint_123")
+        request.fingerprint = fingerprint
         request.META["REMOTE_ADDR"] = "192.168.1.1"
 
         vote, is_new = cast_vote(
@@ -513,7 +520,7 @@ class TestCastVoteEdgeCases:
             request=request,
         )
 
-        assert vote.fingerprint == "test_fingerprint_123"
+        assert vote.fingerprint == fingerprint
         assert vote.ip_address == "192.168.1.1"
         assert is_new is True
 
@@ -535,7 +542,8 @@ class TestCastVoteEdgeCases:
         """Test that vote creates voter token."""
         factory = RequestFactory()
         request = factory.post("/api/votes/")
-        request.fingerprint = "fp123"
+        fingerprint = make_fingerprint("fp123")
+        request.fingerprint = fingerprint
         request.META["REMOTE_ADDR"] = "192.168.1.1"
         request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
 
@@ -558,7 +566,7 @@ class TestCastVoteRedisPubSub:
         """Test that casting a vote publishes an event to Redis."""
         from unittest.mock import patch
 
-        with patch("apps.votes.services.publish_vote_event") as mock_publish:
+        with patch("core.utils.redis_pubsub.publish_vote_event") as mock_publish:
             vote, is_new = cast_vote(
                 user=user,
                 poll_id=poll.id,
@@ -578,7 +586,7 @@ class TestCastVoteRedisPubSub:
         from unittest.mock import patch
 
         # Simulate Redis failure
-        with patch("apps.votes.services.publish_vote_event", side_effect=Exception("Redis error")):
+        with patch("core.utils.redis_pubsub.publish_vote_event", side_effect=Exception("Redis error")):
             # Vote should still succeed even if Redis fails
             vote, is_new = cast_vote(
                 user=user,

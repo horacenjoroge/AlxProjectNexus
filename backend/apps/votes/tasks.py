@@ -17,6 +17,9 @@ from core.utils.pattern_analysis import (
     generate_pattern_alerts,
 )
 
+# Import Poll at module level for test patching
+from apps.polls.models import Poll
+
 logger = logging.getLogger(__name__)
 
 
@@ -182,8 +185,6 @@ def periodic_pattern_analysis():
     suspicious voting patterns across the entire system.
     """
     try:
-        from apps.polls.models import Poll
-        
         logger.info("Starting periodic pattern analysis for all active polls")
         
         # Get all active polls
