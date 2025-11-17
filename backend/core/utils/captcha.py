@@ -8,7 +8,7 @@ Provides:
 """
 
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import requests
 from django.conf import settings

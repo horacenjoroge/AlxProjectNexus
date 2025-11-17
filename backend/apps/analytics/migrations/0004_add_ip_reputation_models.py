@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='ipreputation',
-            index=models.Index(fields=['ip_address'], name='analytics_i_ip_addr_idx'),
+            index=models.Index(fields=['ip_address'], name='analytics_i_reput_ip_addr_idx'),
         ),
         migrations.AddIndex(
             model_name='ipreputation',
@@ -85,7 +85,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='ipblock',
-            index=models.Index(fields=['ip_address', 'is_active'], name='analytics_i_ip_addr_idx'),
+            index=models.Index(fields=['ip_address', 'is_active'], name='analytics_i_block_ip_addr_idx'),
         ),
         migrations.AddIndex(
             model_name='ipblock',
@@ -97,7 +97,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='ipwhitelist',
-            index=models.Index(fields=['ip_address', 'is_active'], name='analytics_i_ip_addr_idx'),
+            index=models.Index(fields=['ip_address', 'is_active'], name='analytics_i_white_ip_addr_idx'),
         ),
     ]
 

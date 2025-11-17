@@ -36,6 +36,4 @@ class PollOptionAdmin(admin.ModelAdmin):
     search_fields = ["text", "poll__title"]
     readonly_fields = ["created_at", "cached_vote_count"]
 
-
-# Register backward compatibility alias
-admin.site.register(Choice, PollOptionAdmin)
+# Note: Choice is an alias for PollOption, so no need to register separately

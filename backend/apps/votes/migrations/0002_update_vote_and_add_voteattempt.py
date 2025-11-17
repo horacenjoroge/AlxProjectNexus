@@ -13,18 +13,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Update Vote model: rename choice to option
-        migrations.RenameField(
-            model_name='vote',
-            old_name='choice',
-            new_name='option',
-        ),
-        # Update Vote foreign key to use PollOption
-        migrations.AlterField(
-            model_name='vote',
-            name='option',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='votes', to='polls.polloption'),
-        ),
+        # Note: option field already created correctly in 0001_initial with polls.polloption
+        # No need to rename or alter the field
         # Add new fields to Vote
         migrations.AddField(
             model_name='vote',
@@ -45,6 +35,21 @@ class Migration(migrations.Migration):
             model_name='vote',
             name='fingerprint',
             field=models.CharField(blank=True, db_index=True, help_text='Browser/device fingerprint', max_length=128),
+        ),
+        migrations.AddField(
+            model_name='vote',
+            name='is_valid',
+            field=models.BooleanField(db_index=True, default=True, help_text='Whether this vote is valid (False if fraud detected)'),
+        ),
+        migrations.AddField(
+            model_name='vote',
+            name='fraud_reasons',
+            field=models.TextField(blank=True, help_text='Comma-separated list of fraud detection reasons (if is_valid=False)'),
+        ),
+        migrations.AddField(
+            model_name='vote',
+            name='risk_score',
+            field=models.IntegerField(default=0, help_text='Risk score (0-100) from fraud detection'),
         ),
         # Remove old indexes
         migrations.RemoveIndex(
@@ -79,6 +84,10 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='vote',
             index=models.Index(fields=['fingerprint', 'created_at'], name='votes_vote_fingerprint_created_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='vote',
+            index=models.Index(fields=['is_valid', 'poll'], name='votes_vote_is_valid_poll_idx'),
         ),
         # Create VoteAttempt model
         migrations.CreateModel(
