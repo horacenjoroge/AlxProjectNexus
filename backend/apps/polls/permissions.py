@@ -51,3 +51,23 @@ class CanModifyPoll(permissions.BasePermission):
 
         return True
 
+
+class IsAdminOrPollOwner(permissions.BasePermission):
+    """
+    Permission class that allows access only to:
+    - Poll owners (created_by == user)
+    - Admin users (is_staff == True)
+    """
+
+    def has_object_permission(self, request, view, obj):
+        """Check if user can access analytics for this poll."""
+        # Check if user is admin
+        if request.user and request.user.is_authenticated and request.user.is_staff:
+            return True
+
+        # Check if user is poll owner
+        if request.user and request.user.is_authenticated:
+            return obj.created_by == request.user
+
+        return False
+

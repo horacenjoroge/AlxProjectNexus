@@ -11,9 +11,15 @@ from rest_framework.response import Response
 
 from core.mixins import RateLimitHeadersMixin
 from core.throttles import PollCreateRateThrottle, PollReadRateThrottle
+from core.services.poll_analytics import (
+    get_comprehensive_analytics,
+    get_total_votes_over_time,
+    get_voter_demographics,
+    get_participation_rate,
+)
 
 from .models import Poll, PollOption
-from .permissions import CanModifyPoll, IsPollOwnerOrReadOnly
+from .permissions import CanModifyPoll, IsAdminOrPollOwner, IsPollOwnerOrReadOnly
 from .services import (
     calculate_poll_results,
     can_view_results,
@@ -473,3 +479,255 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
             PollSerializer(poll).data,
             status=status.HTTP_201_CREATED,
         )
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="analytics",
+        permission_classes=[IsAdminOrPollOwner],
+    )
+    def analytics(self, request, pk=None):
+        """
+        Get overview analytics for a poll.
+        
+        GET /api/v1/polls/{id}/analytics/
+        
+        Returns comprehensive analytics including:
+        - Total votes and unique voters
+        - Time series data
+        - Demographics
+        - Participation metrics
+        - Vote distribution
+        - Drop-off rates
+        
+        Access: Admin or poll owner only
+        """
+        poll = self.get_object()
+        
+        # Check permissions
+        if not IsAdminOrPollOwner().has_object_permission(request, self, poll):
+            return Response(
+                {"error": "You do not have permission to view analytics for this poll"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        # Check cache
+        from django.core.cache import cache
+        cache_key = f"poll_analytics:{poll.id}"
+        cached_analytics = cache.get(cache_key)
+        
+        if cached_analytics:
+            return Response(cached_analytics, status=status.HTTP_200_OK)
+        
+        # Generate analytics
+        analytics = get_comprehensive_analytics(poll.id)
+        
+        if "error" in analytics:
+            return Response(analytics, status=status.HTTP_404_NOT_FOUND)
+        
+        # Cache for 5 minutes
+        cache.set(cache_key, analytics, 300)
+        
+        return Response(analytics, status=status.HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="analytics/timeseries",
+        permission_classes=[IsAdminOrPollOwner],
+    )
+    def analytics_timeseries(self, request, pk=None):
+        """
+        Get votes over time (time series data).
+        
+        GET /api/v1/polls/{id}/analytics/timeseries/?interval=hour|day&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+        
+        Query Parameters:
+        - interval: 'hour' or 'day' (default: 'hour')
+        - start_date: Start date in ISO format (optional)
+        - end_date: End date in ISO format (optional)
+        
+        Access: Admin or poll owner only
+        """
+        poll = self.get_object()
+        
+        # Check permissions
+        if not IsAdminOrPollOwner().has_object_permission(request, self, poll):
+            return Response(
+                {"error": "You do not have permission to view analytics for this poll"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        # Parse query parameters
+        interval = request.query_params.get("interval", "hour")
+        if interval not in ["hour", "day"]:
+            interval = "hour"
+        
+        start_date = None
+        end_date = None
+        
+        start_date_str = request.query_params.get("start_date")
+        if start_date_str:
+            try:
+                from datetime import datetime
+                start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
+            except ValueError:
+                return Response(
+                    {"error": "Invalid start_date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        
+        end_date_str = request.query_params.get("end_date")
+        if end_date_str:
+            try:
+                from datetime import datetime
+                end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+            except ValueError:
+                return Response(
+                    {"error": "Invalid end_date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        
+        # Check cache
+        from django.core.cache import cache
+        cache_key = f"poll_timeseries:{poll.id}:{interval}:{start_date_str}:{end_date_str}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            return Response(cached_data, status=status.HTTP_200_OK)
+        
+        # Generate time series
+        time_series = get_total_votes_over_time(
+            poll.id,
+            start_date=start_date,
+            end_date=end_date,
+            interval=interval,
+        )
+        
+        response_data = {
+            "poll_id": poll.id,
+            "poll_title": poll.title,
+            "interval": interval,
+            "start_date": start_date.isoformat() if start_date else None,
+            "end_date": end_date.isoformat() if end_date else None,
+            "data": time_series,
+        }
+        
+        # Cache for 5 minutes
+        cache.set(cache_key, response_data, 300)
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="analytics/demographics",
+        permission_classes=[IsAdminOrPollOwner],
+    )
+    def analytics_demographics(self, request, pk=None):
+        """
+        Get voter demographics breakdown.
+        
+        GET /api/v1/polls/{id}/analytics/demographics/
+        
+        Returns:
+        - Authenticated vs anonymous voters
+        - Unique IP addresses
+        - Top user agents
+        
+        Access: Admin or poll owner only
+        """
+        poll = self.get_object()
+        
+        # Check permissions
+        if not IsAdminOrPollOwner().has_object_permission(request, self, poll):
+            return Response(
+                {"error": "You do not have permission to view analytics for this poll"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        # Check cache
+        from django.core.cache import cache
+        cache_key = f"poll_demographics:{poll.id}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            return Response(cached_data, status=status.HTTP_200_OK)
+        
+        # Generate demographics
+        demographics = get_voter_demographics(poll.id)
+        
+        response_data = {
+            "poll_id": poll.id,
+            "poll_title": poll.title,
+            **demographics,
+        }
+        
+        # Cache for 5 minutes
+        cache.set(cache_key, response_data, 300)
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="analytics/participation",
+        permission_classes=[IsAdminOrPollOwner],
+    )
+    def analytics_participation(self, request, pk=None):
+        """
+        Get participation metrics.
+        
+        GET /api/v1/polls/{id}/analytics/participation/
+        
+        Returns:
+        - Participation rate (if view tracking available)
+        - Unique voters
+        - Total votes
+        - Average time to vote
+        - Drop-off rate
+        
+        Access: Admin or poll owner only
+        """
+        poll = self.get_object()
+        
+        # Check permissions
+        if not IsAdminOrPollOwner().has_object_permission(request, self, poll):
+            return Response(
+                {"error": "You do not have permission to view analytics for this poll"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        # Check cache
+        from django.core.cache import cache
+        cache_key = f"poll_participation:{poll.id}"
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            return Response(cached_data, status=status.HTTP_200_OK)
+        
+        # Generate participation metrics
+        from core.services.poll_analytics import (
+            get_average_time_to_vote,
+            get_drop_off_rate,
+        )
+        
+        participation = get_participation_rate(poll.id)
+        avg_time = get_average_time_to_vote(poll.id)
+        drop_off = get_drop_off_rate(poll.id)
+        
+        response_data = {
+            "poll_id": poll.id,
+            "poll_title": poll.title,
+            "participation_rate": participation.get("participation_rate"),
+            "unique_voters": participation.get("unique_voters", 0),
+            "total_votes": participation.get("total_votes", 0),
+            "average_time_to_vote_seconds": avg_time,
+            "drop_off_rate": drop_off.get("drop_off_rate"),
+            "drop_off_details": drop_off,
+        }
+        
+        # Cache for 5 minutes
+        cache.set(cache_key, response_data, 300)
+        
+        return Response(response_data, status=status.HTTP_200_OK)
