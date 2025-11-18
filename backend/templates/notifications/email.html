@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .poll-info {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Provote Notification</h1>
+    </div>
+    <div class="content">
+        <h2>{{ notification.title }}</h2>
+        <p>{{ notification.message }}</p>
+        
+        {% if poll %}
+        <div class="poll-info">
+            <h3>Poll: {{ poll.title }}</h3>
+            {% if poll.description %}
+            <p>{{ poll.description }}</p>
+            {% endif %}
+            <a href="{{ site_url }}/api/v1/polls/{{ poll.id }}/" class="button">View Poll</a>
+        </div>
+        {% endif %}
+        
+        <p>Thank you for using Provote!</p>
+    </div>
+    <div class="footer">
+        <p>You are receiving this email because you have notifications enabled.</p>
+        <p><a href="{{ site_url }}/api/v1/notifications/preferences/">Manage Preferences</a> | 
+           <a href="{{ site_url }}/api/v1/notifications/unsubscribe/">Unsubscribe</a></p>
+    </div>
+</body>
+</html>
+

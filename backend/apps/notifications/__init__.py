@@ -1,0 +1,4 @@
+"""
+Notifications app for Provote.
+"""
+

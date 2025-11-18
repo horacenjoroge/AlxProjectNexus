@@ -72,39 +72,13 @@ def send_poll_closed_notification(poll) -> bool:
         bool: True if notification sent successfully, False otherwise
     """
     try:
-        # Get poll creator email
-        creator_email = poll.created_by.email if poll.created_by and poll.created_by.email else None
+        # Use new notification system
+        from apps.notifications.services import notify_poll_results_available
         
-        if not creator_email:
-            logger.warning(f"Cannot send poll closed notification: no email for poll {poll.id} creator")
-            return False
+        # Notify poll creator that results are available
+        notify_poll_results_available(poll, user=poll.created_by)
         
-        # Get vote count
-        vote_count = poll.votes.count() if hasattr(poll, 'votes') else 0
-        
-        subject = f"Poll Closed: {poll.title}"
-        message = f"""
-Your poll "{poll.title}" has been closed.
-
-Poll Summary:
-- Title: {poll.title}
-- Total Votes: {vote_count}
-- Closed: {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
-
-You can view the final results at: {get_poll_url(poll.id)}
-
-Thank you for using Provote!
-        """.strip()
-        
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@provote.com'),
-            recipient_list=[creator_email],
-            fail_silently=False,
-        )
-        
-        logger.info(f"Sent poll closed notification for poll {poll.id} to {creator_email}")
+        logger.info(f"Sent poll closed notification for poll {poll.id} to {poll.created_by.username if poll.created_by else 'unknown'}")
         return True
         
     except Exception as e:

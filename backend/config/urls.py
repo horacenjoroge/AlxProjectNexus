@@ -13,6 +13,7 @@ urlpatterns = [
     path("api/v1/", include("apps.votes.urls")),
     path("api/v1/", include("apps.users.urls")),
     path("api/v1/", include("apps.analytics.urls")),
+    path("api/v1/", include("apps.notifications.urls")),
 ]
 
 # Serve media files in development

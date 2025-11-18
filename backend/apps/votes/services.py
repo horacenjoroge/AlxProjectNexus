@@ -406,6 +406,14 @@ def cast_vote(
                     user_id=user.id if user else None,
                     ip_address=ip_address,
                 )
+                
+                # Notify user that their vote was flagged
+                if user and vote.is_valid is False:
+                    try:
+                        from apps.notifications.services import notify_vote_flagged
+                        notify_vote_flagged(vote, fraud_result["reasons"])
+                    except Exception as e:
+                        logger.error(f"Error sending vote flagged notification: {e}")
             except Exception as e:
                 logger.error(f"Error logging fraud alert: {e}")
 
