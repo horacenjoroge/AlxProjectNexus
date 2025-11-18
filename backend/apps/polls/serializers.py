@@ -16,7 +16,7 @@ MAX_OPTIONS = 100
 class PollOptionSerializer(serializers.ModelSerializer):
     """Serializer for PollOption model."""
 
-    vote_count = serializers.ReadOnlyField(source="vote_count")
+    vote_count = serializers.ReadOnlyField()
     cached_vote_count = serializers.ReadOnlyField()
 
     class Meta:
@@ -36,7 +36,7 @@ class PollOptionCreateSerializer(serializers.ModelSerializer):
 class PollSerializer(serializers.ModelSerializer):
     """Serializer for Poll model with options."""
 
-    options = PollOptionSerializer(many=True, read_only=True, source="options")
+    options = PollOptionSerializer(many=True, read_only=True)
     created_by = serializers.StringRelatedField(read_only=True)
     created_by_id = serializers.IntegerField(source="created_by.id", read_only=True)
     is_open = serializers.ReadOnlyField()
@@ -56,6 +56,7 @@ class PollSerializer(serializers.ModelSerializer):
             "starts_at",
             "ends_at",
             "is_active",
+            "is_draft",
             "is_open",
             "settings",
             "security_rules",
@@ -83,19 +84,26 @@ class PollCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Poll
         fields = [
+            "id",
             "title",
             "description",
             "starts_at",
             "ends_at",
             "is_active",
+            "is_draft",
             "settings",
             "security_rules",
             "options",
         ]
+        read_only_fields = ["id"]
 
     def validate_options(self, value):
         """Validate options count."""
-        if len(value) < MIN_OPTIONS:
+        # Allow drafts to be created without options (for auto-save)
+        # Check if this is a draft poll
+        is_draft = self.initial_data.get("is_draft", False)
+        
+        if not is_draft and len(value) < MIN_OPTIONS:
             raise serializers.ValidationError(
                 f"A poll must have at least {MIN_OPTIONS} options. Provided: {len(value)}"
             )
@@ -131,8 +139,11 @@ class PollCreateSerializer(serializers.ModelSerializer):
                 )
 
         # Validate options count (check both in options field and after creation)
+        # Allow drafts to be created without options (for auto-save)
+        is_draft = attrs.get("is_draft", False)
         options_data = attrs.get("options", [])
-        if len(options_data) < MIN_OPTIONS:
+        
+        if not is_draft and len(options_data) < MIN_OPTIONS:
             raise serializers.ValidationError(
                 {
                     "options": f"A poll must have at least {MIN_OPTIONS} options. Provided: {len(options_data)}"
@@ -154,7 +165,9 @@ class PollCreateSerializer(serializers.ModelSerializer):
 
         # Create options in order
         for order, option_data in enumerate(options_data, start=0):
-            PollOption.objects.create(poll=poll, order=order, **option_data)
+            # Remove 'order' from option_data if present, since we're setting it explicitly
+            option_data_clean = {k: v for k, v in option_data.items() if k != 'order'}
+            PollOption.objects.create(poll=poll, order=order, **option_data_clean)
 
         return poll
 
@@ -170,6 +183,7 @@ class PollUpdateSerializer(serializers.ModelSerializer):
             "starts_at",
             "ends_at",
             "is_active",
+            "is_draft",
             "settings",
             "security_rules",
         ]

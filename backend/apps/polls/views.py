@@ -90,6 +90,26 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         """Filter queryset based on query parameters."""
         queryset = Poll.objects.all()
 
+        # Filter out drafts from public listings (unless user is owner or explicitly requesting drafts)
+        user = self.request.user
+        include_drafts = self.request.query_params.get("include_drafts", "false").lower() == "true"
+        
+        # If user is authenticated and requesting their own polls, or explicitly including drafts
+        if not include_drafts:
+            if user.is_authenticated:
+                # Show user's own drafts, but not others' drafts
+                queryset = queryset.filter(
+                    models.Q(is_draft=False) | models.Q(is_draft=True, created_by=user)
+                )
+            else:
+                # Anonymous users never see drafts
+                queryset = queryset.filter(is_draft=False)
+
+        # Filter by draft status (if explicitly requested)
+        is_draft = self.request.query_params.get("is_draft", None)
+        if is_draft is not None:
+            queryset = queryset.filter(is_draft=is_draft.lower() == "true")
+
         # Filter by creator
         creator = self.request.query_params.get("creator", None)
         if creator:
@@ -108,11 +128,14 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
             now = timezone.now()
             if is_open.lower() == "true":
                 queryset = queryset.filter(
-                    is_active=True, starts_at__lte=now
+                    is_active=True, 
+                    is_draft=False,  # Drafts are never open
+                    starts_at__lte=now
                 ).filter(models.Q(ends_at__isnull=True) | models.Q(ends_at__gte=now))
             else:
                 queryset = queryset.filter(
                     models.Q(is_active=False)
+                    | models.Q(is_draft=True)
                     | models.Q(starts_at__gt=now)
                     | models.Q(ends_at__lt=now)
                 )
@@ -125,7 +148,14 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         """Update poll with ownership and modification restrictions."""
-        poll = self.get_object()
+        # Use base queryset to allow accessing drafts for permission checks
+        try:
+            poll = Poll.objects.get(pk=kwargs['pk'])
+        except Poll.DoesNotExist:
+            return Response(
+                {"error": "Poll not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         # Check ownership
         if poll.created_by != request.user:
@@ -149,7 +179,14 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """Delete poll with ownership and vote checks."""
-        poll = self.get_object()
+        # Use base queryset to allow accessing drafts for permission checks
+        try:
+            poll = Poll.objects.get(pk=kwargs['pk'])
+        except Poll.DoesNotExist:
+            return Response(
+                {"error": "Poll not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         # Check ownership
         if poll.created_by != request.user:
@@ -176,6 +213,79 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         # No votes, allow deletion
         poll.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"], url_path="publish")
+    def publish(self, request, pk=None):
+        """
+        Publish a draft poll (convert draft to active).
+        
+        POST /api/v1/polls/{id}/publish/
+        
+        This action:
+        - Sets is_draft=False
+        - Optionally sets is_active=True (if not already active)
+        - Validates that poll has required options
+        
+        Returns:
+        - 200 OK: Poll published successfully
+        - 403 Forbidden: User not authorized
+        - 400 Bad Request: Poll cannot be published (validation errors)
+        """
+        # Use base queryset to allow accessing drafts for permission checks
+        try:
+            poll = Poll.objects.get(pk=pk)
+        except Poll.DoesNotExist:
+            return Response(
+                {"error": "Poll not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        
+        # Check ownership
+        if poll.created_by != request.user:
+            return Response(
+                {"error": "You can only publish polls you created"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        # Check if poll is a draft
+        if not poll.is_draft:
+            return Response(
+                {"error": "Poll is not a draft. It is already published."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Validate poll has minimum required options
+        from .serializers import MIN_OPTIONS
+        option_count = poll.options.count()
+        if option_count < MIN_OPTIONS:
+            return Response(
+                {
+                    "error": f"Cannot publish poll. A poll must have at least {MIN_OPTIONS} options. "
+                    f"Current options: {option_count}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Publish the poll
+        poll.is_draft = False
+        # If poll is not active, activate it (unless it has a future start time)
+        if not poll.is_active:
+            from django.utils import timezone
+            if poll.starts_at <= timezone.now():
+                poll.is_active = True
+        poll.save(update_fields=["is_draft", "is_active"])
+        
+        logger.info(f"Poll {poll.id} published by user {request.user.id}")
+        
+        # Return updated poll data
+        serializer = self.get_serializer(poll)
+        return Response(
+            {
+                "message": "Poll published successfully",
+                "poll": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=["post"], url_path="options")
     def add_options(self, request, pk=None):

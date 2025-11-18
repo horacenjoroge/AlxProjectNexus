@@ -18,6 +18,7 @@ class Poll(models.Model):
     starts_at = models.DateTimeField(default=timezone.now)
     ends_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_draft = models.BooleanField(default=False, help_text="If True, poll is a draft and not visible publicly")
     # Settings: JSON field for flexible poll configuration
     settings = models.JSONField(default=dict, blank=True, help_text="Poll settings (e.g., allow_multiple_votes, show_results)")
     # Security rules: JSON field for security configuration
@@ -31,6 +32,7 @@ class Poll(models.Model):
         indexes = [
             models.Index(fields=["created_at"]),
             models.Index(fields=["is_active", "starts_at", "ends_at"]),
+            models.Index(fields=["is_draft", "created_by"]),
         ]
 
     def __str__(self):
@@ -39,6 +41,9 @@ class Poll(models.Model):
     @property
     def is_open(self):
         """Check if the poll is currently open for voting."""
+        # Drafts are never open
+        if self.is_draft:
+            return False
         now = timezone.now()
         if not self.is_active:
             return False
