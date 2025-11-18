@@ -32,6 +32,7 @@ from .permissions import CanModifyPoll, IsAdminOrPollOwner, IsPollOwnerOrReadOnl
 from .services import (
     calculate_poll_results,
     can_view_results,
+    clone_poll,
     export_results_to_csv,
     export_results_to_json,
 )
@@ -286,6 +287,83 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=True, methods=["post"], url_path="clone")
+    def clone(self, request, pk=None):
+        """
+        Clone an existing poll with all options.
+        
+        POST /api/v1/polls/{id}/clone/
+        
+        Request Body (optional):
+        {
+            "clone_settings": true,  // Whether to clone settings (default: true)
+            "clone_security_rules": true,  // Whether to clone security rules (default: true)
+            "new_title": "Custom Title",  // Custom title (default: "Copy of {original_title}")
+            "is_draft": true  // Whether cloned poll should be a draft (default: true)
+        }
+        
+        Returns:
+        - 201 Created: Cloned poll created successfully
+        - 404 Not Found: Poll not found
+        - 400 Bad Request: Poll cannot be cloned (e.g., no options)
+        """
+        try:
+            poll = self.get_object()
+        except Poll.DoesNotExist:
+            return Response(
+                {"error": "Poll not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        
+        # Get optional parameters from request
+        clone_settings = request.data.get("clone_settings", True)
+        clone_security_rules = request.data.get("clone_security_rules", True)
+        new_title = request.data.get("new_title", None)
+        is_draft = request.data.get("is_draft", True)
+        
+        # Validate boolean parameters
+        if isinstance(clone_settings, str):
+            clone_settings = clone_settings.lower() == "true"
+        if isinstance(clone_security_rules, str):
+            clone_security_rules = clone_security_rules.lower() == "true"
+        if isinstance(is_draft, str):
+            is_draft = is_draft.lower() == "true"
+        
+        try:
+            # Clone the poll
+            cloned_poll = clone_poll(
+                poll=poll,
+                user=request.user,
+                clone_settings=clone_settings,
+                clone_security_rules=clone_security_rules,
+                new_title=new_title,
+                is_draft=is_draft,
+            )
+            
+            logger.info(f"Poll {poll.id} cloned to poll {cloned_poll.id} by user {request.user.id}")
+            
+            # Return cloned poll data
+            serializer = self.get_serializer(cloned_poll)
+            return Response(
+                {
+                    "message": "Poll cloned successfully",
+                    "poll": serializer.data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+            
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            logger.error(f"Error cloning poll {poll.id}: {e}", exc_info=True)
+            return Response(
+                {"error": "An error occurred while cloning the poll"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     @action(detail=True, methods=["post"], url_path="options")
     def add_options(self, request, pk=None):
