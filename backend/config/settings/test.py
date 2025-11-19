@@ -19,7 +19,8 @@ DATABASES = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": str(TEST_DB),
         "OPTIONS": {
-            "timeout": 20,
+            "timeout": 30,  # Increased timeout for async operations
+            "check_same_thread": False,  # Allow multiple threads (needed for async)
         },
     }
 }

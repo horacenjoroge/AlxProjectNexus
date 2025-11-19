@@ -3,6 +3,7 @@ Tests for admin dashboard API endpoints.
 """
 
 import pytest
+import time
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -12,6 +13,11 @@ from rest_framework.test import APIClient
 from apps.analytics.models import FraudAlert, IPBlock
 from apps.polls.models import Poll, PollOption
 from apps.votes.models import Vote
+
+
+def get_unique_username(prefix="user"):
+    """Generate a unique username for tests."""
+    return f"{prefix}_{int(time.time() * 1000000)}"
 
 
 @pytest.mark.django_db
@@ -32,9 +38,9 @@ class TestAdminDashboardStatistics:
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
         
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -57,9 +63,9 @@ class TestAdminDashboardStatistics:
         option1 = PollOption.objects.create(poll=poll1, text="Option 1")
         option2 = PollOption.objects.create(poll=poll1, text="Option 2")
         
-        # Create votes
-        user1 = User.objects.create_user(username="user1", password="pass")
-        user2 = User.objects.create_user(username="user2", password="pass")
+        # Create votes with unique usernames
+        user1 = User.objects.create_user(username=get_unique_username("user1"), password="pass")
+        user2 = User.objects.create_user(username=get_unique_username("user2"), password="pass")
         
         Vote.objects.create(
             user=user1,
@@ -94,9 +100,9 @@ class TestAdminDashboardStatistics:
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
         
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -104,10 +110,10 @@ class TestAdminDashboardStatistics:
         
         poll = Poll.objects.create(title="Test Poll", created_by=admin_user)
         option = PollOption.objects.create(poll=poll, text="Option 1")
-        user = User.objects.create_user(username="user1", password="pass")
+        test_user = User.objects.create_user(username=get_unique_username("user"), password="pass")
         
         vote = Vote.objects.create(
-            user=user,
+            user=test_user,
             poll=poll,
             option=option,
             voter_token="token1",
@@ -117,7 +123,7 @@ class TestAdminDashboardStatistics:
         FraudAlert.objects.create(
             vote=vote,
             poll=poll,
-            user=user,
+            user=test_user,
             reasons="Test fraud",
             risk_score=80,
         )
@@ -149,9 +155,9 @@ class TestAdminDashboardActivity:
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
         
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -164,11 +170,11 @@ class TestAdminDashboardActivity:
         )
         option = PollOption.objects.create(poll=poll, text="Option 1")
         
-        user = User.objects.create_user(username="user1", password="pass")
+        test_user = User.objects.create_user(username=get_unique_username("user"), password="pass")
         
         # Create recent vote
         Vote.objects.create(
-            user=user,
+            user=test_user,
             poll=poll,
             option=option,
             voter_token="token1",
@@ -193,9 +199,9 @@ class TestAdminDashboardActivity:
         """Test that activity feed respects limit parameter."""
         from apps.polls.models import Poll
         
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -235,9 +241,9 @@ class TestAdminDashboardFraudAlerts:
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
         
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -245,10 +251,10 @@ class TestAdminDashboardFraudAlerts:
         
         poll = Poll.objects.create(title="Test Poll", created_by=admin_user)
         option = PollOption.objects.create(poll=poll, text="Option 1")
-        user = User.objects.create_user(username="user1", password="pass")
+        test_user = User.objects.create_user(username=get_unique_username("user"), password="pass")
         
         vote = Vote.objects.create(
-            user=user,
+            user=test_user,
             poll=poll,
             option=option,
             voter_token="token1",
@@ -258,7 +264,7 @@ class TestAdminDashboardFraudAlerts:
         FraudAlert.objects.create(
             vote=vote,
             poll=poll,
-            user=user,
+            user=test_user,
             ip_address="192.168.1.1",
             reasons="Suspicious voting pattern",
             risk_score=85,
@@ -280,9 +286,9 @@ class TestAdminDashboardFraudAlerts:
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
         
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -290,8 +296,8 @@ class TestAdminDashboardFraudAlerts:
         
         poll = Poll.objects.create(title="Test Poll", created_by=admin_user)
         option = PollOption.objects.create(poll=poll, text="Option 1")
-        user1 = User.objects.create_user(username="user1", password="pass")
-        user2 = User.objects.create_user(username="user2", password="pass")
+        user1 = User.objects.create_user(username=get_unique_username("user1"), password="pass")
+        user2 = User.objects.create_user(username=get_unique_username("user2"), password="pass")
         
         vote1 = Vote.objects.create(
             user=user1,
@@ -349,9 +355,9 @@ class TestAdminDashboardPerformance:
     
     def test_performance_metrics_tracked(self, user):
         """Test that performance metrics endpoint returns data structure."""
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -388,9 +394,9 @@ class TestAdminDashboardActivePolls:
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
         
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -415,8 +421,8 @@ class TestAdminDashboardActivePolls:
             is_active=False,
         )
         
-        user1 = User.objects.create_user(username="user1", password="pass")
-        user2 = User.objects.create_user(username="user2", password="pass")
+        user1 = User.objects.create_user(username=get_unique_username("user1"), password="pass")
+        user2 = User.objects.create_user(username=get_unique_username("user2"), password="pass")
         
         # Create recent votes
         Vote.objects.create(
@@ -472,9 +478,9 @@ class TestAdminDashboardSummary:
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
         
-        # Create admin user
+        # Create admin user with unique username
         admin_user = User.objects.create_user(
-            username="admin",
+            username=get_unique_username("admin"),
             password="pass",
             is_staff=True,
             is_superuser=True
@@ -482,10 +488,10 @@ class TestAdminDashboardSummary:
         
         poll = Poll.objects.create(title="Test Poll", created_by=admin_user)
         option = PollOption.objects.create(poll=poll, text="Option 1")
-        user = User.objects.create_user(username="user1", password="pass")
+        test_user = User.objects.create_user(username=get_unique_username("user"), password="pass")
         
         vote = Vote.objects.create(
-            user=user,
+            user=test_user,
             poll=poll,
             option=option,
             voter_token="token1",
@@ -495,7 +501,7 @@ class TestAdminDashboardSummary:
         FraudAlert.objects.create(
             vote=vote,
             poll=poll,
-            user=user,
+            user=test_user,
             reasons="Test fraud",
             risk_score=70,
         )

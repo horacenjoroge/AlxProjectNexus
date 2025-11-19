@@ -14,13 +14,14 @@ from apps.votes.models import Vote
 from apps.votes.services import cast_vote
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestWebSocketConnection:
     """Test WebSocket connection establishment."""
 
     async def test_websocket_connection_established(self, poll, choices):
         """Test that WebSocket connection is successfully established."""
+        import time
         # Configure poll to show results
         poll.settings["show_results_during_voting"] = True
         await database_sync_to_async(poll.save)()
@@ -28,8 +29,10 @@ class TestWebSocketConnection:
         communicator = WebsocketCommunicator(
             PollResultsConsumer.as_asgi(), f"/ws/polls/{poll.id}/results/"
         )
+        # Use unique username to avoid conflicts
+        unique_username = f"testuser_{int(time.time() * 1000000)}"
         communicator.scope["user"] = await database_sync_to_async(User.objects.create_user)(
-            username="testuser", password="testpass"
+            username=unique_username, password="testpass"
         )
 
         connected, subprotocol = await communicator.connect()
@@ -99,7 +102,7 @@ class TestWebSocketConnection:
         assert connected is False
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestWebSocketSubscription:
     """Test WebSocket subscription functionality."""
@@ -183,7 +186,7 @@ class TestWebSocketSubscription:
         await communicator.disconnect()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestWebSocketUpdates:
     """Test receiving updates when votes are cast."""
@@ -293,7 +296,7 @@ class TestWebSocketUpdates:
         await communicator2.disconnect()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestWebSocketDisconnection:
     """Test WebSocket disconnection handling."""
@@ -380,7 +383,7 @@ class TestWebSocketDisconnection:
         await communicator2.disconnect()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 class TestWebSocketErrorHandling:
     """Test WebSocket error handling."""
@@ -442,7 +445,7 @@ class TestWebSocketErrorHandling:
         await communicator.disconnect()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 @pytest.mark.slow
 class TestWebSocketLoad:

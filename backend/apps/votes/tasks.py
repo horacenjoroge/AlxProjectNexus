@@ -189,7 +189,11 @@ def periodic_pattern_analysis():
         
         # Get all active polls
         active_polls = Poll.objects.filter(is_active=True)
-        poll_count = active_polls.count()
+        # Handle both QuerySet and list (for testing)
+        if hasattr(active_polls, 'count'):
+            poll_count = active_polls.count()
+        else:
+            poll_count = len(active_polls)
         
         logger.info(f"Analyzing {poll_count} active polls")
         
