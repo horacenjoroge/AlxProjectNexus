@@ -23,64 +23,34 @@ class DataIntegrityUser(HttpUser):
     
     def on_start(self):
         """Set up user and test poll."""
+        # Note: API uses SessionAuthentication, no registration/login endpoints
+        # We'll work as anonymous users for load testing
         self.username = f"integrity_{random.randint(10000, 99999)}"
-        self.password = "testpass123"
         
-        # Register and login
-        try:
-            self.client.post(
-                "/api/v1/users/register/",
-                json={
-                    "username": self.username,
-                    "email": f"{self.username}@integrity.com",
-                    "password": self.password,
-                },
-            )
-        except:
-            pass
-        
-        try:
-            response = self.client.post(
-                "/api/v1/users/login/",
-                json={"username": self.username, "password": self.password},
-            )
-            if response.status_code == 200:
-                data = response.json()
-                self.token = data.get("token") or data.get("access")
-                self.client.headers.update({"Authorization": f"Bearer {self.token}"})
-        except:
-            pass
-        
-        # Create a dedicated test poll for integrity checks
+        # Use existing polls for integrity checks (can't create polls without auth)
         self.test_poll_id = None
         self.test_option_ids = []
         self.initial_vote_count = 0
-        self._create_test_poll()
+        self._load_existing_poll()
     
-    def _create_test_poll(self):
-        """Create a test poll for integrity testing."""
+    def _load_existing_poll(self):
+        """Load an existing poll for integrity testing."""
         try:
-            response = self.client.post(
-                "/api/v1/polls/",
-                json={
-                    "title": f"Integrity Test Poll {int(time.time())}",
-                    "description": "Load test integrity check",
-                    "options": [
-                        {"text": "Option A", "order": 0},
-                        {"text": "Option B", "order": 1},
-                    ],
-                    "settings": {"show_results_during_voting": True},
-                },
-            )
-            if response.status_code == 201:
-                data = response.json()
-                self.test_poll_id = data.get("id")
-                self.test_option_ids = [opt["id"] for opt in data.get("options", [])]
-                
-                # Get initial vote count
-                results = self.client.get(f"/api/v1/polls/{self.test_poll_id}/results/")
-                if results.status_code == 200:
-                    self.initial_vote_count = results.json().get("total_votes", 0)
+            response = self.client.get("/api/v1/polls/")
+            if response.status_code == 200:
+                polls = response.json().get("results", response.json())
+                if polls:
+                    poll = polls[0]
+                    self.test_poll_id = poll.get("id")
+                    poll_detail = self.client.get(f"/api/v1/polls/{self.test_poll_id}/")
+                    if poll_detail.status_code == 200:
+                        options = poll_detail.json().get("options", [])
+                        self.test_option_ids = [opt["id"] for opt in options] if options else []
+                        
+                        # Get initial vote count
+                        results = self.client.get(f"/api/v1/polls/{self.test_poll_id}/results/")
+                        if results.status_code == 200:
+                            self.initial_vote_count = results.json().get("total_votes", 0)
         except:
             pass
     

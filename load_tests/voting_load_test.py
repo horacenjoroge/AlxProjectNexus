@@ -31,45 +31,9 @@ class VotingUser(HttpUser):
     
     def on_start(self):
         """Called when a simulated user starts."""
-        # Create or authenticate user
+        # Note: API uses SessionAuthentication, no registration/login endpoints
+        # We'll work as anonymous users for load testing
         self.username = f"loaduser_{random.randint(10000, 99999)}"
-        self.password = "testpass123"
-        
-        # Register user
-        try:
-            response = self.client.post(
-                "/api/v1/users/register/",
-                json={
-                    "username": self.username,
-                    "email": f"{self.username}@loadtest.com",
-                    "password": self.password,
-                },
-                catch_response=True,
-            )
-            if response.status_code in [201, 400]:  # 400 if user already exists
-                response.success()
-        except Exception as e:
-            pass  # User might already exist
-        
-        # Login
-        try:
-            response = self.client.post(
-                "/api/v1/users/login/",
-                json={
-                    "username": self.username,
-                    "password": self.password,
-                },
-                catch_response=True,
-            )
-            if response.status_code == 200:
-                data = response.json()
-                self.token = data.get("token") or data.get("access")
-                self.client.headers.update({"Authorization": f"Bearer {self.token}"})
-                response.success()
-            else:
-                response.failure(f"Login failed: {response.status_code}")
-        except Exception as e:
-            pass
         
         # Get available polls
         self.poll_ids = []
@@ -181,39 +145,22 @@ class HighVolumeVotingUser(FastHttpUser):
     
     Uses FastHttpUser for better performance.
     Minimal wait time to maximize throughput.
+    Note: Works with anonymous users (no authentication required for voting).
     """
     
     wait_time = between(0.1, 0.5)  # Very short wait time
     
+    def __init__(self, *args, **kwargs):
+        """Initialize attributes."""
+        super().__init__(*args, **kwargs)
+        self.poll_id = None
+        self.option_ids = []
+        self.username = f"hvuser_{random.randint(100000, 999999)}"
+    
     def on_start(self):
         """Set up user for high-volume voting."""
-        self.username = f"hvuser_{random.randint(100000, 999999)}"
-        self.password = "testpass123"
-        
-        # Quick registration/login
-        try:
-            self.client.post(
-                "/api/v1/users/register/",
-                json={
-                    "username": self.username,
-                    "email": f"{self.username}@loadtest.com",
-                    "password": self.password,
-                },
-            )
-        except:
-            pass
-        
-        try:
-            response = self.client.post(
-                "/api/v1/users/login/",
-                json={"username": self.username, "password": self.password},
-            )
-            if response.status_code == 200:
-                data = response.json()
-                self.token = data.get("token") or data.get("access")
-                self.client.headers.update({"Authorization": f"Bearer {self.token}"})
-        except:
-            pass
+        # Note: API uses SessionAuthentication, no registration/login endpoints
+        # We'll work as anonymous users for load testing
         
         # Pre-load a single poll for fast voting
         try:
@@ -227,14 +174,18 @@ class HighVolumeVotingUser(FastHttpUser):
                     if poll_detail.status_code == 200:
                         options = poll_detail.json().get("options", [])
                         self.option_ids = [opt["id"] for opt in options] if options else []
-        except:
+        except Exception as e:
+            # Initialize to None if setup fails
             self.poll_id = None
             self.option_ids = []
     
     @task
     def rapid_vote(self):
         """Rapid voting for throughput testing."""
-        if not self.poll_id or not self.option_ids:
+        # Check if attributes exist and have valid values
+        if not hasattr(self, 'poll_id') or not self.poll_id:
+            return
+        if not hasattr(self, 'option_ids') or not self.option_ids:
             return
         
         choice_id = random.choice(self.option_ids)

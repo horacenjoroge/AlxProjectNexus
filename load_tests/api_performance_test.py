@@ -21,34 +21,10 @@ class APIPerformanceUser(HttpUser):
     wait_time = between(0.5, 2)
     
     def on_start(self):
-        """Set up authenticated user."""
+        """Set up user (anonymous for load testing)."""
+        # Note: API uses SessionAuthentication, no registration/login endpoints
+        # We'll work as anonymous users for load testing
         self.username = f"perfuser_{random.randint(10000, 99999)}"
-        self.password = "testpass123"
-        
-        # Register and login
-        try:
-            self.client.post(
-                "/api/v1/users/register/",
-                json={
-                    "username": self.username,
-                    "email": f"{self.username}@perftest.com",
-                    "password": self.password,
-                },
-            )
-        except:
-            pass
-        
-        try:
-            response = self.client.post(
-                "/api/v1/users/login/",
-                json={"username": self.username, "password": self.password},
-            )
-            if response.status_code == 200:
-                data = response.json()
-                self.token = data.get("token") or data.get("access")
-                self.client.headers.update({"Authorization": f"Bearer {self.token}"})
-        except:
-            pass
         
         # Cache poll IDs
         self.poll_ids = []
@@ -187,33 +163,10 @@ class DatabaseQueryPerformanceUser(FastHttpUser):
     wait_time = between(0.1, 0.5)
     
     def on_start(self):
-        """Set up user."""
+        """Set up user (anonymous for load testing)."""
+        # Note: API uses SessionAuthentication, no registration/login endpoints
+        # We'll work as anonymous users for load testing
         self.username = f"dbuser_{random.randint(10000, 99999)}"
-        self.password = "testpass123"
-        
-        try:
-            self.client.post(
-                "/api/v1/users/register/",
-                json={
-                    "username": self.username,
-                    "email": f"{self.username}@dbtest.com",
-                    "password": self.password,
-                },
-            )
-        except:
-            pass
-        
-        try:
-            response = self.client.post(
-                "/api/v1/users/login/",
-                json={"username": self.username, "password": self.password},
-            )
-            if response.status_code == 200:
-                data = response.json()
-                self.token = data.get("token") or data.get("access")
-                self.client.headers.update({"Authorization": f"Bearer {self.token}"})
-        except:
-            pass
     
     @task
     def test_complex_queries(self):

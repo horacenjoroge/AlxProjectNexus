@@ -22,33 +22,10 @@ class DegradationTestUser(HttpUser):
     wait_time = between(0.1, 0.3)  # Aggressive load
     
     def on_start(self):
-        """Set up user."""
+        """Set up user (anonymous for load testing)."""
+        # Note: API uses SessionAuthentication, no registration/login endpoints
+        # We'll work as anonymous users for load testing
         self.username = f"degrade_{random.randint(10000, 99999)}"
-        self.password = "testpass123"
-        
-        try:
-            self.client.post(
-                "/api/v1/users/register/",
-                json={
-                    "username": self.username,
-                    "email": f"{self.username}@degrade.com",
-                    "password": self.password,
-                },
-            )
-        except:
-            pass
-        
-        try:
-            response = self.client.post(
-                "/api/v1/users/login/",
-                json={"username": self.username, "password": self.password},
-            )
-            if response.status_code == 200:
-                data = response.json()
-                self.token = data.get("token") or data.get("access")
-                self.client.headers.update({"Authorization": f"Bearer {self.token}"})
-        except:
-            pass
     
     @task(10)
     def test_rate_limiting(self):
@@ -133,21 +110,10 @@ class ExtremeLoadUser(FastHttpUser):
     wait_time = between(0.05, 0.2)  # Very aggressive
     
     def on_start(self):
-        """Quick setup."""
+        """Quick setup (anonymous for load testing)."""
+        # Note: API uses SessionAuthentication, no registration/login endpoints
+        # We'll work as anonymous users for load testing
         self.username = f"extreme_{random.randint(100000, 999999)}"
-        self.password = "testpass123"
-        
-        try:
-            self.client.post(
-                "/api/v1/users/register/",
-                json={
-                    "username": self.username,
-                    "email": f"{self.username}@extreme.com",
-                    "password": self.password,
-                },
-            )
-        except:
-            pass
     
     @task
     def extreme_request(self):
