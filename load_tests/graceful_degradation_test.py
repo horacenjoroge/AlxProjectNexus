@@ -115,6 +115,12 @@ class ExtremeLoadUser(FastHttpUser):
     
     wait_time = between(0.05, 0.2)  # Very aggressive
     
+    def __init__(self, *args, **kwargs):
+        """Initialize with load test header to bypass rate limiting."""
+        super().__init__(*args, **kwargs)
+        # Add header to bypass rate limiting during load tests
+        self.client.headers.update({"X-Load-Test": "true"})
+    
     def on_start(self):
         """Quick setup (anonymous for load testing)."""
         # Note: API uses SessionAuthentication, no registration/login endpoints
