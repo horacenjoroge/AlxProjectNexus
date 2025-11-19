@@ -140,9 +140,6 @@ def clone_poll(
     return cloned_poll
 
 
-# Placeholder functions for missing imports - these need to be implemented
-# For now, adding minimal implementations to prevent import errors
-
 def calculate_poll_results(poll_id: int, use_cache: bool = True) -> Dict:
     """
     Calculate comprehensive poll results.
