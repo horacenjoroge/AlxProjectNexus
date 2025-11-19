@@ -8,11 +8,11 @@ from django.contrib.auth.models import User
 
 from apps.polls.models import Poll, PollOption
 from apps.polls.services import (
-    # calculate_participation_rate,  # TODO: Implement this function
-    # calculate_percentages,  # TODO: Implement this function
+    calculate_participation_rate,
+    calculate_percentages,
     calculate_poll_results,
-    # calculate_winners,  # TODO: Implement this function
-    # get_cached_results,  # TODO: Implement this function
+    calculate_winners,
+    get_cached_results,
     invalidate_results_cache,
 )
 from apps.votes.models import Vote
@@ -180,7 +180,6 @@ class TestPercentages:
             assert option["percentage"] == 0.0
             assert option["votes"] == 0
 
-    @pytest.mark.skip(reason="calculate_percentages function not yet implemented")
     def test_percentages_calculation_function(self):
         """Test calculate_percentages function directly."""
         vote_counts = {1: 5, 2: 3, 3: 2}
@@ -239,13 +238,15 @@ class TestWinnerDetection:
         # Calculate results
         results = calculate_poll_results(poll.id, use_cache=False)
 
-        # Check basic results (winners/is_tie/is_winner not yet implemented)
+        # Should have one winner
+        assert len(results["winners"]) == 1
+        assert results["winners"][0]["option_id"] == choices[0].id
+        assert results["is_tie"] is False
+
+        # Winner should be marked
         option_0_result = next(opt for opt in results["options"] if opt["option_id"] == choices[0].id)
         assert option_0_result["votes"] == 3
-        # TODO: Add winner detection when implemented
-        # assert len(results["winners"]) == 1
-        # assert results["is_tie"] is False
-        # assert option_0_result["is_winner"] is True
+        assert option_0_result["is_winner"] is True
 
     def test_tie_detected(self, poll, choices):
         """Test that ties are detected."""
@@ -286,27 +287,26 @@ class TestWinnerDetection:
         # Calculate results
         results = calculate_poll_results(poll.id, use_cache=False)
 
-        # Check basic results (winners/is_tie/is_winner not yet implemented)
+        # Should have tie
+        assert len(results["winners"]) == 2
+        assert results["is_tie"] is True
+
+        # Both winners should be marked
         option_0_result = next(opt for opt in results["options"] if opt["option_id"] == choices[0].id)
         option_1_result = next(opt for opt in results["options"] if opt["option_id"] == choices[1].id)
         assert option_0_result["votes"] == 2
         assert option_1_result["votes"] == 2
-        # TODO: Add tie detection when implemented
-        # assert len(results["winners"]) == 2
-        # assert results["is_tie"] is True
-        # assert option_0_result["is_winner"] is True
-        # assert option_1_result["is_winner"] is True
+        assert option_0_result["is_winner"] is True
+        assert option_1_result["is_winner"] is True
 
     def test_no_winner_with_0_votes(self, poll, choices):
         """Test that there's no winner when poll has 0 votes."""
         results = calculate_poll_results(poll.id, use_cache=False)
 
         assert results["total_votes"] == 0
-        # TODO: Add winner detection when implemented
-        # assert len(results["winners"]) == 0
-        # assert results["is_tie"] is False
+        assert len(results["winners"]) == 0
+        assert results["is_tie"] is False
 
-    @pytest.mark.skip(reason="calculate_winners function not yet implemented")
     def test_calculate_winners_function(self, poll, choices):
         """Test calculate_winners function directly."""
         from django.contrib.auth.models import User
@@ -347,7 +347,6 @@ class TestWinnerDetection:
 class TestParticipationRate:
     """Test participation rate calculations."""
 
-    @pytest.mark.skip(reason="calculate_participation_rate function not yet implemented")
     def test_participation_rate_calculation(self, poll, choices):
         """Test participation rate calculation."""
         from django.contrib.auth.models import User
@@ -376,7 +375,6 @@ class TestParticipationRate:
         # 5 unique voters / 5 total votes = 100%
         assert participation_rate == 100.0
 
-    @pytest.mark.skip(reason="calculate_participation_rate function not yet implemented")
     def test_participation_rate_with_0_votes(self, poll):
         """Test participation rate with 0 votes."""
         participation_rate = calculate_participation_rate(poll.id)
@@ -394,23 +392,21 @@ class TestResultsWith0Votes:
 
         assert results["total_votes"] == 0
         assert results["unique_voters"] == 0
-        # TODO: Add participation_rate, winners, is_tie, is_winner when implemented
-        # assert results["participation_rate"] == 0.0
-        # assert len(results["winners"]) == 0
-        # assert results["is_tie"] is False
+        assert results["participation_rate"] == 0.0
+        assert len(results["winners"]) == 0
+        assert results["is_tie"] is False
 
         # All options should have 0 votes and 0%
         for option in results["options"]:
             assert option["votes"] == 0
             assert option["percentage"] == 0.0
-            # assert option["is_winner"] is False
+            assert option["is_winner"] is False
 
 
 @pytest.mark.django_db
 class TestResultsCaching:
     """Test results caching."""
 
-    @pytest.mark.skip(reason="get_cached_results function not yet implemented")
     def test_results_cached_properly(self, poll, choices):
         """Test that results are cached properly."""
         cache.clear()
@@ -425,7 +421,6 @@ class TestResultsCaching:
         assert results2["poll_id"] == results1["poll_id"]
         assert results2["total_votes"] == results1["total_votes"]
 
-    @pytest.mark.skip(reason="get_cached_results function not yet implemented")
     def test_cache_invalidated_on_new_vote(self, poll, choices):
         """Test that cache is invalidated on new vote."""
         from django.contrib.auth.models import User
@@ -461,7 +456,6 @@ class TestResultsCaching:
         results2 = calculate_poll_results(poll.id, use_cache=False)
         assert results2["total_votes"] == results1["total_votes"] + 1
 
-    @pytest.mark.skip(reason="get_cached_results function not yet implemented")
     def test_invalidate_results_cache_function(self, poll):
         """Test invalidate_results_cache function."""
         cache.clear()
@@ -505,12 +499,11 @@ class TestResultsServiceIntegration:
         assert "poll_title" in results
         assert "total_votes" in results
         assert "unique_voters" in results
+        assert "participation_rate" in results
         assert "options" in results
+        assert "winners" in results
+        assert "is_tie" in results
         assert "calculated_at" in results
-        # TODO: Add these fields when implemented
-        # assert "participation_rate" in results
-        # assert "winners" in results
-        # assert "is_tie" in results
 
         # Check options structure
         for option in results["options"]:
@@ -518,8 +511,7 @@ class TestResultsServiceIntegration:
             assert "option_text" in option
             assert "votes" in option
             assert "percentage" in option
-            # TODO: Add is_winner when implemented
-            # assert "is_winner" in option
+            assert "is_winner" in option
 
     def test_results_use_denormalized_counts(self, poll, choices):
         """Test that results use denormalized counts for speed."""

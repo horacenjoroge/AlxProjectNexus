@@ -147,34 +147,187 @@ def calculate_poll_results(poll_id: int, use_cache: bool = True) -> Dict:
     """
     Calculate comprehensive poll results.
     
-    This is a placeholder - the full implementation should be restored.
+    Args:
+        poll_id: ID of the poll
+        use_cache: Whether to use cached results if available
+        
+    Returns:
+        Dict with poll results including options, winners, percentages, etc.
     """
-    from .models import Poll
     poll = Poll.objects.get(id=poll_id)
     
-    # Basic implementation
-    options = poll.options.all()
-    total_votes = poll.votes.count()
+    # Check cache first if enabled
+    if use_cache:
+        cached_results = get_cached_results(poll_id)
+        if cached_results:
+            return cached_results
     
+    # Use cached vote counts for performance
+    # If cached counts are 0, fall back to actual counts
+    options = poll.options.all().order_by("order")
+    total_votes = poll.cached_total_votes if poll.cached_total_votes > 0 else poll.votes.filter(is_valid=True).count()
+    unique_voters = poll.cached_unique_voters if poll.cached_unique_voters > 0 else poll.votes.filter(is_valid=True).values("user").distinct().count()
+    
+    # Calculate vote counts and percentages
     option_results = []
+    vote_counts = {}
+    
     for option in options:
-        vote_count = option.votes.count()
-        percentage = (vote_count / total_votes * 100) if total_votes > 0 else 0
+        # Use cached count if available, otherwise count actual votes
+        vote_count = option.cached_vote_count if option.cached_vote_count > 0 else option.votes.filter(is_valid=True).count()
+        vote_counts[option.id] = vote_count
         option_results.append({
             "option_id": option.id,
             "option_text": option.text,
             "votes": vote_count,
-            "percentage": float(percentage),
+            "percentage": 0.0,  # Will be calculated below
         })
     
-    return {
+    # Calculate percentages
+    percentages = calculate_percentages(vote_counts, total_votes)
+    for option_result in option_results:
+        option_id = option_result["option_id"]
+        if option_id in percentages:
+            option_result["percentage"] = round(percentages[option_id], 2)
+    
+    # Calculate winners
+    winners, is_tie = calculate_winners(poll_id)
+    
+    # Mark winners in option results
+    winner_ids = {w["option_id"] for w in winners}
+    for option_result in option_results:
+        option_result["is_winner"] = option_result["option_id"] in winner_ids
+    
+    # Calculate participation rate
+    participation_rate = calculate_participation_rate(poll_id)
+    
+    results = {
         "poll_id": poll.id,
         "poll_title": poll.title,
         "total_votes": total_votes,
-        "unique_voters": poll.votes.values("user").distinct().count(),
+        "unique_voters": unique_voters,
+        "participation_rate": round(participation_rate, 2),
         "options": option_results,
+        "winners": winners,
+        "is_tie": is_tie,
         "calculated_at": timezone.now().isoformat(),
     }
+    
+    # Cache results if enabled
+    if use_cache:
+        cache_key = get_results_cache_key(poll_id)
+        cache.set(cache_key, results, RESULTS_CACHE_TTL)
+    
+    return results
+
+
+def calculate_percentages(vote_counts: Dict[int, int], total_votes: int) -> Dict[int, float]:
+    """
+    Calculate vote percentages for each option.
+    
+    Args:
+        vote_counts: Dictionary mapping option_id to vote count
+        total_votes: Total number of votes
+        
+    Returns:
+        Dictionary mapping option_id to percentage (0-100)
+    """
+    if total_votes == 0:
+        return {option_id: 0.0 for option_id in vote_counts.keys()}
+    
+    percentages = {}
+    for option_id, count in vote_counts.items():
+        percentages[option_id] = (count / total_votes) * 100.0
+    
+    return percentages
+
+
+def calculate_winners(poll_id: int) -> Tuple[List[Dict], bool]:
+    """
+    Calculate winners for a poll.
+    
+    Args:
+        poll_id: ID of the poll
+        
+    Returns:
+        Tuple of (winners_list, is_tie)
+        - winners_list: List of winner option dicts with option_id and votes
+        - is_tie: True if there's a tie, False otherwise
+    """
+    poll = Poll.objects.get(id=poll_id)
+    options = poll.options.all()
+    
+    total_votes = poll.cached_total_votes if poll.cached_total_votes > 0 else poll.votes.filter(is_valid=True).count()
+    if total_votes == 0:
+        return [], False
+    
+    # Get vote counts for all options
+    option_votes = []
+    for option in options:
+        vote_count = option.cached_vote_count if option.cached_vote_count > 0 else option.votes.filter(is_valid=True).count()
+        option_votes.append({
+            "option_id": option.id,
+            "option_text": option.text,
+            "votes": vote_count,
+        })
+    
+    # Sort by vote count (descending)
+    option_votes.sort(key=lambda x: x["votes"], reverse=True)
+    
+    if not option_votes or option_votes[0]["votes"] == 0:
+        return [], False
+    
+    # Find maximum vote count
+    max_votes = option_votes[0]["votes"]
+    
+    # Find all options with max votes (winners)
+    winners = [opt for opt in option_votes if opt["votes"] == max_votes]
+    
+    # Check if there's a tie (multiple winners)
+    is_tie = len(winners) > 1
+    
+    return winners, is_tie
+
+
+def calculate_participation_rate(poll_id: int) -> float:
+    """
+    Calculate participation rate for a poll.
+    
+    Participation rate = (unique_voters / total_votes) * 100
+    
+    Args:
+        poll_id: ID of the poll
+        
+    Returns:
+        Participation rate as a percentage (0-100)
+    """
+    poll = Poll.objects.get(id=poll_id)
+    
+    total_votes = poll.cached_total_votes or 0
+    unique_voters = poll.cached_unique_voters or 0
+    
+    if total_votes == 0:
+        return 0.0
+    
+    # Participation rate: unique voters / total votes * 100
+    # This represents how many unique users participated vs total votes
+    participation_rate = (unique_voters / total_votes) * 100.0
+    
+    return participation_rate
+
+
+def get_cached_results(poll_id: int) -> Optional[Dict]:
+    """
+    Get cached poll results.
+    
+    Args:
+        poll_id: ID of the poll
+        
+    Returns:
+        Cached results dict or None if not cached
+    """
+    cache_key = get_results_cache_key(poll_id)
+    return cache.get(cache_key)
 
 
 def export_results_to_csv(poll_id: int) -> str:
