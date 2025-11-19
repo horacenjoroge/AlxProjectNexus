@@ -150,30 +150,29 @@ class HighVolumeVotingUser(FastHttpUser):
     
     wait_time = between(0.1, 0.5)  # Very short wait time
     
-    def __init__(self, *args, **kwargs):
-        """Initialize attributes."""
-        super().__init__(*args, **kwargs)
-        self.poll_id = None
-        self.option_ids = []
-        self.username = f"hvuser_{random.randint(100000, 999999)}"
-    
     def on_start(self):
         """Set up user for high-volume voting."""
         # Note: API uses SessionAuthentication, no registration/login endpoints
         # We'll work as anonymous users for load testing
+        
+        # Initialize attributes first
+        self.poll_id = None
+        self.option_ids = []
+        self.username = f"hvuser_{random.randint(100000, 999999)}"
         
         # Pre-load a single poll for fast voting
         try:
             response = self.client.get("/api/v1/polls/")
             if response.status_code == 200:
                 polls = response.json().get("results", response.json())
-                if polls:
+                if polls and len(polls) > 0:
                     poll = polls[0]
                     self.poll_id = poll.get("id")
-                    poll_detail = self.client.get(f"/api/v1/polls/{self.poll_id}/")
-                    if poll_detail.status_code == 200:
-                        options = poll_detail.json().get("options", [])
-                        self.option_ids = [opt["id"] for opt in options] if options else []
+                    if self.poll_id:
+                        poll_detail = self.client.get(f"/api/v1/polls/{self.poll_id}/")
+                        if poll_detail.status_code == 200:
+                            options = poll_detail.json().get("options", [])
+                            self.option_ids = [opt["id"] for opt in options] if options else []
         except Exception as e:
             # Initialize to None if setup fails
             self.poll_id = None
@@ -183,9 +182,9 @@ class HighVolumeVotingUser(FastHttpUser):
     def rapid_vote(self):
         """Rapid voting for throughput testing."""
         # Check if attributes exist and have valid values
-        if not hasattr(self, 'poll_id') or not self.poll_id:
+        if not hasattr(self, 'poll_id') or self.poll_id is None:
             return
-        if not hasattr(self, 'option_ids') or not self.option_ids:
+        if not hasattr(self, 'option_ids') or not self.option_ids or len(self.option_ids) == 0:
             return
         
         choice_id = random.choice(self.option_ids)
