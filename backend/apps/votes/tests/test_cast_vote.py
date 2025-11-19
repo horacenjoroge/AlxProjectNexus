@@ -259,7 +259,9 @@ class TestCastVoteVoterValidation:
         request1.META["REMOTE_ADDR"] = "192.168.1.100"
 
         # Create first vote from IP
-        user1 = type(user).objects.create_user(username="user1", password="pass")
+        import time
+        timestamp = int(time.time() * 1000000)
+        user1 = type(user).objects.create_user(username=f"user1_{timestamp}", password="pass")
         vote1, _ = cast_vote(
             user=user1,
             poll_id=poll.id,
@@ -268,7 +270,7 @@ class TestCastVoteVoterValidation:
         )
 
         # Create second vote from same IP
-        user2 = type(user).objects.create_user(username="user2", password="pass")
+        user2 = type(user).objects.create_user(username=f"user2_{timestamp}", password="pass")
         vote2, _ = cast_vote(
             user=user2,
             poll_id=poll.id,
@@ -277,7 +279,7 @@ class TestCastVoteVoterValidation:
         )
 
         # Third vote from same IP should be rejected
-        user3 = type(user).objects.create_user(username="user3", password="pass")
+        user3 = type(user).objects.create_user(username=f"user3_{timestamp}", password="pass")
         with pytest.raises(InvalidVoteError) as exc_info:
             cast_vote(
                 user=user3,
@@ -297,7 +299,9 @@ class TestCastVoteVoterValidation:
         # Try to vote without user (should fail, but we need a user object)
         # Since cast_vote requires a user, we'll test with an unauthenticated-like scenario
         # by checking the security rule
-        user = type(poll.created_by).objects.create_user(username="testuser", password="pass")
+        import time
+        timestamp = int(time.time() * 1000000)
+        user = type(poll.created_by).objects.create_user(username=f"testuser_{timestamp}", password="pass")
         # The function requires a user, so we test the rule check instead
         # In real scenario, middleware would handle unauthenticated users
 
@@ -323,7 +327,9 @@ class TestCastVoteConcurrency:
         # Create multiple users
         users = []
         for i in range(3):
-            user = User.objects.create_user(username=f"user{i}", password="pass")
+            import time
+            timestamp = int(time.time() * 1000000)
+            user = User.objects.create_user(username=f"user{i}_{timestamp}", password="pass")
             users.append(user)
 
         # Create votes from different users (simulating concurrent requests)
@@ -347,12 +353,12 @@ class TestCastVoteConcurrency:
         assert len(votes_created) == 3
         assert all(is_new for _, is_new in votes_created)
 
-        # Try to vote again with same user (should fail)
+        # Try to vote again with same user but different choice (should fail - user already voted on this poll)
         with pytest.raises(DuplicateVoteError):
             cast_vote(
                 user=users[0],
                 poll_id=poll.id,
-                choice_id=choices[0].id,
+                choice_id=choices[1].id if len(choices) > 1 else choices[0].id,  # Different choice, same poll
                 request=None,
             )
 
@@ -367,9 +373,11 @@ class TestCastVoteConcurrency:
         initial_count = option.cached_vote_count
 
         # Create multiple votes sequentially (simulating concurrent requests)
-        user1 = User.objects.create_user(username="user1", password="pass")
-        user2 = User.objects.create_user(username="user2", password="pass")
-        user3 = User.objects.create_user(username="user3", password="pass")
+        import time
+        timestamp = int(time.time() * 1000000)
+        user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
+        user2 = User.objects.create_user(username=f"user2_{timestamp}", password="pass")
+        user3 = User.objects.create_user(username=f"user3_{timestamp}", password="pass")
 
         vote1, _ = cast_vote(user=user1, poll_id=poll.id, choice_id=option.id, request=None)
         vote2, _ = cast_vote(user=user2, poll_id=poll.id, choice_id=option.id, request=None)

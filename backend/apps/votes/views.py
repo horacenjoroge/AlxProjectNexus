@@ -224,7 +224,17 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         - 403 Forbidden: Cannot retract vote (not owner or poll doesn't allow)
         - 404 Not Found: Vote not found
         """
-        vote = self.get_object()
+        # Get vote ID from URL
+        vote_id = kwargs.get('pk')
+        
+        # Try to get the vote - check if it exists first
+        try:
+            vote = Vote.objects.get(id=vote_id)
+        except Vote.DoesNotExist:
+            return Response(
+                {"error": "Vote not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         # Check if user owns the vote
         if vote.user != request.user:
