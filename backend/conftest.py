@@ -4,7 +4,6 @@ This file makes fixtures available to all tests in backend/.
 """
 
 import pytest
-from apps.polls.models import Poll, PollOption
 from django.contrib.auth.models import User
 
 # Ensure pytest-django is loaded
@@ -30,40 +29,57 @@ def django_db_setup(django_db_setup, django_db_blocker):
         call_command("migrate", verbosity=1, interactive=False)
 
 
+# Factory-based fixtures
 @pytest.fixture
 def user(db):
-    """Create a test user."""
-    return User.objects.create_user(
-        username="testuser",
-        email="test@example.com",
-        password="testpass123",
-    )
+    """Create a test user using factory."""
+    from apps.users.factories import UserFactory
+    return UserFactory()
 
 
 @pytest.fixture
 def poll(db, user):
-    """Create a test poll."""
-    return Poll.objects.create(
-        title="Test Poll",
-        description="This is a test poll",
-        created_by=user,
-        is_active=True,
-    )
+    """Create a test poll using factory."""
+    from apps.polls.factories import PollFactory
+    return PollFactory(created_by=user)
 
 
 @pytest.fixture
 def choices(db, poll):
-    """Create test choices for a poll."""
-    choice1 = PollOption.objects.create(poll=poll, text="Choice 1", order=0)
-    choice2 = PollOption.objects.create(poll=poll, text="Choice 2", order=1)
+    """Create test choices for a poll using factory."""
+    from apps.polls.factories import PollOptionFactory
+    choice1 = PollOptionFactory(poll=poll, text="Choice 1", order=0)
+    choice2 = PollOptionFactory(poll=poll, text="Choice 2", order=1)
     return [choice1, choice2]
+
+
+@pytest.fixture
+def category(db):
+    """Create a test category using factory."""
+    from apps.polls.factories import CategoryFactory
+    return CategoryFactory()
+
+
+@pytest.fixture
+def tag(db):
+    """Create a test tag using factory."""
+    from apps.polls.factories import TagFactory
+    return TagFactory()
+
+
+@pytest.fixture
+def vote(db, poll, user):
+    """Create a test vote using factory."""
+    from apps.votes.factories import VoteFactory
+    from apps.polls.factories import PollOptionFactory
+    option = PollOptionFactory(poll=poll)
+    return VoteFactory(user=user, poll=poll, option=option)
 
 
 @pytest.fixture
 def api_client():
     """Create a DRF API client."""
     from rest_framework.test import APIClient
-
     return APIClient()
 
 
@@ -72,3 +88,18 @@ def authenticated_client(api_client, user):
     """Create an authenticated API client."""
     api_client.force_authenticate(user=user)
     return api_client
+
+
+# Additional factory fixtures for comprehensive testing
+@pytest.fixture
+def multiple_users(db):
+    """Create multiple test users."""
+    from apps.users.factories import UserFactory
+    return [UserFactory() for _ in range(5)]
+
+
+@pytest.fixture
+def multiple_polls(db, user):
+    """Create multiple test polls."""
+    from apps.polls.factories import PollFactory
+    return [PollFactory(created_by=user) for _ in range(3)]

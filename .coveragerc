@@ -1,0 +1,44 @@
+[run]
+source = backend
+omit =
+    */migrations/*
+    */venv/*
+    */env/*
+    */__pycache__/*
+    */tests/*
+    */test_*.py
+    */conftest.py
+    */settings/*
+    */manage.py
+    */wsgi.py
+    */asgi.py
+    */celery.py
+    */translation.py
+    */routing.py
+    */consumers.py
+    */admin.py
+    */apps.py
+    */permissions.py
+    */throttles.py
+    */mixins.py
+    */urls.py
+    */management/commands/*
+
+[report]
+precision = 2
+show_missing = True
+skip_covered = False
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @property
+    def __.*__
+
+[html]
+directory = htmlcov
+
