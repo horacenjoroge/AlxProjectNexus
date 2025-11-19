@@ -75,7 +75,7 @@ class IPReputationFactory(factory.django.DjangoModelFactory):
     score = 50
     violation_count = 0
     last_violation_at = None
-    last_success_at = factory.LazyFunction(factory.Faker("date_time").generate)
+    last_success_at = factory.LazyFunction(lambda: factory.Faker().date_time())
 
 
 class IPBlockFactory(factory.django.DjangoModelFactory):

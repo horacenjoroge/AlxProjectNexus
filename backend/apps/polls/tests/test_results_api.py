@@ -333,7 +333,7 @@ class TestResultsLiveEndpoint:
 class TestResultsExportEndpoint:
     """Test GET /api/polls/{id}/results/export/ endpoint."""
 
-    def test_results/export_json_format(self, authenticated_client, poll, choices):
+    def test_results_export_json_format(self, authenticated_client, poll, choices):
         """Test results/exporting results in JSON format."""
         from django.contrib.auth.models import User
 
@@ -362,7 +362,7 @@ class TestResultsExportEndpoint:
         assert "options" in response.data
         assert response.data["poll_id"] == poll.id
 
-    def test_results/export_csv_format(self, authenticated_client, poll, choices):
+    def test_results_export_csv_format(self, authenticated_client, poll, choices):
         """Test results/exporting results in CSV format."""
         from django.contrib.auth.models import User
 
@@ -399,7 +399,7 @@ class TestResultsExportEndpoint:
         assert "Option Text" in content
         assert "Votes" in content
 
-    def test_results/export_default_format(self, authenticated_client, poll, choices):
+    def test_results_export_default_format(self, authenticated_client, poll, choices):
         """Test that default results/export format is JSON."""
         # Configure poll to show results
         poll.settings["show_results_during_voting"] = True
@@ -410,7 +410,7 @@ class TestResultsExportEndpoint:
         assert response.status_code == 200
         assert "poll_id" in response.data  # JSON response
 
-    def test_results/export_invalid_format(self, authenticated_client, poll, choices):
+    def test_results_export_invalid_format(self, authenticated_client, poll, choices):
         """Test that invalid format returns 400 error."""
         # Configure poll to show results
         poll.settings["show_results_during_voting"] = True
@@ -421,7 +421,7 @@ class TestResultsExportEndpoint:
         assert response.status_code == 400
         assert "Invalid format" in response.data["error"]
 
-    def test_results/export_respects_visibility_rules(self, authenticated_client, poll, choices):
+    def test_results_export_respects_visibility_rules(self, authenticated_client, poll, choices):
         """Test that results/export respects visibility rules."""
         # Make poll private
         poll.settings["is_private"] = True
@@ -439,7 +439,7 @@ class TestResultsExportEndpoint:
 
         assert response.status_code == 403
 
-    def test_results/export_csv_content_structure(self, authenticated_client, poll, choices):
+    def test_results_export_csv_content_structure(self, authenticated_client, poll, choices):
         """Test that CSV results/export has correct structure."""
         from django.contrib.auth.models import User
 
