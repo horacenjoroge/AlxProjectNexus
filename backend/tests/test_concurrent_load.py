@@ -6,18 +6,30 @@ import pytest
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from django.db import connection
 
 from apps.polls.factories import PollFactory, PollOptionFactory
 from apps.polls.models import Poll
 from apps.users.factories import UserFactory
+from apps.votes.models import Vote
 from apps.votes.services import cast_vote
+
+
+# Skip concurrent load tests on SQLite - it doesn't support true concurrent writes
+# These tests require PostgreSQL for accurate results
+IS_SQLITE = connection.vendor == "sqlite"
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
 @pytest.mark.slow
+@pytest.mark.skipif(IS_SQLITE, reason="SQLite doesn't support concurrent writes. Use PostgreSQL for load tests.")
 class TestConcurrentLoad:
-    """Load tests for concurrent voting."""
+    """Load tests for concurrent voting.
+    
+    Note: These tests require PostgreSQL. SQLite uses file-level locking
+    and will fail with "database table is locked" errors under concurrent load.
+    """
 
     def test_100_concurrent_votes(self, poll, choices):
         """Test 100 concurrent votes from different users."""
