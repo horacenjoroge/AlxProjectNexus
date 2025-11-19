@@ -159,19 +159,36 @@ def calculate_poll_results(poll_id: int, use_cache: bool = True) -> Dict:
         if cached_results:
             return cached_results
     
-    # Use cached vote counts for performance
-    # If cached counts are 0, fall back to actual counts
+    # Use cached vote counts for performance, but always verify with actual counts
+    # This ensures accuracy even if cached counts are stale or not yet updated
     options = poll.options.all().order_by("order")
-    total_votes = poll.cached_total_votes if poll.cached_total_votes > 0 else poll.votes.filter(is_valid=True).count()
-    unique_voters = poll.cached_unique_voters if poll.cached_unique_voters > 0 else poll.votes.filter(is_valid=True).values("user").distinct().count()
+    
+    # Always get actual counts to ensure accuracy (cached counts may be stale)
+    actual_total_votes = poll.votes.filter(is_valid=True).count()
+    actual_unique_voters = poll.votes.filter(is_valid=True).values("user").distinct().count()
+    
+    # Use cached counts if they match actual counts (for performance), otherwise use actual
+    if poll.cached_total_votes == actual_total_votes and poll.cached_unique_voters == actual_unique_voters:
+        total_votes = poll.cached_total_votes
+        unique_voters = poll.cached_unique_voters
+    else:
+        total_votes = actual_total_votes
+        unique_voters = actual_unique_voters
     
     # Calculate vote counts and percentages
     option_results = []
     vote_counts = {}
     
     for option in options:
-        # Use cached count if available, otherwise count actual votes
-        vote_count = option.cached_vote_count if option.cached_vote_count > 0 else option.votes.filter(is_valid=True).count()
+        # Always get actual count to ensure accuracy
+        actual_vote_count = option.votes.filter(is_valid=True).count()
+        
+        # Use cached count if it matches actual (for performance), otherwise use actual
+        if option.cached_vote_count == actual_vote_count:
+            vote_count = option.cached_vote_count
+        else:
+            vote_count = actual_vote_count
+        
         vote_counts[option.id] = vote_count
         option_results.append({
             "option_id": option.id,
@@ -254,14 +271,23 @@ def calculate_winners(poll_id: int) -> Tuple[List[Dict], bool]:
     poll = Poll.objects.get(id=poll_id)
     options = poll.options.all()
     
-    total_votes = poll.cached_total_votes if poll.cached_total_votes > 0 else poll.votes.filter(is_valid=True).count()
+    # Always get actual count to ensure accuracy
+    total_votes = poll.votes.filter(is_valid=True).count()
     if total_votes == 0:
         return [], False
     
     # Get vote counts for all options
     option_votes = []
     for option in options:
-        vote_count = option.cached_vote_count if option.cached_vote_count > 0 else option.votes.filter(is_valid=True).count()
+        # Always get actual count to ensure accuracy
+        actual_vote_count = option.votes.filter(is_valid=True).count()
+        
+        # Use cached count if it matches actual (for performance), otherwise use actual
+        if option.cached_vote_count == actual_vote_count:
+            vote_count = option.cached_vote_count
+        else:
+            vote_count = actual_vote_count
+        
         option_votes.append({
             "option_id": option.id,
             "option_text": option.text,
@@ -300,8 +326,9 @@ def calculate_participation_rate(poll_id: int) -> float:
     """
     poll = Poll.objects.get(id=poll_id)
     
-    total_votes = poll.cached_total_votes or 0
-    unique_voters = poll.cached_unique_voters or 0
+    # Always get actual counts to ensure accuracy
+    total_votes = poll.votes.filter(is_valid=True).count()
+    unique_voters = poll.votes.filter(is_valid=True).values("user").distinct().count()
     
     if total_votes == 0:
         return 0.0
