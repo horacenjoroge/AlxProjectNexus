@@ -52,7 +52,8 @@ class VotingUser(HttpUser):
     def _load_polls(self):
         """Load available polls and their options."""
         try:
-            response = self.client.get("/api/v1/polls/", catch_response=True)
+            headers = {"X-Load-Test": "true"}
+            response = self.client.get("/api/v1/polls/", headers=headers, catch_response=True)
             if response.status_code == 200:
                 polls = response.json().get("results", response.json())
                 for poll in polls[:10]:  # Limit to first 10 polls
@@ -75,7 +76,8 @@ class VotingUser(HttpUser):
     @task(3)
     def browse_polls(self):
         """Browse list of polls."""
-        with self.client.get("/api/v1/polls/", catch_response=True, name="Browse Polls") as response:
+        headers = {"X-Load-Test": "true"}
+        with self.client.get("/api/v1/polls/", headers=headers, catch_response=True, name="Browse Polls") as response:
             if response.status_code == 200:
                 response.success()
             else:
@@ -95,6 +97,7 @@ class VotingUser(HttpUser):
         
         choice_id = random.choice(options)
         idempotency_key = f"{self.username}_{poll_id}_{int(time.time() * 1000)}"
+        headers = {"X-Load-Test": "true"}
         
         with self.client.post(
             "/api/v1/votes/cast/",
@@ -103,6 +106,7 @@ class VotingUser(HttpUser):
                 "choice_id": choice_id,
                 "idempotency_key": idempotency_key,
             },
+            headers=headers,
             catch_response=True,
             name="Cast Vote",
         ) as response:
@@ -118,9 +122,11 @@ class VotingUser(HttpUser):
             return
         
         poll_id = random.choice(self.poll_ids)
+        headers = {"X-Load-Test": "true"}
         
         with self.client.get(
             f"/api/v1/polls/{poll_id}/results/",
+            headers=headers,
             catch_response=True,
             name="View Results",
         ) as response:
@@ -136,9 +142,11 @@ class VotingUser(HttpUser):
             return
         
         poll_id = random.choice(self.poll_ids)
+        headers = {"X-Load-Test": "true"}
         
         with self.client.get(
             f"/api/v1/polls/{poll_id}/",
+            headers=headers,
             catch_response=True,
             name="View Poll Detail",
         ) as response:
@@ -208,6 +216,7 @@ class HighVolumeVotingUser(FastHttpUser):
         
         choice_id = random.choice(self.option_ids)
         idempotency_key = f"{self.username}_{self.poll_id}_{int(time.time() * 1000000)}"
+        headers = {"X-Load-Test": "true"}
         
         with self.client.post(
             "/api/v1/votes/cast/",
@@ -216,6 +225,7 @@ class HighVolumeVotingUser(FastHttpUser):
                 "choice_id": choice_id,
                 "idempotency_key": idempotency_key,
             },
+            headers=headers,
             catch_response=True,
             name="Rapid Vote",
         ) as response:
