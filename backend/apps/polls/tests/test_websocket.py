@@ -152,6 +152,9 @@ class TestWebSocketSubscription:
         connected, subprotocol = await communicator.connect()
         assert connected is True
 
+        # Clear initial results message
+        await communicator.receive_json_from()
+
         # Send unsubscribe message
         await communicator.send_json_to({"type": "unsubscribe"})
 

@@ -449,3 +449,42 @@ def invalidate_results_cache(poll_id: int):
 def get_poll_group_name(poll_id: int) -> str:
     """Get WebSocket group name for a poll."""
     return f"poll_{poll_id}_results"
+
+
+def broadcast_poll_results_update(poll_id: int):
+    """
+    Broadcast poll results update to all WebSocket clients subscribed to this poll.
+    
+    This function is called when a vote is cast to notify all connected WebSocket clients
+    of the updated poll results.
+    
+    Args:
+        poll_id: ID of the poll that received a vote
+    """
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        
+        channel_layer = get_channel_layer()
+        if not channel_layer:
+            logger.warning(f"Channel layer not available, skipping broadcast for poll {poll_id}")
+            return
+        
+        # Calculate updated results
+        results = calculate_poll_results(poll_id, use_cache=False)
+        
+        # Get group name
+        group_name = get_poll_group_name(poll_id)
+        
+        # Broadcast to all clients in the group
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "poll_results_update",
+                "results": results,
+            }
+        )
+        
+        logger.debug(f"Broadcasted poll results update for poll {poll_id} to group {group_name}")
+    except Exception as e:
+        logger.error(f"Error broadcasting poll results update for poll {poll_id}: {e}")

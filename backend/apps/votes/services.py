@@ -585,6 +585,13 @@ def cast_vote(
             publish_vote_event(poll.id, vote.id)
         except Exception as e:
             logger.error(f"Error publishing vote event to Redis: {e}")
+        
+        # Also broadcast directly to local WebSocket clients (for single-server or when Redis is unavailable)
+        try:
+            from apps.polls.services import broadcast_poll_results_update
+            broadcast_poll_results_update(poll.id)
+        except Exception as e:
+            logger.error(f"Error broadcasting poll results update: {e}")
 
         # Step 13: Audit logging
         VoteAttempt.objects.create(
