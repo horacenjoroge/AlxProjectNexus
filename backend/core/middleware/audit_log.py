@@ -28,7 +28,8 @@ class AuditLogMiddleware:
         ip_address = self.get_client_ip(request)
         user = getattr(request, "user", None)
         user_id = user.id if user and user.is_authenticated else None
-        request_id = getattr(request, "request_id", None)
+        # Note: request_id is read after get_response() to ensure it's set by RequestIDMiddleware
+        # We'll read it later in log_request()
 
         # Get request body (if available)
         request_body = None
@@ -47,6 +48,9 @@ class AuditLogMiddleware:
         # Calculate response time
         end_time = timezone.now()
         response_time = (end_time - start_time).total_seconds()
+
+        # Read request_id after get_response() to ensure it's set by RequestIDMiddleware
+        request_id = getattr(request, "request_id", None)
 
         # Log to database (async to avoid blocking)
         try:

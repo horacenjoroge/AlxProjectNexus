@@ -202,12 +202,14 @@ class TestExpiredPollActivation:
 
     def test_expired_poll_cant_be_activated(self, user):
         """Test that expired poll cannot be activated."""
-        # Create expired poll
+        # Create expired poll with valid dates
+        now = timezone.now()
         poll = Poll.objects.create(
             title="Expired Poll",
             created_by=user,
             is_active=False,
-            ends_at=timezone.now() - timezone.timedelta(days=1),
+            starts_at=now - timezone.timedelta(days=2),
+            ends_at=now - timezone.timedelta(days=1),
         )
 
         client = APIClient()

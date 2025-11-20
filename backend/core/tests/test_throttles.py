@@ -154,7 +154,13 @@ class TestAdvancedRateThrottle:
         with pytest.raises(Throttled) as exc_info:
             throttle.allow_request(request, None)
         
-        assert exc_info.value.detail["limit"] == 10
+        # DRF may convert detail values to ErrorDetail objects
+        limit_value = exc_info.value.detail["limit"]
+        # ErrorDetail objects can be compared directly or converted
+        if hasattr(limit_value, '__str__'):
+            # Convert ErrorDetail to its string representation, then to int
+            limit_value = int(str(limit_value))
+        assert limit_value == 10
         assert "retry_after" in exc_info.value.detail
 
 

@@ -305,7 +305,10 @@ class TestMiddlewareOrder:
 
         # Check audit log has all fields
         log = AuditLog.objects.first()
-        assert log.request_id == request.request_id
+        # The request_id should be set by RequestIDMiddleware before AuditLogMiddleware reads it
+        # RequestIDMiddleware is the innermost, so it runs first and sets request.request_id
+        # AuditLogMiddleware now reads request_id after get_response(), so it should capture it
+        assert log.request_id == request.request_id, f"Expected request_id '{request.request_id}', got '{log.request_id}'"
         assert log.user == user
 
     def test_rate_limit_with_forwarded_for_header(self):
@@ -329,6 +332,7 @@ class TestMiddlewareOrder:
         response = middleware(request)
         assert response.status_code == 429
 
+    @pytest.mark.django_db
     def test_audit_log_includes_response_time(self):
         """Test that audit log includes response time."""
         import time
