@@ -224,6 +224,31 @@ def calculate_poll_results(poll_id: int, use_cache: bool = True) -> Dict:
     # Calculate participation rate
     participation_rate = calculate_participation_rate(poll_id)
     
+    # Calculate statistics
+    vote_counts_list = [opt["votes"] for opt in option_results]
+    if vote_counts_list:
+        max_votes = max(vote_counts_list)
+        min_votes = min(vote_counts_list)
+        avg_votes = sum(vote_counts_list) / len(vote_counts_list)
+        sorted_counts = sorted(vote_counts_list)
+        median_votes = sorted_counts[len(sorted_counts) // 2] if sorted_counts else 0
+    else:
+        max_votes = min_votes = avg_votes = median_votes = 0
+    
+    # Vote distribution (count of options with each vote count)
+    vote_distribution = {}
+    for count in vote_counts_list:
+        vote_distribution[count] = vote_distribution.get(count, 0) + 1
+    
+    statistics = {
+        "average_votes_per_option": round(avg_votes, 2),
+        "median_votes_per_option": median_votes,
+        "max_votes": max_votes,
+        "min_votes": min_votes,
+        "vote_distribution": vote_distribution,
+        "options_count": len(option_results),
+    }
+    
     results = {
         "poll_id": poll.id,
         "poll_title": poll.title,
@@ -233,6 +258,7 @@ def calculate_poll_results(poll_id: int, use_cache: bool = True) -> Dict:
         "options": option_results,
         "winners": winners,
         "is_tie": is_tie,
+        "statistics": statistics,
         "calculated_at": timezone.now().isoformat(),
     }
     
