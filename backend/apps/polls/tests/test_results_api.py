@@ -336,9 +336,10 @@ class TestResultsExportEndpoint:
     def test_results_export_json_format(self, authenticated_client, poll, choices):
         """Test export/resultsing results in JSON format."""
         from django.contrib.auth.models import User
+        import time
 
         # Create some votes
-        user = User.objects.create_user(username="user1", password="pass")
+        user = User.objects.create_user(username=f"user_json_{int(time.time())}", password="pass")
         Vote.objects.create(
             user=user,
             poll=poll,
@@ -365,9 +366,10 @@ class TestResultsExportEndpoint:
     def test_results_export_csv_format(self, authenticated_client, poll, choices):
         """Test export/resultsing results in CSV format."""
         from django.contrib.auth.models import User
+        import time
 
         # Create some votes
-        user = User.objects.create_user(username="user1", password="pass")
+        user = User.objects.create_user(username=f"user_csv_{int(time.time())}", password="pass")
         Vote.objects.create(
             user=user,
             poll=poll,

@@ -358,11 +358,11 @@ class TestPatternAnalysisIntegration:
         user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
         ip_address = "192.168.1.1"
 
-        # Create suspicious pattern
+        # Create suspicious pattern - use anonymous votes to avoid unique constraint
         votes = []
         for i in range(10):
             vote = Vote.objects.create(
-                user=user,
+                user=None,  # Anonymous votes to avoid unique constraint
                 poll=poll,
                 option=choices[0],
                 ip_address=ip_address,
@@ -398,11 +398,11 @@ class TestPatternAnalysisIntegration:
         user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
         ip_address = "192.168.1.1"
 
-        # Create suspicious votes
+        # Create suspicious votes - use anonymous votes to avoid unique constraint
         votes = []
         for i in range(10):
             vote = Vote.objects.create(
-                user=user,
+                user=None,  # Anonymous votes to avoid unique constraint
                 poll=poll,
                 option=choices[0],
                 ip_address=ip_address,

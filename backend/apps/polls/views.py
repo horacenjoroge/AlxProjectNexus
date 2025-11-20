@@ -517,6 +517,107 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         option.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="export/results",
+        url_name="results-export",
+        permission_classes=[IsPollOwnerOrReadOnly],
+    )
+    def results_export(self, request, pk=None):
+        """
+        Export poll results in various formats.
+        
+        GET /api/v1/polls/{id}/export/results/?format=csv|json|pdf
+        
+        Query Parameters:
+        - format: Export format (csv or json, default: json)
+        
+        Returns:
+        - 200 OK: Exported results
+        - 403 Forbidden: User not authorized to view results
+        - 404 Not Found: Poll not found
+        - 400 Bad Request: Invalid format
+        """
+        logger.info(f"results_export called: pk={pk}, format={request.query_params.get('format')}, path={request.path}")
+        try:
+            poll = self.get_object()
+        except Exception as e:
+            logger.error(f"Error getting poll {pk}: {e}")
+            raise
+        
+        # Check visibility rules
+        if not can_view_results(poll, request.user):
+            return Response(
+                {
+                    "error": "You are not authorized to view results for this poll",
+                    "reason": "Results are private or poll is still open",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        # Get format from query params
+        export_format = request.query_params.get("format", "json").lower()
+        use_background = request.query_params.get("background", "false").lower() == "true"
+        
+        # Check if export is large enough for background processing
+        estimated_size = estimate_export_size(poll.id, "results")
+        large_export_threshold = getattr(settings, "LARGE_EXPORT_THRESHOLD", 1024 * 1024)  # 1MB default
+        
+        if use_background or estimated_size > large_export_threshold:
+            # Use background task
+            if not request.user.is_authenticated or not request.user.email:
+                return Response(
+                    {"error": "Email required for background export"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            from apps.polls.tasks import export_poll_data_task
+            export_poll_data_task.delay(
+                poll_id=poll.id,
+                export_type="results",
+                format=export_format,
+                user_email=request.user.email,
+            )
+            
+            return Response(
+                {
+                    "message": "Export started. You will receive an email when it's ready.",
+                    "poll_id": poll.id,
+                    "format": export_format,
+                },
+                status=status.HTTP_202_ACCEPTED,
+            )
+        
+        # Handle immediate export
+        if export_format == "csv":
+            from core.services.export_service import export_poll_results_csv
+            from django.http import HttpResponse
+            
+            csv_content = export_poll_results_csv(poll.id)
+            response = HttpResponse(csv_content, content_type="text/csv")
+            response["Content-Disposition"] = f'attachment; filename="poll_{poll.id}_results.csv"'
+            return response
+            
+        elif export_format == "json":
+            from core.services.export_service import export_poll_results_json
+            json_data = export_poll_results_json(poll.id)
+            return Response(json_data, status=status.HTTP_200_OK)
+        
+        elif export_format == "pdf":
+            pdf_buffer = export_poll_results_pdf(poll.id)
+            from django.http import HttpResponse
+            
+            response = HttpResponse(pdf_buffer.getvalue(), content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="poll_{poll.id}_results.pdf"'
+            return response
+            
+        else:
+            return Response(
+                {"error": f"Invalid format '{export_format}'. Supported formats: csv, json, pdf"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     @action(detail=True, methods=["get"], url_path="results")
     def results(self, request, pk=None):
         """
@@ -620,120 +721,6 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_404_NOT_FOUND,
-            )
-
-    @action(
-        detail=True,
-        methods=["get"],
-        url_path="export/results",
-        url_name="results-export",
-        permission_classes=[IsPollOwnerOrReadOnly],
-    )
-    def results_export(self, request, pk=None):
-        """
-        Export poll results in various formats.
-        
-        GET /api/v1/polls/{id}/export-results/?format=csv|json|pdf
-        
-        Query Parameters:
-        - format: Export format (csv or json, default: json)
-        
-        Returns:
-        - 200 OK: Exported results
-        - 403 Forbidden: User not authorized to view results
-        - 404 Not Found: Poll not found
-        - 400 Bad Request: Invalid format
-        """
-        logger.info(f"results_export called: pk={pk}, format={request.query_params.get('format')}, path={request.path}")
-        try:
-            poll = self.get_object()
-        except Exception as e:
-            logger.error(f"Error getting poll {pk}: {e}")
-            raise
-        
-        # Check visibility rules
-        if not can_view_results(poll, request.user):
-            return Response(
-                {
-                    "error": "You are not authorized to view results for this poll",
-                    "reason": "Results are private or poll is still open",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        
-        # Get format from query params
-        export_format = request.query_params.get("format", "json").lower()
-        use_background = request.query_params.get("background", "false").lower() == "true"
-        
-        # Check if export is large enough for background processing
-        estimated_size = estimate_export_size(poll.id, "results")
-        large_export_threshold = getattr(settings, "LARGE_EXPORT_THRESHOLD", 1024 * 1024)  # 1MB default
-        
-        if use_background or estimated_size > large_export_threshold:
-            # Use background task
-            if not request.user.is_authenticated or not request.user.email:
-                return Response(
-                    {"error": "Email address required for background exports"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            
-            from apps.polls.tasks import export_poll_data_task
-            
-            task = export_poll_data_task.delay(
-                poll_id=poll.id,
-                export_type="results",
-                format=export_format,
-                user_email=request.user.email,
-            )
-            
-            return Response(
-                {
-                    "message": "Export started in background. You will receive an email when ready.",
-                    "task_id": task.id,
-                    "estimated_size_bytes": estimated_size,
-                },
-                status=status.HTTP_202_ACCEPTED,
-            )
-        
-        # Immediate export
-        try:
-            if export_format == "csv":
-                from core.services.export_service import export_poll_results_csv
-                from django.http import HttpResponse
-                
-                csv_content = export_poll_results_csv(poll.id)
-                response = HttpResponse(csv_content, content_type="text/csv")
-                response["Content-Disposition"] = f'attachment; filename="poll_{poll.id}_results.csv"'
-                return response
-                
-            elif export_format == "json":
-                from core.services.export_service import export_poll_results_json
-                json_data = export_poll_results_json(poll.id)
-                return Response(json_data, status=status.HTTP_200_OK)
-            
-            elif export_format == "pdf":
-                pdf_buffer = export_poll_results_pdf(poll.id)
-                from django.http import HttpResponse
-                
-                response = HttpResponse(pdf_buffer.getvalue(), content_type="application/pdf")
-                response["Content-Disposition"] = f'attachment; filename="poll_{poll.id}_results.pdf"'
-                return response
-                
-            else:
-                return Response(
-                    {"error": f"Invalid format '{export_format}'. Supported formats: csv, json, pdf"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-                
-        except ValueError as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except ImportError as e:
-            return Response(
-                {"error": f"PDF export requires reportlab: {str(e)}"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
     @action(detail=True, methods=["get"], url_path="export/vote-log")
