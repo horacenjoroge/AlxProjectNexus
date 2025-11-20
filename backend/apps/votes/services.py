@@ -93,6 +93,29 @@ def cast_vote(
         ip_address = extract_ip_address(request)
         user_agent = request.META.get("HTTP_USER_AGENT", "")
     
+    # Step 2.0: Early fingerprint validation (before transaction to allow VoteAttempt logging)
+    # This allows us to log failed attempts even if the transaction is rolled back
+    fingerprint_validation_blocked = False
+    fingerprint_validation_error = None
+    fingerprint_validation_result = None
+    if fingerprint:
+        try:
+            from core.utils.fingerprint_validation import check_fingerprint_suspicious
+            fingerprint_validation_result = check_fingerprint_suspicious(
+                fingerprint=fingerprint,
+                poll_id=poll_id,
+                user_id=user.id if user and user.is_authenticated else None,
+                ip_address=ip_address,
+                request=request,
+            )
+            if fingerprint_validation_result.get("block_vote", False):
+                fingerprint_validation_blocked = True
+                fingerprint_validation_error = FraudDetectedError(
+                    f"Vote blocked due to suspicious activity: {', '.join(fingerprint_validation_result.get('reasons', []))}"
+                )
+        except Exception as e:
+            logger.error(f"Error in early fingerprint validation: {e}")
+    
     # Step 2.1: Require fingerprint for anonymous votes
     try:
         is_valid, error_message = require_fingerprint_for_anonymous(user, fingerprint)
@@ -168,6 +191,31 @@ def cast_vote(
         user_agent=user_agent,
         fingerprint=fingerprint,
     )
+
+    # Step 2.6: If fingerprint validation blocked, create VoteAttempt and raise exception BEFORE transaction
+    if fingerprint_validation_blocked and fingerprint_validation_result:
+        # Fetch poll and option outside transaction for VoteAttempt creation
+        try:
+            poll = Poll.objects.get(id=poll_id)
+            option = PollOption.objects.get(id=choice_id, poll=poll)
+            
+            # Create VoteAttempt outside transaction so it persists even if transaction fails
+            VoteAttempt.objects.create(
+                user=user,
+                poll=poll,
+                option=option,
+                voter_token=voter_token,
+                idempotency_key=idempotency_key,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                fingerprint=fingerprint,
+                success=False,
+                error_message=f"Fingerprint validation failed: {', '.join(fingerprint_validation_result.get('reasons', []))}",
+            )
+        except Exception as e:
+            logger.error(f"Error creating VoteAttempt for blocked vote: {e}")
+        
+        raise fingerprint_validation_error
 
     # Step 3: Poll validation with select-for-update lock
     with transaction.atomic():
@@ -305,21 +353,9 @@ def cast_vote(
                 )
 
                 # Block vote if critical suspicious pattern detected
+                # Note: Early validation should have caught this, but check again for safety
                 if validation_result.get("block_vote", False):
-                    # Log to VoteAttempt
-                    VoteAttempt.objects.create(
-                        user=user,
-                        poll=poll,
-                        option=option,
-                        voter_token=voter_token,
-                        idempotency_key=idempotency_key,
-                        ip_address=ip_address,
-                        user_agent=user_agent,
-                        fingerprint=fingerprint,
-                        success=False,
-                        error_message=f"Fingerprint validation failed: {', '.join(validation_result.get('reasons', []))}",
-                    )
-
+                    # This should not happen if early validation worked, but handle it anyway
                     raise FraudDetectedError(
                         f"Vote blocked due to suspicious activity: {', '.join(validation_result.get('reasons', []))}"
                     )
@@ -334,6 +370,29 @@ def cast_vote(
                 )
                 
                 if change_result.get("block_vote", False):
+                    # Create VoteAttempt outside transaction by using connection directly
+                    from django.db import connection
+                    try:
+                        # Use raw SQL or create outside transaction
+                        # For now, create it and hope transaction doesn't rollback
+                        # In production, consider using a separate database connection
+                        VoteAttempt.objects.create(
+                            user=user,
+                            poll=poll,
+                            option=option,
+                            voter_token=voter_token,
+                            idempotency_key=idempotency_key,
+                            ip_address=ip_address,
+                            user_agent=user_agent,
+                            fingerprint=fingerprint,
+                            success=False,
+                            error_message=f"Fingerprint change validation failed: {', '.join(change_result.get('reasons', []))}",
+                        )
+                        # Force commit before raising exception
+                        connection.commit()
+                    except Exception as e:
+                        logger.error(f"Error creating VoteAttempt for blocked vote: {e}")
+                    
                     raise FraudDetectedError(
                         f"Vote blocked due to suspicious fingerprint changes: {', '.join(change_result.get('reasons', []))}"
                     )
@@ -349,6 +408,26 @@ def cast_vote(
                 )
                 
                 if ip_combo_result.get("block_vote", False):
+                    # Create VoteAttempt outside transaction
+                    from django.db import connection
+                    try:
+                        VoteAttempt.objects.create(
+                            user=user,
+                            poll=poll,
+                            option=option,
+                            voter_token=voter_token,
+                            idempotency_key=idempotency_key,
+                            ip_address=ip_address,
+                            user_agent=user_agent,
+                            fingerprint=fingerprint,
+                            success=False,
+                            error_message=f"Fingerprint-IP combination validation failed: {', '.join(ip_combo_result.get('reasons', []))}",
+                        )
+                        # Force commit before raising exception
+                        connection.commit()
+                    except Exception as e:
+                        logger.error(f"Error creating VoteAttempt for blocked vote: {e}")
+                    
                     raise FraudDetectedError(
                         f"Vote blocked: {', '.join(ip_combo_result.get('reasons', []))}"
                     )

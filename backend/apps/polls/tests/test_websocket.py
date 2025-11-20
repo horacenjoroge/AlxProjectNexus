@@ -3,6 +3,7 @@ Comprehensive tests for WebSocket poll results consumer.
 """
 
 import json
+import time
 import pytest
 from channels.testing import WebsocketCommunicator
 from channels.db import database_sync_to_async
@@ -67,8 +68,9 @@ class TestWebSocketConnection:
         await database_sync_to_async(poll.save)()
 
         # Create non-owner user
+        unique_username = f"otheruser_{int(time.time() * 1000000)}"
         other_user = await database_sync_to_async(User.objects.create_user)(
-            username=f"otheruser_{int(time.time() * 1000000)}", password="testpass"
+            username=unique_username, password="testpass"
         )
 
         communicator = create_websocket_communicator(poll.id, other_user)

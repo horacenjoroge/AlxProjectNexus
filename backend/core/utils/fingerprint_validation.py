@@ -287,6 +287,7 @@ def check_fingerprint_suspicious(
         ).first()
 
         if blocked_fingerprint:
+            # Return block_vote=True so that VoteAttempt is created in cast_vote
             return {
                 "suspicious": True,
                 "reasons": [

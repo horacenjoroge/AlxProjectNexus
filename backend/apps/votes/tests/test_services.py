@@ -177,8 +177,12 @@ class TestVoteServiceFingerprintValidation:
         import hashlib
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote, VoteAttempt
+        from apps.analytics.models import FingerprintBlock
 
         cache.clear()
+        
+        # Clear any existing fingerprint blocks from previous test runs
+        FingerprintBlock.objects.filter(is_active=True).update(is_active=False)
 
         poll = Poll.objects.create(title="Test Poll", created_by=user)
         option = PollOption.objects.create(poll=poll, text="Option 1")
