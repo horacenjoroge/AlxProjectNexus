@@ -319,10 +319,14 @@ class TestAPIAbuse:
             content_type="application/json",
         )
         
-        # One should succeed, one should be duplicate
+        # With same idempotency_key, first should create (201), second should return existing (200)
+        # OR both could be 200 if idempotency check happens before creation
         status_codes = [response1.status_code, response2.status_code]
-        assert 200 in status_codes or 201 in status_codes
-        assert 409 in status_codes or status_codes[0] == status_codes[1]
+        assert 200 in status_codes or 201 in status_codes  # At least one success
+        # Both should be successful (200 or 201), not 409, because idempotency returns existing vote
+        assert all(status in [200, 201] for status in status_codes)
+        # Both should return the same vote ID
+        assert response1.data.get("id") == response2.data.get("id")
 
     def test_rapid_poll_creation_abuse(self, admin_client):
         """Test rapid poll creation abuse."""

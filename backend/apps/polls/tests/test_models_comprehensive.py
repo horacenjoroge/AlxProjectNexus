@@ -36,15 +36,17 @@ class TestCategoryModel:
 
     def test_category_unique_name(self):
         """Test that category name must be unique."""
-        CategoryFactory(name="Unique Category")
+        from apps.polls.models import Category
+        Category.objects.create(name="Unique Category", slug="unique-category")
         with pytest.raises(IntegrityError):
-            CategoryFactory(name="Unique Category")
+            Category.objects.create(name="Unique Category", slug="unique-category-2")
 
     def test_category_unique_slug(self):
         """Test that category slug must be unique."""
-        CategoryFactory(name="Test Category")
+        from apps.polls.models import Category
+        Category.objects.create(name="Test Category", slug="test-category")
         with pytest.raises(IntegrityError):
-            CategoryFactory(name="Test Category")
+            Category.objects.create(name="Different Name", slug="test-category")
 
     def test_category_str_representation(self):
         """Test category string representation."""
@@ -96,15 +98,17 @@ class TestTagModel:
 
     def test_tag_unique_name(self):
         """Test that tag name must be unique."""
-        TagFactory(name="unique-tag")
+        from apps.polls.models import Tag
+        Tag.objects.create(name="unique-tag", slug="unique-tag")
         with pytest.raises(IntegrityError):
-            TagFactory(name="unique-tag")
+            Tag.objects.create(name="unique-tag", slug="unique-tag-2")
 
     def test_tag_unique_slug(self):
         """Test that tag slug must be unique."""
-        TagFactory(name="Test Tag")
+        from apps.polls.models import Tag
+        Tag.objects.create(name="Test Tag", slug="test-tag")
         with pytest.raises(IntegrityError):
-            TagFactory(name="Test Tag")
+            Tag.objects.create(name="Different Tag", slug="test-tag")
 
     def test_tag_str_representation(self):
         """Test tag string representation."""

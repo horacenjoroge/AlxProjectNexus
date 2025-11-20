@@ -5,6 +5,7 @@ Factory Boy factories for Poll models.
 import factory
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.text import slugify
 from faker import Faker
 
 from .models import Category, Poll, PollOption, Tag
@@ -44,7 +45,7 @@ class CategoryFactory(factory.django.DjangoModelFactory):
         django_get_or_create = ("slug",)
 
     name = factory.Sequence(lambda n: f"Category {n}")
-    slug = factory.LazyAttribute(lambda obj: obj.name.lower().replace(" ", "-"))
+    slug = factory.LazyAttribute(lambda obj: slugify(obj.name) if obj.name else "")
     description = factory.Faker("text", max_nb_chars=200)
 
 
@@ -56,7 +57,7 @@ class TagFactory(factory.django.DjangoModelFactory):
         django_get_or_create = ("slug",)
 
     name = factory.Sequence(lambda n: f"tag{n}")
-    slug = factory.LazyAttribute(lambda obj: obj.name.lower())
+    slug = factory.LazyAttribute(lambda obj: slugify(obj.name) if obj.name else "")
 
 
 class PollFactory(factory.django.DjangoModelFactory):

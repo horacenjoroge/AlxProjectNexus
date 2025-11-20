@@ -78,10 +78,15 @@ class TestPollModel:
     def test_poll_update_cached_totals(self, poll, user):
         """Test updating cached totals."""
         from apps.votes.models import Vote
+        from django.contrib.auth.models import User
+        import time
 
-        # Create some votes
+        # Create some votes from different users (same user can't vote twice on same poll)
         option1 = PollOption.objects.create(poll=poll, text="Option 1")
         option2 = PollOption.objects.create(poll=poll, text="Option 2")
+        
+        timestamp = int(time.time() * 1000000)
+        user2 = User.objects.create_user(username=f"user2_{timestamp}", password="pass")
 
         Vote.objects.create(
             user=user,
@@ -91,17 +96,17 @@ class TestPollModel:
             idempotency_key="key1",
         )
         Vote.objects.create(
-            user=user,
+            user=user2,
             poll=poll,
             option=option2,
-            voter_token="token1",
+            voter_token="token2",
             idempotency_key="key2",
         )
 
         poll.update_cached_totals()
         poll.refresh_from_db()
         assert poll.cached_total_votes == 2
-        assert poll.cached_unique_voters == 1
+        assert poll.cached_unique_voters == 2  # Two different users
 
     def test_poll_str_representation(self, poll):
         """Test poll string representation."""
@@ -196,8 +201,10 @@ class TestPollModelDatabaseConstraints:
 
     def test_poll_requires_title(self, user):
         """Test that poll requires a title."""
-        with pytest.raises(Exception):  # IntegrityError or ValidationError
-            Poll.objects.create(created_by=user)
+        # Django CharField allows empty string, but we can test validation
+        poll = Poll(created_by=user, title="")  # Empty title
+        with pytest.raises(ValidationError):
+            poll.full_clean()
 
     def test_poll_requires_created_by(self):
         """Test that poll requires created_by."""
@@ -236,8 +243,10 @@ class TestPollOptionModelDatabaseConstraints:
 
     def test_poll_option_requires_text(self, poll):
         """Test that poll option requires text."""
-        with pytest.raises(Exception):
-            PollOption.objects.create(poll=poll)
+        # Django CharField allows empty string, but we can test validation
+        option = PollOption(poll=poll, text="")  # Empty text
+        with pytest.raises(ValidationError):
+            option.full_clean()
 
     @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
     def test_poll_option_indexes_exist(self, poll):
