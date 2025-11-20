@@ -108,12 +108,23 @@ class TestIdempotencyCheck:
     def test_check_idempotency_returns_true_for_cached_key(self):
         """Test that cached idempotency key returns True."""
         from django.core.cache import cache
+        from django.conf import settings
+
+        # Skip if cache backend is dummy (doesn't store anything)
+        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
+        if 'dummy' in cache_backend.lower():
+            pytest.skip("Idempotency cache tests require a functional cache backend (Redis or locmem)")
 
         cache.clear()
         key = generate_idempotency_key(user_id=1, poll_id=2, choice_id=3)
         cached_result = {"vote_id": 123, "status": "created"}
 
         store_idempotency_result(key, cached_result)
+
+        # Verify it was stored
+        cache_key = f"idempotency:{key}"
+        stored_value = cache.get(cache_key)
+        assert stored_value is not None, "Cache should store the value"
 
         is_duplicate, result = check_idempotency(key)
 
@@ -123,6 +134,12 @@ class TestIdempotencyCheck:
     def test_duplicate_idempotency_keys_are_detected(self):
         """Test that duplicate idempotency keys are detected."""
         from django.core.cache import cache
+        from django.conf import settings
+
+        # Skip if cache backend is dummy (doesn't store anything)
+        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
+        if 'dummy' in cache_backend.lower():
+            pytest.skip("Idempotency cache tests require a functional cache backend (Redis or locmem)")
 
         cache.clear()
         key = generate_idempotency_key(user_id=1, poll_id=2, choice_id=3)
@@ -133,6 +150,11 @@ class TestIdempotencyCheck:
 
         # Store result
         store_idempotency_result(key, {"vote_id": 123})
+
+        # Verify it was stored
+        cache_key = f"idempotency:{key}"
+        stored_value = cache.get(cache_key)
+        assert stored_value is not None, "Cache should store the value"
 
         # Second check - should be duplicate
         is_duplicate2, result = check_idempotency(key)
@@ -318,6 +340,9 @@ class TestIPExtraction:
         """Test IP extraction when headers are missing."""
         factory = RequestFactory()
         request = factory.get("/api/test/")
+        # Remove REMOTE_ADDR if it exists (RequestFactory sets it to 127.0.0.1 by default)
+        if "REMOTE_ADDR" in request.META:
+            del request.META["REMOTE_ADDR"]
         # No IP headers set
 
         ip = extract_ip_address(request)

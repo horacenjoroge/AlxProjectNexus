@@ -208,7 +208,7 @@ def cast_vote(
                 idempotency_key=idempotency_key,
                 ip_address=ip_address,
                 user_agent=user_agent,
-                fingerprint=fingerprint,
+                fingerprint=fingerprint or "",
                 success=False,
                 error_message=f"Fingerprint validation failed: {', '.join(fingerprint_validation_result.get('reasons', []))}",
             )
@@ -384,7 +384,7 @@ def cast_vote(
                             idempotency_key=idempotency_key,
                             ip_address=ip_address,
                             user_agent=user_agent,
-                            fingerprint=fingerprint,
+                            fingerprint=fingerprint or "",
                             success=False,
                             error_message=f"Fingerprint change validation failed: {', '.join(change_result.get('reasons', []))}",
                         )
@@ -419,7 +419,7 @@ def cast_vote(
                             idempotency_key=idempotency_key,
                             ip_address=ip_address,
                             user_agent=user_agent,
-                            fingerprint=fingerprint,
+                            fingerprint=fingerprint or "",
                             success=False,
                             error_message=f"Fingerprint-IP combination validation failed: {', '.join(ip_combo_result.get('reasons', []))}",
                         )
@@ -602,7 +602,7 @@ def cast_vote(
             idempotency_key=idempotency_key,
             ip_address=ip_address,
             user_agent=user_agent,
-            fingerprint=fingerprint,
+            fingerprint=fingerprint or "",
             success=True,
         )
 

@@ -25,10 +25,12 @@ class TestRapidVotesFromIP:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
+        import time
+        timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
         users = []
         for i in range(5):
-            user = User.objects.create_user(username=f"user{i}", password="pass")
+            user = User.objects.create_user(username=f"user_{timestamp}_{i}", password="pass")
             users.append(user)
 
         # Create 3 rapid votes from same IP
@@ -53,19 +55,20 @@ class TestRapidVotesFromIP:
         """Test that normal votes are not flagged."""
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
+        import time
 
+        timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
-        user = User.objects.create_user(username="user1", password="pass")
-
+        # Use anonymous votes to allow multiple votes from same IP (same user can only vote once per poll)
         # Create 2 votes (below threshold)
         for i in range(2):
             Vote.objects.create(
-                user=user,
+                user=None,  # Anonymous vote
                 poll=poll,
-                option=choices[i],
+                option=choices[i % len(choices)],
                 ip_address=ip_address,
-                voter_token=f"token{i}",
-                idempotency_key=f"key{i}",
+                voter_token=f"token_{timestamp}_{i}",
+                idempotency_key=f"key_{timestamp}_{i}",
             )
 
         result = check_rapid_votes_from_ip(poll.id, ip_address, time_window_minutes=5, max_votes=3)
@@ -117,11 +120,13 @@ class TestSuspiciousVotingPattern:
         """Test that suspicious voting patterns are detected."""
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
+        import time
 
+        timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
         users = []
         for i in range(10):
-            user = User.objects.create_user(username=f"user{i}", password="pass")
+            user = User.objects.create_user(username=f"user_{timestamp}_{i}", password="pass")
             users.append(user)
 
         # Create 10 votes all going to same option from same IP
@@ -146,19 +151,23 @@ class TestSuspiciousVotingPattern:
         """Test that legitimate voting patterns are not flagged."""
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
+        import time
 
+        timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
-        user = User.objects.create_user(username="user1", password="pass")
+        user = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
 
-        # Create votes distributed across options
+        # Create votes distributed across options (but same user can only vote once per poll)
+        # So we need to use different users or anonymous votes
+        # For this test, we'll use anonymous votes with different voter tokens
         for i in range(3):
             Vote.objects.create(
-                user=user,
+                user=None,  # Anonymous vote to allow multiple votes
                 poll=poll,
                 option=choices[i % len(choices)],  # Distribute votes
                 ip_address=ip_address,
-                voter_token=f"token{i}",
-                idempotency_key=f"key{i}",
+                voter_token=f"token_{timestamp}_{i}",
+                idempotency_key=f"key_{timestamp}_{i}",
             )
 
         result = check_suspicious_voting_pattern(poll.id, ip_address=ip_address)
@@ -280,10 +289,12 @@ class TestDetectFraud:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
+        import time
+        timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
         users = []
         for i in range(5):
-            user = User.objects.create_user(username=f"user{i}", password="pass")
+            user = User.objects.create_user(username=f"user_{timestamp}_{i}", password="pass")
             users.append(user)
 
         # Create rapid votes from same IP
@@ -394,8 +405,10 @@ class TestFraudDetectionIntegration:
         from apps.votes.services import cast_vote
         from django.contrib.auth.models import User
 
-        user1 = User.objects.create_user(username="user1", password="pass")
-        user2 = User.objects.create_user(username="user2", password="pass")
+        import time
+        timestamp = int(time.time() * 1000000)
+        user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
+        user2 = User.objects.create_user(username=f"user2_{timestamp}", password="pass")
 
         factory = RequestFactory()
 

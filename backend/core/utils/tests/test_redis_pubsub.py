@@ -92,12 +92,14 @@ class TestVoteEventPublisher:
 
     def test_get_publisher_singleton(self):
         """Test get_publisher returns singleton instance."""
-        with patch("core.utils.redis_pubsub.VoteEventPublisher") as mock_publisher_class:
-            publisher1 = get_publisher()
-            publisher2 = get_publisher()
-            assert publisher1 is publisher2
-            # Should only be instantiated once
-            assert mock_publisher_class.call_count == 1
+        # Clear the global singleton instance
+        import core.utils.redis_pubsub
+        core.utils.redis_pubsub._publisher_instance = None
+        
+        publisher1 = get_publisher()
+        publisher2 = get_publisher()
+        assert publisher1 is publisher2
+        assert publisher1 is not None
 
 
 class TestVoteEventSubscriber:

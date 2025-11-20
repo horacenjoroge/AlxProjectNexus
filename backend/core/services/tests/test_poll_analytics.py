@@ -31,6 +31,12 @@ class TestTotalVotesOverTime:
         import uuid
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
+        from datetime import datetime
+        from datetime import timezone as dt_timezone
+
+        # Set poll start date before votes are created
+        poll.starts_at = datetime(2024, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc)
+        poll.save()
 
         user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
@@ -67,8 +73,14 @@ class TestTotalVotesOverTime:
         """Test daily time series data."""
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
+        from datetime import datetime
+        from datetime import timezone as dt_timezone
 
         import uuid
+        # Set poll start date before votes are created
+        poll.starts_at = datetime(2024, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc)
+        poll.save()
+
         user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
         # Create votes on different days
@@ -140,7 +152,8 @@ class TestVotesByHour:
                 idempotency_key="key2",
             )
 
-        hourly_data = get_votes_by_hour(poll.id, date=timezone.datetime(2024, 1, 1, tzinfo=timezone.utc))
+        from datetime import timezone as dt_timezone
+        hourly_data = get_votes_by_hour(poll.id, date=timezone.datetime(2024, 1, 1, tzinfo=dt_timezone.utc))
 
         assert len(hourly_data) == 2
         assert all("hour" in item and "count" in item for item in hourly_data)
@@ -157,6 +170,8 @@ class TestVotesByDay:
         """Test daily vote distribution."""
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
+        from datetime import datetime
+        from datetime import timezone as dt_timezone
 
         import uuid
         user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
@@ -172,17 +187,21 @@ class TestVotesByDay:
                 idempotency_key="key1",
             )
 
+        # Use anonymous vote for second vote (same user can only vote once per poll)
         with freeze_time("2024-01-02 10:00:00"):
             Vote.objects.create(
-                user=user,
+                user=None,
                 poll=poll,
                 option=choices[1],
-                ip_address="192.168.1.1",
+                ip_address="192.168.1.2",
                 voter_token="token2",
                 idempotency_key="key2",
             )
 
-        daily_data = get_votes_by_day(poll.id, days=30)
+        # get_votes_by_day uses timezone.now() which isn't frozen, so we need to freeze time
+        # when calling the function to ensure it sees our votes
+        with freeze_time("2024-01-02 12:00:00"):
+            daily_data = get_votes_by_day(poll.id, days=30)
 
         assert len(daily_data) == 2
         assert all("date" in item and "count" in item for item in daily_data)
@@ -199,8 +218,10 @@ class TestVoterDemographics:
         from django.contrib.auth.models import User
 
         # Create authenticated and anonymous votes
-        user1 = User.objects.create_user(username="user1", password="pass")
-        user2 = User.objects.create_user(username="user2", password="pass")
+        import time
+        timestamp = int(time.time() * 1000000)
+        user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
+        user2 = User.objects.create_user(username=f"user2_{timestamp}", password="pass")
 
         Vote.objects.create(
             user=user1,
@@ -249,6 +270,10 @@ class TestParticipationRate:
             voter_token="token1",
             idempotency_key="key1",
         )
+
+        # Update cached totals since we created vote directly
+        poll.update_cached_totals()
+        poll.refresh_from_db()
 
         participation = get_participation_rate(poll.id)
 
@@ -341,8 +366,10 @@ class TestVoteDistribution:
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
-        user1 = User.objects.create_user(username="user1", password="pass")
-        user2 = User.objects.create_user(username="user2", password="pass")
+        import time
+        timestamp = int(time.time() * 1000000)
+        user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
+        user2 = User.objects.create_user(username=f"user2_{timestamp}", password="pass")
 
         # Create votes for different options
         Vote.objects.create(
@@ -481,16 +508,22 @@ class TestAnalyticsWithVariousDataVolumes:
         from django.contrib.auth.models import User
 
         # Create 100 votes
+        import time
+        timestamp = int(time.time() * 1000000)
         for i in range(100):
-            user = User.objects.create_user(username=f"user{i}", password="pass")
+            user = User.objects.create_user(username=f"user_{timestamp}_{i}", password="pass")
             Vote.objects.create(
                 user=user,
                 poll=poll,
                 option=choices[i % len(choices)],
                 ip_address=f"192.168.1.{i % 10}",
-                voter_token=f"token{i}",
-                idempotency_key=f"key{i}",
+                voter_token=f"token_{timestamp}_{i}",
+                idempotency_key=f"key_{timestamp}_{i}",
             )
+
+        # Update cached totals since we created votes directly
+        poll.update_cached_totals()
+        poll.refresh_from_db()
 
         analytics = get_comprehensive_analytics(poll.id)
 
@@ -506,6 +539,12 @@ class TestAnalyticsWithVariousDataVolumes:
         import uuid
         user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
 
+        # Set poll start date before votes are created
+        from datetime import datetime
+        from datetime import timezone as dt_timezone
+        poll.starts_at = datetime(2024, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc)
+        poll.save()
+
         # Create votes across multiple hours (use different users to avoid unique constraint)
         for hour in range(10):
             vote_user = User.objects.create_user(username=f"testuser_h{hour}_{uuid.uuid4().hex[:8]}", password="pass")
@@ -516,11 +555,17 @@ class TestAnalyticsWithVariousDataVolumes:
                     poll=poll,
                     option=choices[0],
                     ip_address=f"192.168.1.{hour % 10}",
-                    voter_token=f"token{hour}",
-                    idempotency_key=f"key{hour}",
+                    voter_token=f"token_{hour}",
+                    idempotency_key=f"key_{hour}",
                 )
 
-        time_series = get_total_votes_over_time(poll.id, interval="hour")
+        # Update cached totals
+        poll.update_cached_totals()
+        poll.refresh_from_db()
+
+        # Use freeze_time when calling the function to ensure it sees our votes
+        with freeze_time(poll.starts_at + timedelta(hours=11)):
+            time_series = get_total_votes_over_time(poll.id, interval="hour")
 
         assert len(time_series) == 10
         assert sum(item["count"] for item in time_series) == 10
@@ -539,12 +584,13 @@ class TestAnalyticsPerformance:
 
         # Create 1000 votes (simulating large dataset)
         # In real performance test, this would be 10M votes
+        timestamp = int(time.time() * 1000000)
         users = []
         for i in range(1000):
-            user = User.objects.create_user(username=f"user{i}", password="pass")
+            user = User.objects.create_user(username=f"user_{timestamp}_{i}", password="pass")
             users.append(user)
 
-        # Create votes
+        # Create votes (each user votes once on this poll)
         for i, user in enumerate(users):
             Vote.objects.create(
                 user=user,
@@ -552,8 +598,8 @@ class TestAnalyticsPerformance:
                 option=choices[i % len(choices)],
                 ip_address=f"192.168.1.{i % 100}",
                 user_agent=f"Mozilla/5.0 (User {i})",
-                voter_token=f"token{i}",
-                idempotency_key=f"key{i}",
+                voter_token=f"token_{timestamp}_{i}",
+                idempotency_key=f"key_{timestamp}_{i}",
             )
 
         # Measure analytics calculation time

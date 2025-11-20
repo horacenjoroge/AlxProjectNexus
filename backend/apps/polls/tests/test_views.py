@@ -28,13 +28,25 @@ class TestPollViewSet:
             "title": "New Poll",
             "description": "A new poll",
             "is_active": True,
+            "options": [
+                {"text": "Option 1"},
+                {"text": "Option 2"},
+            ],
         }
-        response = authenticated_client.post("/api/v1/polls/", data)
+        response = authenticated_client.post("/api/v1/polls/", data, format="json")
         assert response.status_code == 201
         assert Poll.objects.filter(title="New Poll").exists()
 
     def test_poll_results(self, authenticated_client, poll, choices):
         """Test getting poll results."""
+        # Ensure poll allows viewing results
+        poll.settings["show_results_during_voting"] = True
+        poll.settings["is_private"] = False
+        poll.save()
+        
         response = authenticated_client.get(f"/api/v1/polls/{poll.id}/results/")
         assert response.status_code == 200
-        assert "results" in response.data
+        # Response contains poll results directly (not nested under "results")
+        assert "poll_id" in response.data
+        assert "total_votes" in response.data
+        assert "options" in response.data

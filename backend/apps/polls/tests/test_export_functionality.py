@@ -92,7 +92,7 @@ class TestPollResultsExport:
         client = APIClient()
         client.force_authenticate(user=user)
         
-        response = client.get(f"/api/v1/polls/{poll.id}/export-results/?format=json")
+        response = client.get(f"/api/v1/polls/{poll.id}/export/results/?format=json")
         
         assert response.status_code == status.HTTP_200_OK
         assert "poll_id" in response.data
@@ -183,7 +183,7 @@ class TestPollResultsExport:
         client = APIClient()
         client.force_authenticate(user=user)
         
-        response = client.get(f"/api/v1/polls/{poll.id}/export-results/?format=json")
+        response = client.get(f"/api/v1/polls/{poll.id}/export/results/?format=json")
         
         assert response.status_code == status.HTTP_200_OK
         assert response.data["total_votes"] == 2

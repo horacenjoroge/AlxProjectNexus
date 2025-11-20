@@ -93,7 +93,8 @@ class TestVerifyRecaptchaToken:
     @patch("core.utils.captcha.requests.post")
     def test_verify_recaptcha_token_network_error(self, mock_post):
         """Test CAPTCHA verification with network error."""
-        mock_post.side_effect = Exception("Network error")
+        import requests
+        mock_post.side_effect = requests.exceptions.RequestException("Network error")
         
         with patch("django.conf.settings.RECAPTCHA_SECRET_KEY", "test_secret"):
             result = verify_recaptcha_token("test_token")

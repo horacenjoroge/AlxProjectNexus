@@ -463,7 +463,8 @@ class TestVoteAttemptModelDatabase:
         attempt_id = attempt.id
 
         user.delete()
-        attempt.refresh_from_db()
+        # Re-fetch the attempt from database after user deletion
+        attempt = VoteAttempt.objects.get(id=attempt_id)
 
         assert VoteAttempt.objects.filter(id=attempt_id).exists()
         assert attempt.user is None
