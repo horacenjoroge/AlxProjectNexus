@@ -7,6 +7,8 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from django.db import connection
+from django.test import RequestFactory
+import hashlib
 
 from apps.polls.factories import PollFactory, PollOptionFactory
 from apps.polls.models import Poll
@@ -39,16 +41,32 @@ class TestConcurrentLoad:
 
         def vote(user):
             try:
+                factory = RequestFactory()
+                request = factory.post("/api/v1/votes/")
+                request.META["REMOTE_ADDR"] = "192.168.1.1"
+                request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
+                user_id = user.id if hasattr(user, "id") else 0
+                request.fingerprint = hashlib.sha256(f"user_{user_id}".encode()).hexdigest()
+
+                from django.test import RequestFactory
+                import hashlib
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
                     choice_id=choices[0].id,
+                    request=request,
                 )
                 with lock:
                     results.append({"success": True, "user_id": user.id})
             except Exception as e:
                 with lock:
-                    results.append({"success": False, "error": str(e)})
+                    error_msg = str(e)
+                    import traceback
+                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+                    # Print first few errors for debugging
+                    if len([r for r in results if not r.get("success")]) <= 3:
+                        print(f"Error in vote: {error_msg}")
+                        print(traceback.format_exc())
 
         start_time = time.time()
         with ThreadPoolExecutor(max_workers=20) as executor:
@@ -82,17 +100,31 @@ class TestConcurrentLoad:
                 option2 = PollOptionFactory(poll=poll, text="Option 2", order=1)
 
                 # Vote
+                from django.test import RequestFactory
+                factory = RequestFactory()
+                request = factory.post("/api/v1/votes/")
+                request.META["REMOTE_ADDR"] = "192.168.1.1"
+                request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
+                request.fingerprint = f"fingerprint_{poll.id}"
+                
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
                     choice_id=option1.id,
+                    request=request,
                 )
                 with lock:
                     poll_ids.append(poll.id)
                     results.append({"success": True, "poll_id": poll.id})
             except Exception as e:
                 with lock:
-                    results.append({"success": False, "error": str(e)})
+                    error_msg = str(e)
+                    import traceback
+                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+                    # Print first few errors for debugging
+                    if len([r for r in results if not r.get("success")]) <= 3:
+                        print(f"Error in vote: {error_msg}")
+                        print(traceback.format_exc())
 
         start_time = time.time()
         with ThreadPoolExecutor(max_workers=10) as executor:
@@ -121,16 +153,31 @@ class TestConcurrentLoad:
 
         def vote(user, choice_index):
             try:
+                from django.test import RequestFactory
+                import hashlib
+                factory = RequestFactory()
+                request = factory.post("/api/v1/votes/")
+                request.META["REMOTE_ADDR"] = "192.168.1.1"
+                request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
+                user_id = user.id if hasattr(user, 'id') else 0
+                request.fingerprint = hashlib.sha256(f"user_{user_id}".encode()).hexdigest()
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
                     choice_id=choices[choice_index % len(choices)].id,
+                    request=request,
                 )
                 with lock:
                     results.append({"success": True, "user_id": user.id, "choice": choice_index})
             except Exception as e:
                 with lock:
-                    results.append({"success": False, "error": str(e)})
+                    error_msg = str(e)
+                    import traceback
+                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+                    # Print first few errors for debugging
+                    if len([r for r in results if not r.get("success")]) <= 3:
+                        print(f"Error in vote: {error_msg}")
+                        print(traceback.format_exc())
 
         start_time = time.time()
         with ThreadPoolExecutor(max_workers=25) as executor:
@@ -167,17 +214,31 @@ class TestConcurrentLoad:
 
         def vote_with_key():
             try:
+                factory = RequestFactory()
+                request = factory.post("/api/v1/votes/")
+                request.META["REMOTE_ADDR"] = "192.168.1.1"
+                request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
+                user_id = user.id if hasattr(user, "id") else 0
+                request.fingerprint = hashlib.sha256(f"user_{user_id}".encode()).hexdigest()
+
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
                     choice_id=choices[0].id,
                     idempotency_key=idempotency_key,
+                request=request,
                 )
                 with lock:
                     results.append({"success": True, "vote_id": vote.id, "is_new": is_new})
             except Exception as e:
                 with lock:
-                    results.append({"success": False, "error": str(e)})
+                    error_msg = str(e)
+                    import traceback
+                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+                    # Print first few errors for debugging
+                    if len([r for r in results if not r.get("success")]) <= 3:
+                        print(f"Error in vote: {error_msg}")
+                        print(traceback.format_exc())
 
         # Attempt 20 concurrent votes with same idempotency key
         with ThreadPoolExecutor(max_workers=20) as executor:
@@ -209,16 +270,31 @@ class TestConcurrentLoad:
 
         def vote(user):
             try:
+                from django.test import RequestFactory
+                import hashlib
+                factory = RequestFactory()
+                request = factory.post("/api/v1/votes/")
+                request.META["REMOTE_ADDR"] = "192.168.1.1"
+                request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
+                user_id = user.id if hasattr(user, 'id') else 0
+                request.fingerprint = hashlib.sha256(f"user_{user_id}".encode()).hexdigest()
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
                     choice_id=choices[0].id,
+                    request=request,
                 )
                 with lock:
                     results.append({"success": True, "user_id": user.id})
             except Exception as e:
                 with lock:
-                    results.append({"success": False, "error": str(e)})
+                    error_msg = str(e)
+                    import traceback
+                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+                    # Print first few errors for debugging
+                    if len([r for r in results if not r.get("success")]) <= 3:
+                        print(f"Error in vote: {error_msg}")
+                        print(traceback.format_exc())
 
         start_time = time.time()
         with ThreadPoolExecutor(max_workers=50) as executor:
