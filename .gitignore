@@ -90,3 +90,16 @@ htmlcov/
 *.backup
 *.tmp
 
+# SSL Certificates and Keys (NEVER commit these!)
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+docker/ssl/
+ssl/
+certs/
+certificates/
+*.cert
+
