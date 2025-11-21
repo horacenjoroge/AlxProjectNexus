@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party apps
     "rest_framework",
+    "drf_spectacular",  # API documentation
     "corsheaders",
     "django_celery_beat",
     "django_celery_results",
@@ -216,6 +217,7 @@ REST_FRAMEWORK = {
         "vote_user": "200/hour",  # More restrictive for voting
     },
     "EXCEPTION_HANDLER": "core.exceptions.handlers.custom_exception_handler",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # CORS Settings
@@ -267,6 +269,61 @@ DISABLE_RATE_LIMITING = env.bool("DISABLE_RATE_LIMITING", default=False)
 # Email Settings
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@provote.com")
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+
+# drf-spectacular Settings (API Documentation)
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Provote API",
+    "DESCRIPTION": """
+    Professional voting platform API with comprehensive features:
+    
+    ## Features
+    - **Polls**: Create, manage, and analyze polls
+    - **Voting**: Secure voting with idempotency, fraud detection, and rate limiting
+    - **Analytics**: Real-time poll analytics and insights
+    - **Users**: User management and following system
+    - **Notifications**: Real-time notifications for poll updates
+    
+    ## Authentication
+    Currently using Django session authentication. Future: JWT tokens.
+    
+    ## Rate Limiting
+    - Anonymous users: 100 requests/hour (general), 50 requests/hour (voting)
+    - Authenticated users: 1000 requests/hour (general), 200 requests/hour (voting)
+    - Poll creation: 10 polls/hour
+    - Poll reading: 200 requests/hour
+    
+    ## Idempotency
+    Vote creation supports idempotency keys. If you send the same request twice with the same idempotency key, 
+    the second request will return the same result without creating a duplicate vote.
+    
+    ## Geographic Restrictions
+    Polls can be restricted by country/region using IP geolocation. Configure via poll.security_rules:
+    - `allowed_countries`: List of allowed country codes (ISO 3166-1 alpha-2)
+    - `blocked_countries`: List of blocked country codes
+    - `allowed_regions`: List of allowed region codes
+    - `blocked_regions`: List of blocked region codes
+    """,
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "COMPONENT_NO_READ_ONLY_REQUIRED": True,
+    "SCHEMA_PATH_PREFIX": "/api/v1",
+    "TAGS": [
+        {"name": "Polls", "description": "Poll management and operations"},
+        {"name": "Votes", "description": "Voting operations with idempotency and fraud detection"},
+        {"name": "Users", "description": "User management and profiles"},
+        {"name": "Analytics", "description": "Poll analytics and insights"},
+        {"name": "Notifications", "description": "User notifications"},
+        {"name": "Categories", "description": "Poll categories"},
+        {"name": "Tags", "description": "Poll tags"},
+    ],
+    "EXTENSIONS_INFO": {
+        "x-logo": {
+            "url": "https://via.placeholder.com/200x200?text=Provote",
+            "altText": "Provote Logo",
+        }
+    },
+}
 EMAIL_HOST = env("EMAIL_HOST", default="localhost")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)

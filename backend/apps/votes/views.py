@@ -15,6 +15,7 @@ from core.exceptions import (
     PollClosedError,
     PollNotFoundError,
 )
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, OpenApiParameter, OpenApiResponse
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -31,6 +32,37 @@ from .services import cast_vote
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Votes"],
+        summary="List votes",
+        description="Get a list of votes for the authenticated user.",
+        responses={200: VoteSerializer(many=True)},
+    ),
+    retrieve=extend_schema(
+        tags=["Votes"],
+        summary="Get vote details",
+        description="Get detailed information about a specific vote.",
+        responses={200: VoteSerializer},
+    ),
+    destroy=extend_schema(
+        tags=["Votes"],
+        summary="Retract vote",
+        description="""
+        Retract (delete) a vote. Only allowed if:
+        - User owns the vote
+        - Poll allows vote retraction (poll.settings.allow_vote_retraction = True)
+        - Poll is still open
+        
+        **Rate Limits**: Subject to general API rate limits.
+        """,
+        responses={
+            204: OpenApiResponse(description="Vote retracted successfully"),
+            403: OpenApiResponse(description="Cannot retract vote (not owner or poll doesn't allow)"),
+            404: OpenApiResponse(description="Vote not found"),
+        },
+    ),
+)
 class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
     """
     ViewSet for Vote model with comprehensive API endpoints.
@@ -57,6 +89,163 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
             return Vote.objects.filter(user=self.request.user)
         return Vote.objects.none()
 
+    @extend_schema(
+        tags=["Votes"],
+        summary="Cast a vote",
+        description="""
+        Cast a vote on a poll. This endpoint supports idempotency for safe retries.
+        
+        ## Idempotency
+        If you send the same request twice with the same `idempotency_key`, the second request 
+        will return the same result (200 OK) without creating a duplicate vote. If no idempotency 
+        key is provided, one will be generated automatically.
+        
+        ## Rate Limits
+        - Anonymous users: 50 requests/hour
+        - Authenticated users: 200 requests/hour
+        
+        ## Authentication
+        Currently requires authentication. Future: Support anonymous voting with voter tokens.
+        
+        ## Geographic Restrictions
+        If the poll has geographic restrictions configured (via poll.security_rules), votes from 
+        restricted locations will be rejected with a 400 Bad Request error.
+        
+        ## Fraud Detection
+        The system automatically detects and blocks suspicious voting patterns including:
+        - Multiple votes from the same IP/fingerprint
+        - Rapid voting patterns
+        - Geographic anomalies
+        
+        If fraud is detected, the vote will be rejected with a 403 Forbidden error.
+        """,
+        request=VoteCastSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=VoteSerializer,
+                description="New vote created successfully",
+                examples=[
+                    OpenApiExample(
+                        "Success Response",
+                        value={
+                            "id": 123,
+                            "user": "john_doe",
+                            "user_id": 1,
+                            "option": "Option 1",
+                            "option_id": 5,
+                            "option_text": "Yes",
+                            "poll": "Favorite Programming Language",
+                            "poll_id": 10,
+                            "poll_title": "Favorite Programming Language",
+                            "voter_token": "abc123...",
+                            "idempotency_key": "def456...",
+                            "ip_address": "192.168.1.1",
+                            "created_at": "2024-01-15T10:30:00Z",
+                        },
+                    )
+                ],
+            ),
+            200: OpenApiResponse(
+                response=VoteSerializer,
+                description="Idempotent retry - same vote returned",
+                examples=[
+                    OpenApiExample(
+                        "Idempotent Response",
+                        value={
+                            "id": 123,
+                            "user": "john_doe",
+                            "user_id": 1,
+                            "option": "Option 1",
+                            "option_id": 5,
+                            "option_text": "Yes",
+                            "poll": "Favorite Programming Language",
+                            "poll_id": 10,
+                            "poll_title": "Favorite Programming Language",
+                            "voter_token": "abc123...",
+                            "idempotency_key": "def456...",
+                            "ip_address": "192.168.1.1",
+                            "created_at": "2024-01-15T10:30:00Z",
+                        },
+                    )
+                ],
+            ),
+            400: OpenApiResponse(
+                description="Invalid request, poll closed, or geographic restriction violation",
+                examples=[
+                    OpenApiExample(
+                        "Invalid Vote",
+                        value={"error": "Choice 5 does not belong to poll 10", "error_code": "InvalidVoteError"},
+                    ),
+                    OpenApiExample(
+                        "Poll Closed",
+                        value={"error": "Poll 10 has expired", "error_code": "PollClosedError"},
+                    ),
+                    OpenApiExample(
+                        "Geographic Restriction",
+                        value={"error": "Voting is not allowed from your location", "error_code": "InvalidVoteError"},
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(
+                description="Fraud detected or IP blocked",
+                examples=[
+                    OpenApiExample(
+                        "Fraud Detected",
+                        value={
+                            "error": "Vote blocked due to suspicious activity: Multiple votes from same IP",
+                            "error_code": "FraudDetectedError",
+                        },
+                    ),
+                    OpenApiExample(
+                        "IP Blocked",
+                        value={"error": "Your IP address has been blocked", "error_code": "IPBlockedError"},
+                    ),
+                ],
+            ),
+            404: OpenApiResponse(
+                description="Poll not found",
+                examples=[
+                    OpenApiExample(
+                        "Poll Not Found",
+                        value={"error": "Poll with id 10 not found", "error_code": "PollNotFoundError"},
+                    )
+                ],
+            ),
+            409: OpenApiResponse(
+                description="Duplicate vote attempt",
+                examples=[
+                    OpenApiExample(
+                        "Duplicate Vote",
+                        value={
+                            "error": "User john_doe has already voted on poll 10",
+                            "error_code": "DuplicateVoteError",
+                        },
+                    )
+                ],
+            ),
+            429: OpenApiResponse(
+                description="Rate limit exceeded",
+                examples=[
+                    OpenApiExample(
+                        "Rate Limit",
+                        value={"error": "Rate limit exceeded. Please try again later.", "error_code": "RateLimitExceededError"},
+                    )
+                ],
+            ),
+        },
+        examples=[
+            OpenApiExample(
+                "Cast Vote",
+                value={
+                    "poll_id": 10,
+                    "choice_id": 5,
+                    "idempotency_key": "my-unique-key-12345",
+                    "captcha_token": "03AGdBq24...",  # Optional, if poll has CAPTCHA enabled
+                },
+                request_only=True,
+            ),
+        ],
+    )
     @action(detail=False, methods=["post"], url_path="cast")
     def cast(self, request):
         """
@@ -192,6 +381,40 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @extend_schema(
+        tags=["Votes"],
+        summary="Get my votes",
+        description="Get all votes cast by the authenticated user.",
+        responses={
+            200: OpenApiResponse(
+                response=VoteSerializer(many=True),
+                description="List of user's votes",
+                examples=[
+                    OpenApiExample(
+                        "My Votes",
+                        value=[
+                            {
+                                "id": 123,
+                                "user": "john_doe",
+                                "user_id": 1,
+                                "option": "Option 1",
+                                "option_id": 5,
+                                "option_text": "Yes",
+                                "poll": "Favorite Programming Language",
+                                "poll_id": 10,
+                                "poll_title": "Favorite Programming Language",
+                                "voter_token": "abc123...",
+                                "idempotency_key": "def456...",
+                                "ip_address": "192.168.1.1",
+                                "created_at": "2024-01-15T10:30:00Z",
+                            }
+                        ],
+                    )
+                ],
+            ),
+            401: OpenApiResponse(description="Authentication required"),
+        },
+    )
     @action(detail=False, methods=["get"], url_path="my-votes")
     def my_votes(self, request):
         """

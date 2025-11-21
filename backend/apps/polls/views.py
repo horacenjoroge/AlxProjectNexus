@@ -7,6 +7,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, OpenApiParameter, OpenApiResponse
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -631,6 +632,58 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(
+        tags=["Polls"],
+        summary="Get poll results",
+        description="""
+        Get poll results with comprehensive calculations including vote counts, percentages, and statistics.
+        
+        **Visibility Rules**:
+        - Private polls: Only owner can view results
+        - Public polls: Anyone can view (if allowed by timing)
+        - `show_results_during_voting=False`: Results only shown after poll closes
+        - `show_results_during_voting=True`: Results shown anytime
+        
+        **Rate Limits**: Subject to general API rate limits.
+        """,
+        responses={
+            200: OpenApiResponse(
+                description="Poll results",
+                examples=[
+                    OpenApiExample(
+                        "Results Response",
+                        value={
+                            "poll_id": 10,
+                            "poll_title": "Favorite Programming Language",
+                            "total_votes": 150,
+                            "unique_voters": 120,
+                            "results": [
+                                {
+                                    "option_id": 5,
+                                    "option_text": "Python",
+                                    "votes": 75,
+                                    "percentage": 50.0,
+                                },
+                                {
+                                    "option_id": 6,
+                                    "option_text": "JavaScript",
+                                    "votes": 50,
+                                    "percentage": 33.3,
+                                },
+                            ],
+                            "winners": [5],
+                            "statistics": {
+                                "participation_rate": 0.8,
+                                "average_votes_per_voter": 1.25,
+                            },
+                        },
+                    )
+                ],
+            ),
+            403: OpenApiResponse(description="Not authorized to view results"),
+            404: OpenApiResponse(description="Poll not found"),
+        },
+    )
     @action(detail=True, methods=["get"], url_path="results", renderer_classes=[JSONRenderer, BrowsableAPIRenderer])
     def results(self, request, pk=None):
         """

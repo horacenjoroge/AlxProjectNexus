@@ -1,0 +1,3735 @@
+openapi: 3.0.3
+info:
+  title: Provote API
+  version: 1.0.0
+  x-logo:
+    url: https://via.placeholder.com/200x200?text=Provote
+    altText: Provote Logo
+  description: "\n    Professional voting platform API with comprehensive features:\n\
+    \    \n    ## Features\n    - **Polls**: Create, manage, and analyze polls\n \
+    \   - **Voting**: Secure voting with idempotency, fraud detection, and rate limiting\n\
+    \    - **Analytics**: Real-time poll analytics and insights\n    - **Users**:\
+    \ User management and following system\n    - **Notifications**: Real-time notifications\
+    \ for poll updates\n    \n    ## Authentication\n    Currently using Django session\
+    \ authentication. Future: JWT tokens.\n    \n    ## Rate Limiting\n    - Anonymous\
+    \ users: 100 requests/hour (general), 50 requests/hour (voting)\n    - Authenticated\
+    \ users: 1000 requests/hour (general), 200 requests/hour (voting)\n    - Poll\
+    \ creation: 10 polls/hour\n    - Poll reading: 200 requests/hour\n    \n    ##\
+    \ Idempotency\n    Vote creation supports idempotency keys. If you send the same\
+    \ request twice with the same idempotency key, \n    the second request will return\
+    \ the same result without creating a duplicate vote.\n    \n    ## Geographic\
+    \ Restrictions\n    Polls can be restricted by country/region using IP geolocation.\
+    \ Configure via poll.security_rules:\n    - `allowed_countries`: List of allowed\
+    \ country codes (ISO 3166-1 alpha-2)\n    - `blocked_countries`: List of blocked\
+    \ country codes\n    - `allowed_regions`: List of allowed region codes\n    -\
+    \ `blocked_regions`: List of blocked region codes\n    "
+paths:
+  /api/v1/admin-dashboard/active-polls/:
+    get:
+      operationId: admin_dashboard_active_polls_retrieve
+      description: |-
+        Get active polls and recent voters.
+
+        GET /api/v1/admin-dashboard/active-polls/?limit=20
+
+        Query params:
+            - limit: Maximum number of polls/voters (default: 20)
+
+        Returns:
+            - active_polls: List of currently active polls
+            - recent_voters: List of recent voters (last 24h)
+            - top_polls: Top polls by vote count
+      tags:
+      - admin-dashboard
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/admin-dashboard/activity/:
+    get:
+      operationId: admin_dashboard_activity_retrieve
+      description: |-
+        Get recent activity feed.
+
+        GET /api/v1/admin-dashboard/activity/?limit=50
+
+        Query params:
+            - limit: Maximum number of activities (default: 50, max: 100)
+
+        Returns list of recent activities (votes, polls created, fraud alerts, etc.)
+      tags:
+      - admin-dashboard
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/admin-dashboard/fraud-alerts/:
+    get:
+      operationId: admin_dashboard_fraud_alerts_retrieve
+      description: |-
+        Get fraud alerts summary.
+
+        GET /api/v1/admin-dashboard/fraud-alerts/?limit=20
+
+        Query params:
+            - limit: Maximum number of recent alerts (default: 20)
+
+        Returns:
+            - total: Total number of fraud alerts
+            - recent_24h: Alerts in last 24 hours
+            - recent_7d: Alerts in last 7 days
+            - recent: List of recent alerts
+            - by_risk_score: Count by risk score ranges
+            - top_polls: Top polls with fraud alerts
+      tags:
+      - admin-dashboard
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/admin-dashboard/performance/:
+    get:
+      operationId: admin_dashboard_performance_retrieve
+      description: |-
+        Get performance metrics.
+
+        GET /api/v1/admin-dashboard/performance/
+
+        Returns:
+            - api_latency: Average API response time
+            - db_queries: Database query statistics
+            - cache_hit_rate: Cache hit rate
+            - error_rate: Error rate
+
+        Note: This is a placeholder. In production, implement actual metric collection.
+      tags:
+      - admin-dashboard
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/admin-dashboard/statistics/:
+    get:
+      operationId: admin_dashboard_statistics_retrieve
+      description: |-
+        Get system-wide statistics.
+
+        GET /api/v1/admin-dashboard/statistics/
+
+        Returns:
+            - total_polls: Total number of polls
+            - active_polls: Number of active polls
+            - total_votes: Total number of votes
+            - total_users: Total number of users
+            - total_fraud_alerts: Total number of fraud alerts
+            - blocked_ips: Number of blocked IPs
+      tags:
+      - admin-dashboard
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/admin-dashboard/summary/:
+    get:
+      operationId: admin_dashboard_summary_retrieve
+      description: |-
+        Get complete admin dashboard summary.
+
+        GET /api/v1/admin-dashboard/summary/
+
+        Returns all dashboard data in one response:
+            - statistics: System-wide statistics
+            - recent_activity: Recent activity feed
+            - fraud_alerts: Fraud alerts summary
+            - performance_metrics: Performance metrics
+            - active_polls_and_voters: Active polls and voters
+      tags:
+      - admin-dashboard
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/analytics/:
+    get:
+      operationId: analytics_list
+      description: ViewSet for PollAnalytics model.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPollAnalyticsList'
+          description: ''
+  /api/v1/analytics/{id}/:
+    get:
+      operationId: analytics_retrieve
+      description: ViewSet for PollAnalytics model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll analytics.
+        required: true
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnalytics'
+          description: ''
+  /api/v1/analytics/poll/{poll_id}/comprehensive/:
+    get:
+      operationId: analytics_poll_comprehensive_retrieve
+      description: |-
+        Get comprehensive analytics for a poll.
+
+        GET /api/v1/analytics/poll/{poll_id}/comprehensive/
+
+        Returns complete analytics including:
+        - Time series data
+        - Demographics
+        - Participation metrics
+        - Vote distribution
+        - Drop-off rates
+      parameters:
+      - in: path
+        name: poll_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnalytics'
+          description: ''
+  /api/v1/analytics/poll/{poll_id}/daily/:
+    get:
+      operationId: analytics_poll_daily_retrieve
+      description: |-
+        Get votes by day for the last N days.
+
+        GET /api/v1/analytics/poll/{poll_id}/daily/?days=30
+      parameters:
+      - in: path
+        name: poll_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnalytics'
+          description: ''
+  /api/v1/analytics/poll/{poll_id}/demographics/:
+    get:
+      operationId: analytics_poll_demographics_retrieve
+      description: |-
+        Get voter demographics.
+
+        GET /api/v1/analytics/poll/{poll_id}/demographics/
+      parameters:
+      - in: path
+        name: poll_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnalytics'
+          description: ''
+  /api/v1/analytics/poll/{poll_id}/distribution/:
+    get:
+      operationId: analytics_poll_distribution_retrieve
+      description: |-
+        Get vote distribution across options.
+
+        GET /api/v1/analytics/poll/{poll_id}/distribution/
+      parameters:
+      - in: path
+        name: poll_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnalytics'
+          description: ''
+  /api/v1/analytics/poll/{poll_id}/hourly/:
+    get:
+      operationId: analytics_poll_hourly_retrieve
+      description: |-
+        Get votes by hour for a specific day.
+
+        GET /api/v1/analytics/poll/{poll_id}/hourly/?date=YYYY-MM-DD
+      parameters:
+      - in: path
+        name: poll_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnalytics'
+          description: ''
+  /api/v1/analytics/poll/{poll_id}/summary/:
+    get:
+      operationId: analytics_poll_summary_retrieve
+      description: |-
+        Get analytics summary for a poll.
+
+        GET /api/v1/analytics/poll/{poll_id}/summary/
+
+        Returns lightweight summary of key metrics.
+      parameters:
+      - in: path
+        name: poll_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnalytics'
+          description: ''
+  /api/v1/analytics/poll/{poll_id}/time-series/:
+    get:
+      operationId: analytics_poll_time_series_retrieve
+      description: |-
+        Get time series data for votes.
+
+        GET /api/v1/analytics/poll/{poll_id}/time-series/?interval=hour|day
+
+        Query params:
+        - interval: 'hour' or 'day' (default: 'hour')
+      parameters:
+      - in: path
+        name: poll_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - analytics
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnalytics'
+          description: ''
+  /api/v1/categories/:
+    get:
+      operationId: categories_list
+      description: ViewSet for Category model.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - categories
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCategoryList'
+          description: ''
+    post:
+      operationId: categories_create
+      description: ViewSet for Category model.
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/v1/categories/{id}/:
+    get:
+      operationId: categories_retrieve
+      description: ViewSet for Category model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    put:
+      operationId: categories_update
+      description: ViewSet for Category model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    patch:
+      operationId: categories_partial_update
+      description: ViewSet for Category model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    delete:
+      operationId: categories_destroy
+      description: ViewSet for Category model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/categories/{id}/polls/:
+    get:
+      operationId: categories_polls_retrieve
+      description: Get all polls in this category.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/v1/follows/:
+    get:
+      operationId: follows_list
+      description: ViewSet for Follow model.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - follows
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFollowList'
+          description: ''
+  /api/v1/follows/{id}/:
+    get:
+      operationId: follows_retrieve
+      description: ViewSet for Follow model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - follows
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Follow'
+          description: ''
+  /api/v1/follows/my_followers/:
+    get:
+      operationId: follows_my_followers_retrieve
+      description: Get list of users following the current user.
+      tags:
+      - follows
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Follow'
+          description: ''
+  /api/v1/follows/my_following/:
+    get:
+      operationId: follows_my_following_retrieve
+      description: Get list of users the current user is following.
+      tags:
+      - follows
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Follow'
+          description: ''
+  /api/v1/notifications/:
+    get:
+      operationId: notifications_list
+      description: ViewSet for notifications.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - notifications
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/v1/notifications/{id}/:
+    get:
+      operationId: notifications_retrieve
+      description: ViewSet for notifications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/{id}/mark_read/:
+    post:
+      operationId: notifications_mark_read_create
+      description: Mark a notification as read.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/mark_all_read/:
+    post:
+      operationId: notifications_mark_all_read_create
+      description: Mark all notifications as read.
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/mark_read_multiple/:
+    post:
+      operationId: notifications_mark_read_multiple_create
+      description: Mark multiple notifications as read.
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/preferences/:
+    get:
+      operationId: notifications_preferences_list
+      description: ViewSet for notification preferences.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - notifications
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationPreferenceList'
+          description: ''
+    post:
+      operationId: notifications_preferences_create
+      description: ViewSet for notification preferences.
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference'
+          description: ''
+  /api/v1/notifications/preferences/{id}/:
+    get:
+      operationId: notifications_preferences_retrieve
+      description: ViewSet for notification preferences.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference'
+          description: ''
+    put:
+      operationId: notifications_preferences_update
+      description: ViewSet for notification preferences.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference'
+          description: ''
+    patch:
+      operationId: notifications_preferences_partial_update
+      description: ViewSet for notification preferences.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationPreferenceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationPreferenceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationPreferenceRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference'
+          description: ''
+    delete:
+      operationId: notifications_preferences_destroy
+      description: ViewSet for notification preferences.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/notifications/preferences/resubscribe/:
+    post:
+      operationId: notifications_preferences_resubscribe_create
+      description: Resubscribe user to notifications.
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference'
+          description: ''
+  /api/v1/notifications/preferences/unsubscribe/:
+    post:
+      operationId: notifications_preferences_unsubscribe_create
+      description: Unsubscribe user from all notifications.
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference'
+          description: ''
+  /api/v1/notifications/unread_count/:
+    get:
+      operationId: notifications_unread_count_retrieve
+      description: Get count of unread notifications.
+      tags:
+      - notifications
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/unsubscribe/:
+    post:
+      operationId: notifications_unsubscribe_create
+      description: Unsubscribe user by email or token.
+      tags:
+      - notifications
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/polls/:
+    get:
+      operationId: polls_list
+      description: |-
+        ViewSet for Poll model with comprehensive CRUD operations.
+
+        Endpoints:
+        - POST /api/v1/polls/ - Create poll
+        - GET /api/v1/polls/ - List polls (pagination, filtering)
+        - GET /api/v1/polls/{id}/ - Get poll detail
+        - PATCH /api/v1/polls/{id}/ - Update poll (only creator)
+        - DELETE /api/v1/polls/{id}/ - Delete poll (only creator)
+        - POST /api/v1/polls/{id}/options/ - Add option(s) to poll
+        - DELETE /api/v1/polls/{id}/options/{option_id}/ - Remove option
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPollList'
+          description: ''
+    post:
+      operationId: polls_create
+      description: Create a poll and return it with full nested objects.
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PollCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PollCreateRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollCreate'
+          description: ''
+  /api/v1/polls/{id}/:
+    get:
+      operationId: polls_retrieve
+      description: |-
+        ViewSet for Poll model with comprehensive CRUD operations.
+
+        Endpoints:
+        - POST /api/v1/polls/ - Create poll
+        - GET /api/v1/polls/ - List polls (pagination, filtering)
+        - GET /api/v1/polls/{id}/ - Get poll detail
+        - PATCH /api/v1/polls/{id}/ - Update poll (only creator)
+        - DELETE /api/v1/polls/{id}/ - Delete poll (only creator)
+        - POST /api/v1/polls/{id}/options/ - Add option(s) to poll
+        - DELETE /api/v1/polls/{id}/options/{option_id}/ - Remove option
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+    put:
+      operationId: polls_update
+      description: Update poll with ownership and modification restrictions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PollUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PollUpdateRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollUpdate'
+          description: ''
+    patch:
+      operationId: polls_partial_update
+      description: |-
+        ViewSet for Poll model with comprehensive CRUD operations.
+
+        Endpoints:
+        - POST /api/v1/polls/ - Create poll
+        - GET /api/v1/polls/ - List polls (pagination, filtering)
+        - GET /api/v1/polls/{id}/ - Get poll detail
+        - PATCH /api/v1/polls/{id}/ - Update poll (only creator)
+        - DELETE /api/v1/polls/{id}/ - Delete poll (only creator)
+        - POST /api/v1/polls/{id}/options/ - Add option(s) to poll
+        - DELETE /api/v1/polls/{id}/options/{option_id}/ - Remove option
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPollUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPollUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPollUpdateRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollUpdate'
+          description: ''
+    delete:
+      operationId: polls_destroy
+      description: Delete poll with ownership and vote checks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/polls/{id}/analytics/:
+    get:
+      operationId: polls_analytics_retrieve
+      description: |-
+        Get overview analytics for a poll.
+
+        GET /api/v1/polls/{id}/analytics/
+
+        Returns comprehensive analytics including:
+        - Total votes and unique voters
+        - Time series data
+        - Demographics
+        - Participation metrics
+        - Vote distribution
+        - Drop-off rates
+
+        Access: Admin or poll owner only
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/analytics/demographics/:
+    get:
+      operationId: polls_analytics_demographics_retrieve
+      description: |-
+        Get voter demographics breakdown.
+
+        GET /api/v1/polls/{id}/analytics/demographics/
+
+        Returns:
+        - Authenticated vs anonymous voters
+        - Unique IP addresses
+        - Top user agents
+
+        Access: Admin or poll owner only
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/analytics/participation/:
+    get:
+      operationId: polls_analytics_participation_retrieve
+      description: |-
+        Get participation metrics.
+
+        GET /api/v1/polls/{id}/analytics/participation/
+
+        Returns:
+        - Participation rate (if view tracking available)
+        - Unique voters
+        - Total votes
+        - Average time to vote
+        - Drop-off rate
+
+        Access: Admin or poll owner only
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/analytics/timeseries/:
+    get:
+      operationId: polls_analytics_timeseries_retrieve
+      description: |-
+        Get votes over time (time series data).
+
+        GET /api/v1/polls/{id}/analytics/timeseries/?interval=hour|day&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+
+        Query Parameters:
+        - interval: 'hour' or 'day' (default: 'hour')
+        - start_date: Start date in ISO format (optional)
+        - end_date: End date in ISO format (optional)
+
+        Access: Admin or poll owner only
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/clone/:
+    post:
+      operationId: polls_clone_create
+      description: |-
+        Clone an existing poll with all options.
+
+        POST /api/v1/polls/{id}/clone/
+
+        Request Body (optional):
+        {
+            "clone_settings": true,  // Whether to clone settings (default: true)
+            "clone_security_rules": true,  // Whether to clone security rules (default: true)
+            "new_title": "Custom Title",  // Custom title (default: "Copy of {original_title}")
+            "is_draft": true  // Whether cloned poll should be a draft (default: true)
+        }
+
+        Returns:
+        - 201 Created: Cloned poll created successfully
+        - 404 Not Found: Poll not found
+        - 400 Bad Request: Poll cannot be cloned (e.g., no options)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/export-analytics/:
+    get:
+      operationId: polls_export_analytics_retrieve
+      description: |-
+        Export analytics report as PDF.
+
+        GET /api/v1/polls/{id}/export-analytics/?background=false
+
+        Query Parameters:
+        - background: Use background task (default: false)
+
+        Returns:
+        - 200 OK: PDF analytics report
+        - 202 Accepted: Export started in background
+        - 403 Forbidden: User not authorized
+        - 404 Not Found: Poll not found
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/export-audit-trail/:
+    get:
+      operationId: polls_export_audit_trail_retrieve
+      description: |-
+        Export audit trail for a poll.
+
+        GET /api/v1/polls/{id}/export-audit-trail/?format=csv|json&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+
+        Query Parameters:
+        - format: Export format (csv or json, default: csv)
+        - start_date: Start date filter (ISO format)
+        - end_date: End date filter (ISO format)
+        - background: Use background task (default: false)
+
+        Returns:
+        - 200 OK: Exported audit trail
+        - 202 Accepted: Export started in background
+        - 403 Forbidden: User not authorized (admin only)
+        - 404 Not Found: Poll not found
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/export-results/:
+    get:
+      operationId: polls_export_results_retrieve
+      description: |-
+        Export poll results in various formats.
+
+        GET /api/v1/polls/{id}/export-results/?format=csv|json|pdf
+
+        Query Parameters:
+        - format: Export format (csv or json, default: json)
+
+        Returns:
+        - 200 OK: Exported results
+        - 403 Forbidden: User not authorized to view results
+        - 404 Not Found: Poll not found
+        - 400 Bad Request: Invalid format
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/export-vote-log/:
+    get:
+      operationId: polls_export_vote_log_retrieve
+      description: |-
+        Export vote log for a poll.
+
+        GET /api/v1/polls/{id}/export-vote-log/?format=csv|json&anonymize=true&include_invalid=false
+
+        Query Parameters:
+        - format: Export format (csv or json, default: csv)
+        - anonymize: Whether to anonymize user data (default: false)
+        - include_invalid: Whether to include invalid votes (default: false)
+        - background: Use background task for large exports (default: false)
+
+        Returns:
+        - 200 OK: Exported vote log
+        - 202 Accepted: Export started in background
+        - 403 Forbidden: User not authorized
+        - 404 Not Found: Poll not found
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/options/:
+    post:
+      operationId: polls_options_create
+      description: |-
+        Add option(s) to poll.
+
+        POST /api/v1/polls/{id}/options/
+
+        Request Body:
+        {
+            "options": [
+                {"text": "Option 1", "order": 0},
+                {"text": "Option 2", "order": 1}
+            ]
+        }
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/options/{option_id}/:
+    delete:
+      operationId: polls_options_destroy
+      description: |-
+        Remove option from poll.
+
+        DELETE /api/v1/polls/{id}/options/{option_id}/
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      - in: path
+        name: option_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/polls/{id}/publish/:
+    post:
+      operationId: polls_publish_create
+      description: |-
+        Publish a draft poll (convert draft to active).
+
+        POST /api/v1/polls/{id}/publish/
+
+        This action:
+        - Sets is_draft=False
+        - Optionally sets is_active=True (if not already active)
+        - Validates that poll has required options
+
+        Returns:
+        - 200 OK: Poll published successfully
+        - 403 Forbidden: User not authorized
+        - 400 Bad Request: Poll cannot be published (validation errors)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/{id}/results/:
+    get:
+      operationId: polls_results_retrieve
+      description: "\n        Get poll results with comprehensive calculations including\
+        \ vote counts, percentages, and statistics.\n        \n        **Visibility\
+        \ Rules**:\n        - Private polls: Only owner can view results\n       \
+        \ - Public polls: Anyone can view (if allowed by timing)\n        - `show_results_during_voting=False`:\
+        \ Results only shown after poll closes\n        - `show_results_during_voting=True`:\
+        \ Results shown anytime\n        \n        **Rate Limits**: Subject to general\
+        \ API rate limits.\n        "
+      summary: Get poll results
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - Polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Poll results
+        '403':
+          description: Not authorized to view results
+        '404':
+          description: Poll not found
+  /api/v1/polls/{id}/results/live/:
+    get:
+      operationId: polls_results_live_retrieve
+      description: |-
+        Get live poll results (for polling/SSE, not WebSocket).
+
+        GET /api/v1/polls/{id}/results/live/
+
+        This endpoint is designed for client-side polling to get real-time updates.
+        For true WebSocket support, you would need Django Channels.
+
+        Query Parameters:
+        - last_update: ISO timestamp of last known update (optional)
+
+        Returns:
+        - 200 OK: Poll results with has_updates flag
+        - 403 Forbidden: User not authorized to view results
+        - 404 Not Found: Poll not found
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/from-template/:
+    post:
+      operationId: polls_from_template_create
+      description: |-
+        Create a poll from a template.
+
+        POST /api/v1/polls/from-template/
+
+        Request Body:
+        {
+            "template_id": "yes_no",
+            "title": "Do you like pizza?",
+            "description": "Optional description",
+            "custom_options": [{"text": "Yes"}, {"text": "No"}],  # Optional
+            "custom_settings": {"show_results": false},  # Optional
+            "starts_at": "2024-01-01T00:00:00Z",  # Optional
+            "ends_at": "2024-01-31T23:59:59Z",  # Optional
+            "is_active": true  # Optional
+        }
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/templates/:
+    get:
+      operationId: polls_templates_retrieve
+      description: |-
+        List all available poll templates.
+
+        GET /api/v1/polls/templates/
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/polls/templates/{template_id}/:
+    get:
+      operationId: polls_templates_retrieve_2
+      description: |-
+        Get specific poll template details.
+
+        GET /api/v1/polls/templates/{template_id}/
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/v1/tags/:
+    get:
+      operationId: tags_list
+      description: ViewSet for Tag model.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - tags
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTagList'
+          description: ''
+    post:
+      operationId: tags_create
+      description: ViewSet for Tag model.
+      tags:
+      - tags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+  /api/v1/tags/{id}/:
+    get:
+      operationId: tags_retrieve
+      description: ViewSet for Tag model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tag.
+        required: true
+      tags:
+      - tags
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+    put:
+      operationId: tags_update
+      description: ViewSet for Tag model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tag.
+        required: true
+      tags:
+      - tags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+    patch:
+      operationId: tags_partial_update
+      description: ViewSet for Tag model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tag.
+        required: true
+      tags:
+      - tags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTagRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTagRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTagRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+    delete:
+      operationId: tags_destroy
+      description: ViewSet for Tag model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tag.
+        required: true
+      tags:
+      - tags
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/tags/{id}/polls/:
+    get:
+      operationId: tags_polls_retrieve
+      description: Get all polls with this tag.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tag.
+        required: true
+      tags:
+      - tags
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+  /api/v1/users/:
+    get:
+      operationId: users_list
+      description: ViewSet for User model.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+  /api/v1/users/{id}/:
+    get:
+      operationId: users_retrieve
+      description: ViewSet for User model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/{id}/follow/:
+    post:
+      operationId: users_follow_create
+      description: Follow a user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/{id}/followers/:
+    get:
+      operationId: users_followers_retrieve
+      description: Get list of users following this user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/{id}/following/:
+    get:
+      operationId: users_following_retrieve
+      description: Get list of users this user is following.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/{id}/unfollow/:
+    post:
+      operationId: users_unfollow_create
+      description: Unfollow a user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/votes/:
+    get:
+      operationId: votes_list
+      description: Get a list of votes for the authenticated user.
+      summary: List votes
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Votes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVoteList'
+          description: ''
+    post:
+      operationId: votes_create
+      description: |-
+        ViewSet for Vote model with comprehensive API endpoints.
+
+        Endpoints:
+        - POST /api/v1/votes/cast/ - Cast a vote
+        - GET /api/v1/votes/my-votes/ - Get current user's votes
+        - DELETE /api/v1/votes/{id}/ - Retract vote (if allowed)
+      tags:
+      - votes
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+          description: ''
+  /api/v1/votes/{id}/:
+    get:
+      operationId: votes_retrieve
+      description: Get detailed information about a specific vote.
+      summary: Get vote details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vote.
+        required: true
+      tags:
+      - Votes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+          description: ''
+    put:
+      operationId: votes_update
+      description: |-
+        ViewSet for Vote model with comprehensive API endpoints.
+
+        Endpoints:
+        - POST /api/v1/votes/cast/ - Cast a vote
+        - GET /api/v1/votes/my-votes/ - Get current user's votes
+        - DELETE /api/v1/votes/{id}/ - Retract vote (if allowed)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vote.
+        required: true
+      tags:
+      - votes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+          description: ''
+    patch:
+      operationId: votes_partial_update
+      description: |-
+        ViewSet for Vote model with comprehensive API endpoints.
+
+        Endpoints:
+        - POST /api/v1/votes/cast/ - Cast a vote
+        - GET /api/v1/votes/my-votes/ - Get current user's votes
+        - DELETE /api/v1/votes/{id}/ - Retract vote (if allowed)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vote.
+        required: true
+      tags:
+      - votes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+          description: ''
+    delete:
+      operationId: votes_destroy
+      description: "\n        Retract (delete) a vote. Only allowed if:\n        -\
+        \ User owns the vote\n        - Poll allows vote retraction (poll.settings.allow_vote_retraction\
+        \ = True)\n        - Poll is still open\n        \n        **Rate Limits**:\
+        \ Subject to general API rate limits.\n        "
+      summary: Retract vote
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vote.
+        required: true
+      tags:
+      - Votes
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Vote retracted successfully
+        '403':
+          description: Cannot retract vote (not owner or poll doesn't allow)
+        '404':
+          description: Vote not found
+  /api/v1/votes/cast/:
+    post:
+      operationId: votes_cast_create
+      description: "\n        Cast a vote on a poll. This endpoint supports idempotency\
+        \ for safe retries.\n        \n        ## Idempotency\n        If you send\
+        \ the same request twice with the same `idempotency_key`, the second request\
+        \ \n        will return the same result (200 OK) without creating a duplicate\
+        \ vote. If no idempotency \n        key is provided, one will be generated\
+        \ automatically.\n        \n        ## Rate Limits\n        - Anonymous users:\
+        \ 50 requests/hour\n        - Authenticated users: 200 requests/hour\n   \
+        \     \n        ## Authentication\n        Currently requires authentication.\
+        \ Future: Support anonymous voting with voter tokens.\n        \n        ##\
+        \ Geographic Restrictions\n        If the poll has geographic restrictions\
+        \ configured (via poll.security_rules), votes from \n        restricted locations\
+        \ will be rejected with a 400 Bad Request error.\n        \n        ## Fraud\
+        \ Detection\n        The system automatically detects and blocks suspicious\
+        \ voting patterns including:\n        - Multiple votes from the same IP/fingerprint\n\
+        \        - Rapid voting patterns\n        - Geographic anomalies\n       \
+        \ \n        If fraud is detected, the vote will be rejected with a 403 Forbidden\
+        \ error.\n        "
+      summary: Cast a vote
+      tags:
+      - Votes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteCastRequest'
+            examples:
+              CastVote:
+                value:
+                  poll_id: 10
+                  choice_id: 5
+                  idempotency_key: my-unique-key-12345
+                  captcha_token: 03AGdBq24...
+                summary: Cast Vote
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VoteCastRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VoteCastRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+              examples:
+                SuccessResponse:
+                  value:
+                    id: 123
+                    user: john_doe
+                    user_id: 1
+                    option: Option 1
+                    option_id: 5
+                    option_text: 'Yes'
+                    poll: Favorite Programming Language
+                    poll_id: 10
+                    poll_title: Favorite Programming Language
+                    voter_token: abc123...
+                    idempotency_key: def456...
+                    ip_address: 192.168.1.1
+                    created_at: '2024-01-15T10:30:00Z'
+                  summary: Success Response
+          description: New vote created successfully
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+              examples:
+                IdempotentResponse:
+                  value:
+                    id: 123
+                    user: john_doe
+                    user_id: 1
+                    option: Option 1
+                    option_id: 5
+                    option_text: 'Yes'
+                    poll: Favorite Programming Language
+                    poll_id: 10
+                    poll_title: Favorite Programming Language
+                    voter_token: abc123...
+                    idempotency_key: def456...
+                    ip_address: 192.168.1.1
+                    created_at: '2024-01-15T10:30:00Z'
+                  summary: Idempotent Response
+          description: Idempotent retry - same vote returned
+        '400':
+          description: Invalid request, poll closed, or geographic restriction violation
+        '403':
+          description: Fraud detected or IP blocked
+        '404':
+          description: Poll not found
+        '409':
+          description: Duplicate vote attempt
+        '429':
+          description: Rate limit exceeded
+  /api/v1/votes/my-votes/:
+    get:
+      operationId: votes_my_votes_retrieve
+      description: Get all votes cast by the authenticated user.
+      summary: Get my votes
+      tags:
+      - Votes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVoteList'
+              examples:
+                MyVotes:
+                  value:
+                    count: 123
+                    next: http://api.example.org/accounts/?page=4
+                    previous: http://api.example.org/accounts/?page=2
+                    results:
+                    - - id: 123
+                        user: john_doe
+                        user_id: 1
+                        option: Option 1
+                        option_id: 5
+                        option_text: 'Yes'
+                        poll: Favorite Programming Language
+                        poll_id: 10
+                        poll_title: Favorite Programming Language
+                        voter_token: abc123...
+                        idempotency_key: def456...
+                        ip_address: 192.168.1.1
+                        created_at: '2024-01-15T10:30:00Z'
+                  summary: My Votes
+          description: List of user's votes
+        '401':
+          description: Authentication required
+components:
+  schemas:
+    Category:
+      type: object
+      description: Serializer for Category model.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        poll_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - name
+    CategoryRequest:
+      type: object
+      description: Serializer for Category model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+      required:
+      - name
+    ChannelEnum:
+      enum:
+      - email
+      - in_app
+      - push
+      type: string
+      description: |-
+        * `email` - Email
+        * `in_app` - In-App
+        * `push` - Push Notification
+    Follow:
+      type: object
+      description: Serializer for Follow model.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        follower:
+          type: integer
+          description: User who is following
+        follower_username:
+          type: string
+          readOnly: true
+        following:
+          type: integer
+          description: User being followed
+        following_username:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - follower
+      - following
+    Notification:
+      type: object
+      description: Serializer for notifications.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          description: |-
+            Type of notification
+
+            * `poll_results_available` - Poll Results Available
+            * `new_poll_from_followed` - New Poll from Followed Creator
+            * `poll_about_to_expire` - Poll About to Expire
+            * `vote_flagged` - Your Vote Was Flagged
+        title:
+          type: string
+          description: Notification title
+          maxLength: 200
+        message:
+          type: string
+          description: Notification message
+        poll_id:
+          type: integer
+          readOnly: true
+          nullable: true
+        poll_title:
+          type: string
+          readOnly: true
+          nullable: true
+        metadata:
+          description: Additional metadata for the notification
+        is_read:
+          type: boolean
+          description: Whether user has read this notification
+        read_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: When notification was read
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        deliveries:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationDelivery'
+          readOnly: true
+      required:
+      - message
+      - notification_type
+      - title
+    NotificationDelivery:
+      type: object
+      description: Serializer for notification delivery status.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        channel:
+          allOf:
+          - $ref: '#/components/schemas/ChannelEnum'
+          description: |-
+            Delivery channel
+
+            * `email` - Email
+            * `in_app` - In-App
+            * `push` - Push Notification
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+          description: |-
+            Delivery status
+
+            * `pending` - Pending
+            * `sent` - Sent
+            * `failed` - Failed
+            * `bounced` - Bounced
+        sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: When notification was sent
+        error_message:
+          type: string
+          readOnly: true
+          description: Error message if delivery failed
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - channel
+    NotificationDeliveryRequest:
+      type: object
+      description: Serializer for notification delivery status.
+      properties:
+        channel:
+          allOf:
+          - $ref: '#/components/schemas/ChannelEnum'
+          description: |-
+            Delivery channel
+
+            * `email` - Email
+            * `in_app` - In-App
+            * `push` - Push Notification
+      required:
+      - channel
+    NotificationPreference:
+      type: object
+      description: Serializer for notification preferences.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        poll_results_available_email:
+          type: boolean
+          description: Email for poll results
+        poll_results_available_in_app:
+          type: boolean
+          description: In-app for poll results
+        poll_results_available_push:
+          type: boolean
+          description: Push for poll results
+        new_poll_from_followed_email:
+          type: boolean
+          description: Email for new polls from followed creators
+        new_poll_from_followed_in_app:
+          type: boolean
+          description: In-app for new polls from followed creators
+        new_poll_from_followed_push:
+          type: boolean
+          description: Push for new polls from followed creators
+        poll_about_to_expire_email:
+          type: boolean
+          description: Email for poll expiration warnings
+        poll_about_to_expire_in_app:
+          type: boolean
+          description: In-app for poll expiration warnings
+        poll_about_to_expire_push:
+          type: boolean
+          description: Push for poll expiration warnings
+        vote_flagged_email:
+          type: boolean
+          description: Email for flagged votes
+        vote_flagged_in_app:
+          type: boolean
+          description: In-app for flagged votes
+        vote_flagged_push:
+          type: boolean
+          description: Push for flagged votes
+        email_enabled:
+          type: boolean
+          description: Enable all email notifications
+        in_app_enabled:
+          type: boolean
+          description: Enable all in-app notifications
+        push_enabled:
+          type: boolean
+          description: Enable all push notifications
+        unsubscribed:
+          type: boolean
+          description: User has unsubscribed from all notifications
+        unsubscribed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: When user unsubscribed
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    NotificationPreferenceRequest:
+      type: object
+      description: Serializer for notification preferences.
+      properties:
+        poll_results_available_email:
+          type: boolean
+          description: Email for poll results
+        poll_results_available_in_app:
+          type: boolean
+          description: In-app for poll results
+        poll_results_available_push:
+          type: boolean
+          description: Push for poll results
+        new_poll_from_followed_email:
+          type: boolean
+          description: Email for new polls from followed creators
+        new_poll_from_followed_in_app:
+          type: boolean
+          description: In-app for new polls from followed creators
+        new_poll_from_followed_push:
+          type: boolean
+          description: Push for new polls from followed creators
+        poll_about_to_expire_email:
+          type: boolean
+          description: Email for poll expiration warnings
+        poll_about_to_expire_in_app:
+          type: boolean
+          description: In-app for poll expiration warnings
+        poll_about_to_expire_push:
+          type: boolean
+          description: Push for poll expiration warnings
+        vote_flagged_email:
+          type: boolean
+          description: Email for flagged votes
+        vote_flagged_in_app:
+          type: boolean
+          description: In-app for flagged votes
+        vote_flagged_push:
+          type: boolean
+          description: Push for flagged votes
+        email_enabled:
+          type: boolean
+          description: Enable all email notifications
+        in_app_enabled:
+          type: boolean
+          description: Enable all in-app notifications
+        push_enabled:
+          type: boolean
+          description: Enable all push notifications
+        unsubscribed:
+          type: boolean
+          description: User has unsubscribed from all notifications
+    NotificationRequest:
+      type: object
+      description: Serializer for notifications.
+      properties:
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          description: |-
+            Type of notification
+
+            * `poll_results_available` - Poll Results Available
+            * `new_poll_from_followed` - New Poll from Followed Creator
+            * `poll_about_to_expire` - Poll About to Expire
+            * `vote_flagged` - Your Vote Was Flagged
+        title:
+          type: string
+          minLength: 1
+          description: Notification title
+          maxLength: 200
+        message:
+          type: string
+          minLength: 1
+          description: Notification message
+        metadata:
+          description: Additional metadata for the notification
+        is_read:
+          type: boolean
+          description: Whether user has read this notification
+      required:
+      - message
+      - notification_type
+      - title
+    NotificationTypeEnum:
+      enum:
+      - poll_results_available
+      - new_poll_from_followed
+      - poll_about_to_expire
+      - vote_flagged
+      type: string
+      description: |-
+        * `poll_results_available` - Poll Results Available
+        * `new_poll_from_followed` - New Poll from Followed Creator
+        * `poll_about_to_expire` - Poll About to Expire
+        * `vote_flagged` - Your Vote Was Flagged
+    PaginatedCategoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+    PaginatedFollowList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Follow'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedNotificationPreferenceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationPreference'
+    PaginatedPollAnalyticsList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PollAnalytics'
+    PaginatedPollList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Poll'
+    PaginatedTagList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PaginatedVoteList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vote'
+    PatchedCategoryRequest:
+      type: object
+      description: Serializer for Category model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+    PatchedNotificationPreferenceRequest:
+      type: object
+      description: Serializer for notification preferences.
+      properties:
+        poll_results_available_email:
+          type: boolean
+          description: Email for poll results
+        poll_results_available_in_app:
+          type: boolean
+          description: In-app for poll results
+        poll_results_available_push:
+          type: boolean
+          description: Push for poll results
+        new_poll_from_followed_email:
+          type: boolean
+          description: Email for new polls from followed creators
+        new_poll_from_followed_in_app:
+          type: boolean
+          description: In-app for new polls from followed creators
+        new_poll_from_followed_push:
+          type: boolean
+          description: Push for new polls from followed creators
+        poll_about_to_expire_email:
+          type: boolean
+          description: Email for poll expiration warnings
+        poll_about_to_expire_in_app:
+          type: boolean
+          description: In-app for poll expiration warnings
+        poll_about_to_expire_push:
+          type: boolean
+          description: Push for poll expiration warnings
+        vote_flagged_email:
+          type: boolean
+          description: Email for flagged votes
+        vote_flagged_in_app:
+          type: boolean
+          description: In-app for flagged votes
+        vote_flagged_push:
+          type: boolean
+          description: Push for flagged votes
+        email_enabled:
+          type: boolean
+          description: Enable all email notifications
+        in_app_enabled:
+          type: boolean
+          description: Enable all in-app notifications
+        push_enabled:
+          type: boolean
+          description: Enable all push notifications
+        unsubscribed:
+          type: boolean
+          description: User has unsubscribed from all notifications
+    PatchedPollUpdateRequest:
+      type: object
+      description: Serializer for updating a Poll (limited fields) with validation.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        is_draft:
+          type: boolean
+          description: If True, poll is a draft and not visible publicly
+        settings:
+          description: Poll settings (e.g., allow_multiple_votes, show_results)
+        security_rules:
+          description: Security rules (e.g., require_authentication, ip_whitelist)
+    PatchedTagRequest:
+      type: object
+      description: Serializer for Tag model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+    Poll:
+      type: object
+      description: Serializer for Poll model with options and language support.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        created_by:
+          type: string
+          readOnly: true
+        created_by_id:
+          type: integer
+          readOnly: true
+        category:
+          allOf:
+          - $ref: '#/components/schemas/Category'
+          readOnly: true
+        category_id:
+          type: integer
+          readOnly: true
+          nullable: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        tag_ids:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        is_draft:
+          type: boolean
+          description: If True, poll is a draft and not visible publicly
+        is_open:
+          type: string
+          readOnly: true
+        settings:
+          description: Poll settings (e.g., allow_multiple_votes, show_results)
+        security_rules:
+          description: Security rules (e.g., require_authentication, ip_whitelist)
+        total_votes:
+          type: integer
+          readOnly: true
+        unique_voters:
+          type: integer
+          readOnly: true
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/PollOption'
+          readOnly: true
+      required:
+      - title
+    PollAnalytics:
+      type: object
+      description: Serializer for PollAnalytics model.
+      properties:
+        poll:
+          type: integer
+        poll_title:
+          type: string
+          readOnly: true
+        total_votes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        unique_voters:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        last_updated:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - poll
+    PollCreate:
+      type: object
+      description: Serializer for creating a Poll with nested options, validation,
+        and translation support.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        title_en:
+          type: string
+          nullable: true
+          title: Title [en]
+          maxLength: 200
+        title_es:
+          type: string
+          nullable: true
+          title: Title [es]
+          maxLength: 200
+        title_fr:
+          type: string
+          nullable: true
+          title: Title [fr]
+          maxLength: 200
+        title_de:
+          type: string
+          nullable: true
+          title: Title [de]
+          maxLength: 200
+        title_sw:
+          type: string
+          nullable: true
+          title: Title [sw]
+          maxLength: 200
+        description:
+          type: string
+        description_en:
+          type: string
+          nullable: true
+          title: Description [en]
+        description_es:
+          type: string
+          nullable: true
+          title: Description [es]
+        description_fr:
+          type: string
+          nullable: true
+          title: Description [fr]
+        description_de:
+          type: string
+          nullable: true
+          title: Description [de]
+        description_sw:
+          type: string
+          nullable: true
+          title: Description [sw]
+        category:
+          type: integer
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: integer
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        is_draft:
+          type: boolean
+          description: If True, poll is a draft and not visible publicly
+        settings:
+          description: Poll settings (e.g., allow_multiple_votes, show_results)
+        security_rules:
+          description: Security rules (e.g., require_authentication, ip_whitelist)
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/PollOptionCreate'
+      required:
+      - title
+    PollCreateRequest:
+      type: object
+      description: Serializer for creating a Poll with nested options, validation,
+        and translation support.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        title_en:
+          type: string
+          nullable: true
+          minLength: 1
+          title: Title [en]
+          maxLength: 200
+        title_es:
+          type: string
+          nullable: true
+          title: Title [es]
+          maxLength: 200
+        title_fr:
+          type: string
+          nullable: true
+          title: Title [fr]
+          maxLength: 200
+        title_de:
+          type: string
+          nullable: true
+          title: Title [de]
+          maxLength: 200
+        title_sw:
+          type: string
+          nullable: true
+          title: Title [sw]
+          maxLength: 200
+        description:
+          type: string
+        description_en:
+          type: string
+          nullable: true
+          minLength: 1
+          title: Description [en]
+        description_es:
+          type: string
+          nullable: true
+          title: Description [es]
+        description_fr:
+          type: string
+          nullable: true
+          title: Description [fr]
+        description_de:
+          type: string
+          nullable: true
+          title: Description [de]
+        description_sw:
+          type: string
+          nullable: true
+          title: Description [sw]
+        category:
+          type: integer
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: integer
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        is_draft:
+          type: boolean
+          description: If True, poll is a draft and not visible publicly
+        settings:
+          description: Poll settings (e.g., allow_multiple_votes, show_results)
+        security_rules:
+          description: Security rules (e.g., require_authentication, ip_whitelist)
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/PollOptionCreateRequest'
+      required:
+      - title
+    PollOption:
+      type: object
+      description: Serializer for PollOption model with language support.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        text:
+          type: string
+          maxLength: 200
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Display order for options
+        vote_count:
+          type: string
+          readOnly: true
+        cached_vote_count:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Cached vote count for performance
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - text
+    PollOptionCreate:
+      type: object
+      description: Serializer for creating PollOption with translation support.
+      properties:
+        text:
+          type: string
+          maxLength: 200
+        text_en:
+          type: string
+          nullable: true
+          title: Text [en]
+          maxLength: 200
+        text_es:
+          type: string
+          nullable: true
+          title: Text [es]
+          maxLength: 200
+        text_fr:
+          type: string
+          nullable: true
+          title: Text [fr]
+          maxLength: 200
+        text_de:
+          type: string
+          nullable: true
+          title: Text [de]
+          maxLength: 200
+        text_sw:
+          type: string
+          nullable: true
+          title: Text [sw]
+          maxLength: 200
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Display order for options
+      required:
+      - text
+    PollOptionCreateRequest:
+      type: object
+      description: Serializer for creating PollOption with translation support.
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 200
+        text_en:
+          type: string
+          nullable: true
+          minLength: 1
+          title: Text [en]
+          maxLength: 200
+        text_es:
+          type: string
+          nullable: true
+          title: Text [es]
+          maxLength: 200
+        text_fr:
+          type: string
+          nullable: true
+          title: Text [fr]
+          maxLength: 200
+        text_de:
+          type: string
+          nullable: true
+          title: Text [de]
+          maxLength: 200
+        text_sw:
+          type: string
+          nullable: true
+          title: Text [sw]
+          maxLength: 200
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Display order for options
+      required:
+      - text
+    PollOptionRequest:
+      type: object
+      description: Serializer for PollOption model with language support.
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 200
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Display order for options
+      required:
+      - text
+    PollRequest:
+      type: object
+      description: Serializer for Poll model with options and language support.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        is_draft:
+          type: boolean
+          description: If True, poll is a draft and not visible publicly
+        settings:
+          description: Poll settings (e.g., allow_multiple_votes, show_results)
+        security_rules:
+          description: Security rules (e.g., require_authentication, ip_whitelist)
+      required:
+      - title
+    PollUpdate:
+      type: object
+      description: Serializer for updating a Poll (limited fields) with validation.
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        is_draft:
+          type: boolean
+          description: If True, poll is a draft and not visible publicly
+        settings:
+          description: Poll settings (e.g., allow_multiple_votes, show_results)
+        security_rules:
+          description: Security rules (e.g., require_authentication, ip_whitelist)
+      required:
+      - title
+    PollUpdateRequest:
+      type: object
+      description: Serializer for updating a Poll (limited fields) with validation.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        is_draft:
+          type: boolean
+          description: If True, poll is a draft and not visible publicly
+        settings:
+          description: Poll settings (e.g., allow_multiple_votes, show_results)
+        security_rules:
+          description: Security rules (e.g., require_authentication, ip_whitelist)
+      required:
+      - title
+    StatusEnum:
+      enum:
+      - pending
+      - sent
+      - failed
+      - bounced
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `sent` - Sent
+        * `failed` - Failed
+        * `bounced` - Bounced
+    Tag:
+      type: object
+      description: Serializer for Tag model.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 50
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        poll_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - name
+    TagRequest:
+      type: object
+      description: Serializer for Tag model.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required:
+      - name
+    User:
+      type: object
+      description: Serializer for User model.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        date_joined:
+          type: string
+          format: date-time
+        followers_count:
+          type: string
+          readOnly: true
+        following_count:
+          type: string
+          readOnly: true
+        is_following:
+          type: string
+          readOnly: true
+        is_followed_by:
+          type: string
+          readOnly: true
+      required:
+      - username
+    UserRequest:
+      type: object
+      description: Serializer for User model.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        date_joined:
+          type: string
+          format: date-time
+      required:
+      - username
+    Vote:
+      type: object
+      description: Serializer for Vote model with detailed information.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: string
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        option:
+          type: string
+          readOnly: true
+        option_id:
+          type: integer
+          readOnly: true
+        option_text:
+          type: string
+          readOnly: true
+        poll:
+          type: string
+          readOnly: true
+        poll_id:
+          type: integer
+          readOnly: true
+        poll_title:
+          type: string
+          readOnly: true
+        voter_token:
+          type: string
+          readOnly: true
+          description: Token for anonymous/guest voting
+        idempotency_key:
+          type: string
+          readOnly: true
+          description: Unique key for idempotent operations
+        ip_address:
+          type: string
+          readOnly: true
+          nullable: true
+          description: IP address of voter
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    VoteCastRequest:
+      type: object
+      description: Serializer for casting a vote.
+      properties:
+        poll_id:
+          type: integer
+          description: ID of the poll to vote on
+        choice_id:
+          type: integer
+          description: ID of the choice/option to vote for
+        idempotency_key:
+          type: string
+          nullable: true
+          description: Optional idempotency key for retry safety
+          maxLength: 64
+        captcha_token:
+          type: string
+          nullable: true
+          description: reCAPTCHA v3 token (required if poll has enable_captcha enabled)
+      required:
+      - choice_id
+      - poll_id
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+tags:
+- name: Polls
+  description: Poll management and operations
+- name: Votes
+  description: Voting operations with idempotency and fraud detection
+- name: Users
+  description: User management and profiles
+- name: Analytics
+  description: Poll analytics and insights
+- name: Notifications
+  description: User notifications
+- name: Categories
+  description: Poll categories
+- name: Tags
+  description: Poll tags
