@@ -41,9 +41,9 @@ class TestActivateScheduledPoll:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is True
+            assert result["success"] is True
             assert poll.is_active is True
-            assert result.result["action"] == "activated"
+            assert result["action"] == "activated"
             mock_notify.assert_called_once_with(poll)
 
     def test_activate_poll_already_active(self, user):
@@ -64,9 +64,9 @@ class TestActivateScheduledPoll:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is False
+            assert result["success"] is False
             assert poll.is_active is True  # Still active
-            assert "already active" in result.result["reason"].lower()
+            assert "already active" in result["reason"].lower()
             mock_notify.assert_not_called()
 
     def test_activate_poll_not_yet_ready(self, user):
@@ -87,17 +87,17 @@ class TestActivateScheduledPoll:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is False
+            assert result["success"] is False
             assert poll.is_active is False  # Still inactive
-            assert "not yet ready" in result.result["reason"].lower()
+            assert "not yet ready" in result["reason"].lower()
             mock_notify.assert_not_called()
 
     def test_activate_nonexistent_poll(self):
         """Test that activating nonexistent poll returns error."""
         result = activate_scheduled_poll(99999)
 
-        assert result.result["success"] is False
-        assert result.result["error"] == "Poll not found"
+        assert result["success"] is False
+        assert result["error"] == "Poll not found"
 
 
 @pytest.mark.django_db
@@ -124,9 +124,9 @@ class TestCloseScheduledPoll:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is True
+            assert result["success"] is True
             assert poll.is_active is False
-            assert result.result["action"] == "closed"
+            assert result["action"] == "closed"
             mock_notify.assert_called_once_with(poll)
 
     def test_close_poll_already_closed(self, user):
@@ -148,9 +148,9 @@ class TestCloseScheduledPoll:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is False
+            assert result["success"] is False
             assert poll.is_active is False  # Still closed
-            assert "already closed" in result.result["reason"].lower()
+            assert "already closed" in result["reason"].lower()
             mock_notify.assert_not_called()
 
     def test_close_poll_not_yet_ready(self, user):
@@ -172,9 +172,9 @@ class TestCloseScheduledPoll:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is False
+            assert result["success"] is False
             assert poll.is_active is True  # Still active
-            assert "not yet ready" in result.result["reason"].lower()
+            assert "not yet ready" in result["reason"].lower()
             mock_notify.assert_not_called()
 
     def test_close_poll_no_end_time(self, user):
@@ -195,7 +195,7 @@ class TestCloseScheduledPoll:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is False
+            assert result["success"] is False
             assert poll.is_active is True  # Still active
             mock_notify.assert_not_called()
 
@@ -203,8 +203,8 @@ class TestCloseScheduledPoll:
         """Test that closing nonexistent poll returns error."""
         result = close_scheduled_poll(99999)
 
-        assert result.result["success"] is False
-        assert result.result["error"] == "Poll not found"
+        assert result["success"] is False
+        assert result["error"] == "Poll not found"
 
 
 @pytest.mark.django_db
@@ -228,9 +228,9 @@ class TestProcessScheduledPolls:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is True
-            assert result.result["activated_count"] == 1
-            assert result.result["closed_count"] == 0
+            assert result["success"] is True
+            assert result["activated_count"] == 1
+            assert result["closed_count"] == 0
             assert poll.is_active is True
 
     def test_process_closes_ready_polls(self, user):
@@ -251,9 +251,9 @@ class TestProcessScheduledPolls:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is True
-            assert result.result["activated_count"] == 0
-            assert result.result["closed_count"] == 1
+            assert result["success"] is True
+            assert result["activated_count"] == 0
+            assert result["closed_count"] == 1
             assert poll.is_active is False
 
     def test_process_handles_both_activation_and_closing(self, user):
@@ -287,9 +287,9 @@ class TestProcessScheduledPolls:
             poll1.refresh_from_db()
             poll2.refresh_from_db()
 
-            assert result.result["success"] is True
-            assert result.result["activated_count"] == 1
-            assert result.result["closed_count"] == 1
+            assert result["success"] is True
+            assert result["activated_count"] == 1
+            assert result["closed_count"] == 1
             assert poll1.is_active is True
             assert poll2.is_active is False
 
@@ -309,9 +309,9 @@ class TestProcessScheduledPolls:
 
         poll.refresh_from_db()
 
-        assert result.result["success"] is True
-        assert result.result["activated_count"] == 0
-        assert result.result["closed_count"] == 0
+        assert result["success"] is True
+        assert result["activated_count"] == 0
+        assert result["closed_count"] == 0
         assert poll.is_active is False
 
     def test_process_handles_errors_gracefully(self, user):
@@ -333,8 +333,8 @@ class TestProcessScheduledPolls:
         ):
             result = process_scheduled_polls.apply()
 
-            assert result.result["success"] is True
-            assert len(result.result["errors"]) > 0
+            assert result["success"] is True
+            assert len(result["errors"]) > 0
 
 
 @pytest.mark.django_db
@@ -364,7 +364,7 @@ class TestScheduledPollsTimezoneHandling:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is True
+            assert result["success"] is True
             assert poll.is_active is True
 
     def test_poll_closing_with_timezone(self, user):
@@ -386,7 +386,7 @@ class TestScheduledPollsTimezoneHandling:
 
             poll.refresh_from_db()
 
-            assert result.result["success"] is True
+            assert result["success"] is True
             assert poll.is_active is False
 
     def test_polls_in_different_timezones(self, user):
@@ -418,7 +418,7 @@ class TestScheduledPollsTimezoneHandling:
             poll1.refresh_from_db()
             poll2.refresh_from_db()
 
-            assert result.result["success"] is True
-            assert result.result["activated_count"] == 2
+            assert result["success"] is True
+            assert result["activated_count"] == 2
             assert poll1.is_active is True
             assert poll2.is_active is True
