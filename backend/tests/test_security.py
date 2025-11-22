@@ -766,7 +766,7 @@ class TestAuditLogCapture:
 
     def test_audit_log_captures_sql_injection_attempts(self, client):
         """Test that SQL injection attempts are logged."""
-        _initial_count = AuditLog.objects.count()
+        initial_count = AuditLog.objects.count()
 
         # Make SQL injection attempt
         client.get("/api/v1/polls/1' OR '1'='1/")
@@ -786,7 +786,7 @@ class TestAuditLogCapture:
 
     def test_audit_log_captures_failed_authentication(self, client):
         """Test that failed authentication attempts are logged."""
-        _initial_count = AuditLog.objects.count()
+        initial_count = AuditLog.objects.count()
 
         # Try to access protected endpoint without auth
         client.get("/api/v1/votes/my-votes/")

@@ -8,6 +8,7 @@ import time
 
 import pytest
 from apps.votes.models import Vote
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
