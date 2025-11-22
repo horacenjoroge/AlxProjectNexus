@@ -7,7 +7,7 @@ from datetime import timedelta
 import pytest
 from apps.polls.models import Poll, PollOption
 from django.core.exceptions import ValidationError
-from django.db importtransaction
+from django.db import transaction
 from django.utils import timezone
 
 

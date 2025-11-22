@@ -3,7 +3,7 @@ Tests for scheduled polls functionality.
 """
 
 from datetime import datetime, timedelta
-from unittest.mock importpatch
+from unittest.mock import patch
 
 import pytest
 import pytz

@@ -6,7 +6,7 @@ from datetime import timedelta
 from unittest.mock importpatch
 
 import pytest
-from apps.analytics.models importIPWhitelist
+from apps.analytics.models import IPWhitelist
 from core.exceptions import IPBlockedError
 from core.utils.ip_reputation import (
     auto_unblock_expired_ips,

@@ -6,7 +6,7 @@ import time
 
 import pytest
 from apps.polls.consumers import PollResultsConsumer
-from apps.polls.models importPollOption
+from apps.polls.models import PollOption
 from apps.votes.models import Vote
 from apps.votes.services import cast_vote
 from channels.db import database_sync_to_async

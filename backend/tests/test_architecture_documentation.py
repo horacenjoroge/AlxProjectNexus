@@ -110,9 +110,9 @@ class TestArchitectureDocumentation:
             NotificationDelivery,
             NotificationPreference,
         )
-        from apps.polls.models importTag
-        from apps.users.models importUserProfile
-        from apps.votes.models importVoteAttempt
+        from apps.polls.models import Tag
+        from apps.users.models import UserProfile
+        from apps.votes.models import VoteAttempt
 
         # Check that all documented models exist
         documented_models = [

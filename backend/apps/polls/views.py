@@ -32,7 +32,7 @@ from drf_spectacular.utils import (
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.renderers importBrowsableAPIRenderer, JSONRenderer
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 
 from .models import Category, Poll, PollOption, Tag

@@ -8,7 +8,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
-from django.db.models importCount,Q
+from django.db.models import Count, Q
 from django.db.models.functions import TruncDate, TruncHour
 from django.utils import timezone
 

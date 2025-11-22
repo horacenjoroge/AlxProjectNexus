@@ -6,8 +6,8 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
-from apps.analytics.models importIPWhitelist
-from apps.polls.models importPollOption
+from apps.analytics.models import IPWhitelist
+from apps.polls.models import PollOption
 from core.exceptions import IPBlockedError
 from core.utils.ip_reputation import block_ip, record_ip_violation, whitelist_ip
 from django.contrib.auth.models import User

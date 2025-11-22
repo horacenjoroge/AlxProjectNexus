@@ -5,7 +5,7 @@ Integration tests for CAPTCHA verification in vote casting.
 from unittest.mock importpatch
 
 import pytest
-from apps.polls.models importPollOption
+from apps.polls.models import PollOption
 from core.exceptions import CaptchaVerificationError
 from django.contrib.auth.models import User
 from rest_framework import status
