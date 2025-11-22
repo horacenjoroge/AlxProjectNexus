@@ -3,9 +3,6 @@ Comprehensive tests for fraud detection utilities.
 """
 
 import pytest
-from django.test import RequestFactory
-from django.utils import timezone
-
 from core.utils.fraud_detection import (
     check_bot_user_agent,
     check_fingerprint_validity,
@@ -14,6 +11,8 @@ from core.utils.fraud_detection import (
     check_voting_hours,
     detect_fraud,
 )
+from django.test import RequestFactory
+from django.utils import timezone
 
 
 @pytest.mark.django_db
@@ -22,10 +21,10 @@ class TestRapidVotesFromIP:
 
     def test_rapid_votes_from_same_ip_flagged(self, poll, choices):
         """Test that rapid votes from same IP are flagged."""
+        import time
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import time
 
         timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
@@ -58,9 +57,10 @@ class TestRapidVotesFromIP:
 
     def test_normal_votes_not_flagged(self, poll, choices):
         """Test that normal votes are not flagged."""
+        import time
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-        import time
 
         timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
@@ -128,9 +128,10 @@ class TestSuspiciousVotingPattern:
 
     def test_suspicious_patterns_detected(self, poll, choices):
         """Test that suspicious voting patterns are detected."""
+        import time
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-        import time
 
         timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
@@ -161,9 +162,10 @@ class TestSuspiciousVotingPattern:
 
     def test_legitimate_patterns_not_flagged(self, poll, choices):
         """Test that legitimate voting patterns are not flagged."""
+        import time
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-        import time
 
         timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
@@ -298,10 +300,10 @@ class TestDetectFraud:
 
     def test_multiple_fraud_indicators_detected(self, poll, choices):
         """Test that multiple fraud indicators are detected."""
+        import time
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import time
 
         timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
@@ -350,8 +352,8 @@ class TestFraudDetectionIntegration:
 
     def test_fraud_vote_marked_invalid(self, user, poll, choices):
         """Test that fraud vote is marked as invalid."""
-        from apps.votes.services import cast_vote
         from apps.votes.models import Vote
+        from apps.votes.services import cast_vote
 
         factory = RequestFactory()
         request = factory.post("/api/votes/")
@@ -416,11 +418,11 @@ class TestFraudDetectionIntegration:
 
     def test_flagged_votes_dont_count_in_results(self, poll, choices):
         """Test that flagged votes don't count in results."""
+        import time
+
         from apps.votes.models import Vote
         from apps.votes.services import cast_vote
         from django.contrib.auth.models import User
-
-        import time
 
         timestamp = int(time.time() * 1000000)
         user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")

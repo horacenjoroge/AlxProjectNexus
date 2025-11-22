@@ -6,7 +6,6 @@ import pytest
 import yaml
 from django.test import Client
 from django.urls import reverse
-
 from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.utils import extend_schema
 
@@ -16,8 +15,8 @@ class TestAPIDocumentation:
 
     def test_schema_generation_no_errors(self):
         """Test that schema can be generated without errors."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,
@@ -31,8 +30,8 @@ class TestAPIDocumentation:
 
     def test_schema_endpoints_documented(self):
         """Test that all major endpoints are documented."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,
@@ -58,8 +57,8 @@ class TestAPIDocumentation:
 
     def test_vote_cast_endpoint_documented(self):
         """Test that vote cast endpoint is properly documented."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,
@@ -93,8 +92,8 @@ class TestAPIDocumentation:
 
     def test_poll_results_endpoint_documented(self):
         """Test that poll results endpoint is properly documented."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,
@@ -122,8 +121,8 @@ class TestAPIDocumentation:
 
     def test_schema_has_info(self):
         """Test that schema has proper info section."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,
@@ -141,8 +140,8 @@ class TestAPIDocumentation:
 
     def test_schema_has_tags(self):
         """Test that schema has tags defined."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,
@@ -174,8 +173,8 @@ class TestAPIDocumentation:
 
     def test_schema_yaml_format(self):
         """Test that schema can be exported as YAML."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,
@@ -192,8 +191,8 @@ class TestAPIDocumentation:
 
     def test_idempotency_documented(self):
         """Test that idempotency behavior is documented in vote endpoint."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,
@@ -227,8 +226,8 @@ class TestAPIDocumentation:
 
     def test_rate_limits_documented(self):
         """Test that rate limits are mentioned in endpoint documentation."""
-        from drf_spectacular.generators import SchemaGenerator
         from django.urls import get_resolver
+        from drf_spectacular.generators import SchemaGenerator
 
         generator = SchemaGenerator(
             patterns=get_resolver().url_patterns,

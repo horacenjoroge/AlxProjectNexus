@@ -3,10 +3,8 @@ Comprehensive tests for custom exceptions and exception handling.
 """
 
 import json
-import pytest
-from django.test import RequestFactory
-from rest_framework.test import APIClient
 
+import pytest
 from core.exceptions import (
     DuplicateVoteError,
     FraudDetectedError,
@@ -18,6 +16,8 @@ from core.exceptions import (
     VotingError,
 )
 from core.exceptions.handlers import custom_exception_handler
+from django.test import RequestFactory
+from rest_framework.test import APIClient
 
 
 @pytest.mark.unit

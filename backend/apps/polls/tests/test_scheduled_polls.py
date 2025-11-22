@@ -2,18 +2,18 @@
 Tests for scheduled polls functionality.
 """
 
-import pytest
-from datetime import timedelta, datetime
-from django.contrib.auth.models import User
-from django.utils import timezone
-from unittest.mock import patch, MagicMock
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
 
+import pytest
 from apps.polls.models import Poll, PollOption
 from apps.polls.tasks import (
     activate_scheduled_poll,
     close_scheduled_poll,
     process_scheduled_polls,
 )
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 @pytest.mark.django_db

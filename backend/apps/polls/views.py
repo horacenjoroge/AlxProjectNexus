@@ -4,24 +4,8 @@ Views for Polls app with comprehensive CRUD operations.
 
 import json
 import logging
-from django.conf import settings
-from django.contrib.auth.models import User
-from django.db import models, transaction
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiExample,
-    OpenApiParameter,
-    OpenApiResponse,
-)
-from rest_framework import filters, status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, BaseRenderer
-from rest_framework.response import Response
 
 from core.mixins import RateLimitHeadersMixin
-from core.throttles import PollCreateRateThrottle, PollReadRateThrottle
 from core.services.export_service import (
     estimate_export_size,
     export_analytics_report_pdf,
@@ -31,20 +15,29 @@ from core.services.export_service import (
 )
 from core.services.poll_analytics import (
     get_comprehensive_analytics,
+    get_participation_rate,
     get_total_votes_over_time,
     get_voter_demographics,
-    get_participation_rate,
 )
+from core.throttles import PollCreateRateThrottle, PollReadRateThrottle
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.db import models, transaction
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import BaseRenderer, BrowsableAPIRenderer, JSONRenderer
+from rest_framework.response import Response
 
-from .models import Poll, PollOption, Category, Tag
+from .models import Category, Poll, PollOption, Tag
 from .permissions import CanModifyPoll, IsAdminOrPollOwner, IsPollOwnerOrReadOnly
-from .services import (
-    calculate_poll_results,
-    can_view_results,
-    clone_poll,
-    export_results_to_csv,
-    export_results_to_json,
-)
 from .serializers import (
     BulkPollOptionCreateSerializer,
     CategorySerializer,
@@ -54,6 +47,13 @@ from .serializers import (
     PollTemplateCreateSerializer,
     PollUpdateSerializer,
     TagSerializer,
+)
+from .services import (
+    calculate_poll_results,
+    can_view_results,
+    clone_poll,
+    export_results_to_csv,
+    export_results_to_json,
 )
 from .templates import get_template, list_templates
 
@@ -208,8 +208,8 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         # Notify followers about new poll (only if not a draft)
         if not poll.is_draft:
             try:
-                from apps.users.models import Follow
                 from apps.notifications.services import notify_new_poll_from_followed
+                from apps.users.models import Follow
 
                 # Get followers of the poll creator (users who follow poll.created_by)
                 follows = Follow.objects.filter(
@@ -1037,6 +1037,7 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         - 404 Not Found: Poll not found
         """
         from datetime import datetime
+
         from rest_framework.permissions import IsAdminUser
 
         poll = self.get_object()

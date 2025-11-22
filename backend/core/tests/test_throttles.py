@@ -2,20 +2,19 @@
 Tests for advanced rate limiting throttles.
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch, MagicMock
-from django.contrib.auth.models import AnonymousUser
+from unittest.mock import MagicMock, Mock, patch
 
-from rest_framework.exceptions import Throttled
-from rest_framework.test import APIRequestFactory
-
+import pytest
 from core.throttles import (
     AdvancedRateThrottle,
-    VoteCastRateThrottle,
     PollCreateRateThrottle,
     PollReadRateThrottle,
+    VoteCastRateThrottle,
 )
+from django.contrib.auth.models import AnonymousUser
+from rest_framework.exceptions import Throttled
+from rest_framework.test import APIRequestFactory
 
 
 @pytest.fixture

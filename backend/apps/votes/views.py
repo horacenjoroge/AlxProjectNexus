@@ -9,26 +9,25 @@ from core.exceptions import (
     DuplicateVoteError,
     FingerprintValidationError,
     FraudDetectedError,
-    IPBlockedError,
     InvalidPollError,
     InvalidVoteError,
+    IPBlockedError,
     PollClosedError,
     PollNotFoundError,
 )
+from core.mixins import RateLimitHeadersMixin
+from core.throttles import VoteCastRateThrottle
 from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
     OpenApiExample,
     OpenApiParameter,
     OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
 )
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from core.mixins import RateLimitHeadersMixin
-from core.throttles import VoteCastRateThrottle
 
 from .models import Vote
 from .permissions import CanVotePermission
@@ -515,8 +514,8 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         vote.delete()
 
         # Update cached counts
-        from django.db.models import F
         from apps.polls.models import Poll, PollOption
+        from django.db.models import F
 
         PollOption.objects.filter(id=vote.option.id).update(
             cached_vote_count=F("cached_vote_count") - 1

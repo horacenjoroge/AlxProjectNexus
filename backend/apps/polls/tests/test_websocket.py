@@ -4,15 +4,15 @@ Comprehensive tests for WebSocket poll results consumer.
 
 import json
 import time
-import pytest
-from channels.testing import WebsocketCommunicator
-from channels.db import database_sync_to_async
-from django.contrib.auth.models import User
 
-from apps.polls.models import Poll, PollOption
+import pytest
 from apps.polls.consumers import PollResultsConsumer
+from apps.polls.models import Poll, PollOption
 from apps.votes.models import Vote
 from apps.votes.services import cast_vote
+from channels.db import database_sync_to_async
+from channels.testing import WebsocketCommunicator
+from django.contrib.auth.models import User
 
 
 def create_websocket_communicator(poll_id, user=None):
@@ -455,6 +455,7 @@ class TestWebSocketLoad:
     async def test_1000_concurrent_websocket_connections(self, poll, choices):
         """Load test: 1000 concurrent WebSocket connections."""
         import asyncio
+
         from django.conf import settings
         from django.db import connection
 

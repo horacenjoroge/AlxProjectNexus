@@ -399,8 +399,8 @@ def log_fraud_alert(
     """
     try:
         from apps.analytics.models import FraudAlert
-        from apps.votes.models import Vote
         from apps.polls.models import Poll
+        from apps.votes.models import Vote
         from django.contrib.auth.models import User
 
         vote = Vote.objects.get(id=vote_id)

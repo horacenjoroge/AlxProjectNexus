@@ -6,10 +6,9 @@ Provides consistent error formatting and proper HTTP status codes.
 import logging
 import traceback
 
+from core.exceptions import VotingError
 from django.http import JsonResponse
 from rest_framework.views import exception_handler
-
-from core.exceptions import VotingError
 
 logger = logging.getLogger(__name__)
 

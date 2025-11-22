@@ -23,6 +23,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Tuple
 
 import pytest
+from apps.polls.models import Poll, PollOption
+from apps.votes.models import Vote
+from apps.votes.services import cast_vote
+from core.utils.idempotency import generate_idempotency_key
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -31,12 +35,6 @@ from django.test import RequestFactory
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from apps.polls.models import Poll, PollOption
-from apps.votes.models import Vote
-from apps.votes.services import cast_vote
-from core.utils.idempotency import generate_idempotency_key
-
 
 # Skip concurrent stress tests on SQLite - it doesn't support true concurrent writes
 # These tests require PostgreSQL for accurate results

@@ -5,19 +5,19 @@ Notification service functions for creating and delivering notifications.
 import logging
 from typing import Dict, List, Optional
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.conf import settings
 
 from .models import (
-    Notification,
-    NotificationPreference,
-    NotificationDelivery,
-    NotificationType,
     DeliveryChannel,
     DeliveryStatus,
+    Notification,
+    NotificationDelivery,
+    NotificationPreference,
+    NotificationType,
 )
 
 logger = logging.getLogger(__name__)

@@ -19,14 +19,13 @@ import re
 from unittest.mock import patch
 
 import pytest
+from apps.analytics.models import AuditLog
+from apps.polls.models import Poll, PollOption
+from apps.votes.models import Vote
 from django.contrib.auth import get_user_model
 from django.test import Client, RequestFactory
 from django.urls import reverse
 from rest_framework.test import APIClient
-
-from apps.analytics.models import AuditLog
-from apps.polls.models import Poll, PollOption
-from apps.votes.models import Vote
 
 User = get_user_model()
 
@@ -244,8 +243,8 @@ class TestCSRFProtection:
     def test_csrf_protection_enabled(self, client):
         """Test that CSRF protection is enabled."""
         # Django's CSRF middleware should be in place
-        from django.middleware.csrf import CsrfViewMiddleware
         from django.conf import settings
+        from django.middleware.csrf import CsrfViewMiddleware
 
         assert "django.middleware.csrf.CsrfViewMiddleware" in settings.MIDDLEWARE
 

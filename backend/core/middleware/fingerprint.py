@@ -5,6 +5,7 @@ Extracts and validates browser/device fingerprints for security.
 
 import hashlib
 import json
+
 from django.utils.deprecation import MiddlewareMixin
 
 

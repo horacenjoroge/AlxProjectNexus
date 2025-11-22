@@ -2,20 +2,19 @@
 Load tests for concurrent operations.
 """
 
-import pytest
+import hashlib
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from django.db import connection
-from django.test import RequestFactory
-import hashlib
 
+import pytest
 from apps.polls.factories import PollFactory, PollOptionFactory
 from apps.polls.models import Poll
 from apps.users.factories import UserFactory
 from apps.votes.models import Vote
 from apps.votes.services import cast_vote
-
+from django.db import connection
+from django.test import RequestFactory
 
 # Skip concurrent load tests on SQLite - it doesn't support true concurrent writes
 # These tests require PostgreSQL for accurate results
@@ -212,8 +211,9 @@ class TestConcurrentLoad:
 
         def vote(user, choice_index):
             try:
-                from django.test import RequestFactory
                 import hashlib
+
+                from django.test import RequestFactory
 
                 factory = RequestFactory()
                 request = factory.post("/api/v1/votes/")
@@ -377,8 +377,9 @@ class TestConcurrentLoad:
 
         def vote(user):
             try:
-                from django.test import RequestFactory
                 import hashlib
+
+                from django.test import RequestFactory
 
                 factory = RequestFactory()
                 request = factory.post("/api/v1/votes/")

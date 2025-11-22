@@ -4,12 +4,8 @@ Tests atomic operations, idempotency, validation, and race conditions.
 """
 
 import hashlib
-import pytest
-from django.core.cache import cache
-from django.test import RequestFactory
-from django.utils import timezone
-from freezegun import freeze_time
 
+import pytest
 from apps.votes.services import cast_vote
 from core.exceptions import (
     DuplicateVoteError,
@@ -19,6 +15,10 @@ from core.exceptions import (
     PollClosedError,
     PollNotFoundError,
 )
+from django.core.cache import cache
+from django.test import RequestFactory
+from django.utils import timezone
+from freezegun import freeze_time
 
 
 def make_fingerprint(seed: str) -> str:

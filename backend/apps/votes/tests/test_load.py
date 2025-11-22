@@ -3,16 +3,16 @@ Load tests for voting API endpoints.
 Tests concurrent request handling and performance.
 """
 
-import pytest
 import threading
 import time
+
+import pytest
+from apps.votes.models import Vote
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.conf import settings
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from apps.votes.models import Vote
 
 # Check if using SQLite (which doesn't handle concurrent writes well)
 IS_SQLITE = settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3"

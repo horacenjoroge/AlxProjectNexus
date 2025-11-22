@@ -9,9 +9,9 @@ from rest_framework.response import Response
 
 from .models import Notification, NotificationPreference
 from .serializers import (
-    NotificationSerializer,
-    NotificationPreferenceSerializer,
     NotificationMarkReadSerializer,
+    NotificationPreferenceSerializer,
+    NotificationSerializer,
 )
 from .services import get_or_create_preferences
 
@@ -114,11 +114,12 @@ class NotificationPreferenceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
+
 # Standalone unsubscribe view (for email links)
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

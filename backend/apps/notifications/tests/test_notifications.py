@@ -3,28 +3,27 @@ Tests for notifications app.
 """
 
 import pytest
+from apps.notifications.models import (
+    DeliveryChannel,
+    DeliveryStatus,
+    Notification,
+    NotificationDelivery,
+    NotificationPreference,
+    NotificationType,
+)
+from apps.notifications.services import (
+    create_notification,
+    get_or_create_preferences,
+    notify_poll_about_to_expire,
+    notify_poll_results_available,
+    notify_vote_flagged,
+)
+from apps.polls.models import Poll, PollOption
+from apps.votes.models import Vote
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from apps.notifications.models import (
-    Notification,
-    NotificationPreference,
-    NotificationDelivery,
-    NotificationType,
-    DeliveryChannel,
-    DeliveryStatus,
-)
-from apps.notifications.services import (
-    create_notification,
-    notify_poll_results_available,
-    notify_vote_flagged,
-    notify_poll_about_to_expire,
-    get_or_create_preferences,
-)
-from apps.polls.models import Poll, PollOption
-from apps.votes.models import Vote
 
 
 @pytest.fixture
@@ -162,8 +161,9 @@ class TestNotificationTypes:
 
     def test_notify_poll_about_to_expire(self, user, poll):
         """Test notifying about poll expiration."""
-        from django.utils import timezone
         from datetime import timedelta
+
+        from django.utils import timezone
 
         poll.ends_at = timezone.now() + timedelta(hours=20)  # Less than 24 hours
         poll.save()

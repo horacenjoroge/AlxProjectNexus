@@ -13,10 +13,9 @@ import logging
 from datetime import timedelta
 from typing import Optional, Tuple
 
+from apps.analytics.models import IPBlock, IPReputation, IPWhitelist
 from django.conf import settings
 from django.utils import timezone
-
-from apps.analytics.models import IPBlock, IPReputation, IPWhitelist
 
 logger = logging.getLogger(__name__)
 

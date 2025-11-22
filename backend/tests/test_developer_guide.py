@@ -8,11 +8,12 @@ These tests ensure that:
 4. Common patterns work as documented
 """
 
-import pytest
 import os
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 
 class TestDeveloperGuideSetup:
@@ -181,8 +182,8 @@ class TestDeveloperGuideExamples:
         """Test that example model structure is valid."""
         # This test verifies the Comment model example structure
         # We don't actually create it, but verify the pattern is correct
-        from django.db import models
         from django.contrib.auth.models import User
+        from django.db import models
 
         # Verify the pattern used in examples is valid
         # Use app_label to avoid INSTALLED_APPS requirement
@@ -423,9 +424,9 @@ class TestDeveloperGuideRunnableExamples:
     @pytest.mark.django_db
     def test_example_model_creation(self):
         """Test that example model creation pattern works."""
-        from django.db import models
-        from django.contrib.auth.models import User
         from apps.polls.models import Poll
+        from django.contrib.auth.models import User
+        from django.db import models
 
         # This tests the pattern, not creating actual Comment model
         # Verify we can create a model following the pattern

@@ -2,13 +2,13 @@
 Tests for poll analytics API endpoints.
 """
 
-import pytest
 from datetime import timedelta
-from freezegun import freeze_time
 
+import pytest
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.utils import timezone
+from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -341,8 +341,9 @@ class TestAnalyticsEndpoints:
 
         # Second request - should use cache
         # Create another vote from a different user (should not affect cached response)
-        from django.contrib.auth.models import User
         import time
+
+        from django.contrib.auth.models import User
 
         timestamp = int(time.time() * 1000000)
         other_user = User.objects.create_user(

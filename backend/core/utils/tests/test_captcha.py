@@ -2,16 +2,16 @@
 Tests for CAPTCHA verification utility.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from django.contrib.auth.models import User
+from unittest.mock import MagicMock, Mock, patch
 
-from core.utils.captcha import (
-    verify_recaptcha_token,
-    verify_captcha_for_vote,
-    DEFAULT_MIN_SCORE,
-)
+import pytest
 from core.exceptions import CaptchaVerificationError
+from core.utils.captcha import (
+    DEFAULT_MIN_SCORE,
+    verify_captcha_for_vote,
+    verify_recaptcha_token,
+)
+from django.contrib.auth.models import User
 
 
 class TestVerifyRecaptchaToken:

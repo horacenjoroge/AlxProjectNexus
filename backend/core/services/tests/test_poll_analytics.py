@@ -2,24 +2,23 @@
 Comprehensive tests for poll analytics service.
 """
 
-import pytest
 from datetime import timedelta
-from freezegun import freeze_time
 
-from django.utils import timezone
-
+import pytest
 from core.services.poll_analytics import (
-    get_total_votes_over_time,
-    get_votes_by_hour,
-    get_votes_by_day,
-    get_voter_demographics,
-    get_participation_rate,
-    get_average_time_to_vote,
-    get_drop_off_rate,
-    get_vote_distribution,
-    get_comprehensive_analytics,
     get_analytics_summary,
+    get_average_time_to_vote,
+    get_comprehensive_analytics,
+    get_drop_off_rate,
+    get_participation_rate,
+    get_total_votes_over_time,
+    get_vote_distribution,
+    get_voter_demographics,
+    get_votes_by_day,
+    get_votes_by_hour,
 )
+from django.utils import timezone
+from freezegun import freeze_time
 
 
 @pytest.mark.django_db
@@ -29,10 +28,11 @@ class TestTotalVotesOverTime:
     def test_get_total_votes_over_time_hourly(self, poll, choices):
         """Test hourly time series data."""
         import uuid
-        from apps.votes.models import Vote
-        from django.contrib.auth.models import User
         from datetime import datetime
         from datetime import timezone as dt_timezone
+
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
 
         # Set poll start date before votes are created
         poll.starts_at = datetime(2024, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc)
@@ -75,12 +75,12 @@ class TestTotalVotesOverTime:
 
     def test_get_total_votes_over_time_daily(self, poll, choices):
         """Test daily time series data."""
-        from apps.votes.models import Vote
-        from django.contrib.auth.models import User
+        import uuid
         from datetime import datetime
         from datetime import timezone as dt_timezone
 
-        import uuid
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
 
         # Set poll start date before votes are created
         poll.starts_at = datetime(2024, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc)
@@ -130,10 +130,10 @@ class TestVotesByHour:
 
     def test_get_votes_by_hour(self, poll, choices):
         """Test hourly vote distribution."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -183,12 +183,12 @@ class TestVotesByDay:
 
     def test_get_votes_by_day(self, poll, choices):
         """Test daily vote distribution."""
-        from apps.votes.models import Vote
-        from django.contrib.auth.models import User
+        import uuid
         from datetime import datetime
         from datetime import timezone as dt_timezone
 
-        import uuid
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -232,11 +232,11 @@ class TestVoterDemographics:
 
     def test_get_voter_demographics(self, poll, choices):
         """Test demographics calculation."""
-        from apps.votes.models import Vote
-        from django.contrib.auth.models import User
-
         # Create authenticated and anonymous votes
         import time
+
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
 
         timestamp = int(time.time() * 1000000)
         user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
@@ -275,10 +275,10 @@ class TestParticipationRate:
 
     def test_get_participation_rate(self, poll, choices):
         """Test participation rate calculation."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -309,10 +309,10 @@ class TestAverageTimeToVote:
 
     def test_get_average_time_to_vote(self, poll, choices):
         """Test average time to vote calculation."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -348,10 +348,10 @@ class TestDropOffRate:
 
     def test_get_drop_off_rate(self, poll, choices):
         """Test drop-off rate calculation."""
+        import uuid
+
         from apps.votes.models import Vote, VoteAttempt
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -391,10 +391,10 @@ class TestVoteDistribution:
 
     def test_get_vote_distribution(self, poll, choices):
         """Test vote distribution calculation."""
+        import time
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import time
 
         timestamp = int(time.time() * 1000000)
         user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
@@ -449,10 +449,10 @@ class TestComprehensiveAnalytics:
 
     def test_get_comprehensive_analytics(self, poll, choices):
         """Test comprehensive analytics calculation."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -499,10 +499,10 @@ class TestAnalyticsSummary:
 
     def test_get_analytics_summary(self, poll, choices):
         """Test analytics summary calculation."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -539,11 +539,11 @@ class TestAnalyticsWithVariousDataVolumes:
 
     def test_analytics_with_many_votes(self, poll, choices):
         """Test analytics calculation with many votes."""
-        from apps.votes.models import Vote
-        from django.contrib.auth.models import User
-
         # Create 100 votes
         import time
+
+        from apps.votes.models import Vote
+        from django.contrib.auth.models import User
 
         timestamp = int(time.time() * 1000000)
         for i in range(100):
@@ -571,10 +571,10 @@ class TestAnalyticsWithVariousDataVolumes:
 
     def test_analytics_time_series_with_many_votes(self, poll, choices):
         """Test time series with many votes."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -622,9 +622,10 @@ class TestAnalyticsPerformance:
 
     def test_analytics_performance_large_dataset(self, poll, choices):
         """Test analytics performance with large number of votes."""
+        import time
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-        import time
 
         # Create 1000 votes (simulating large dataset)
         # In real performance test, this would be 10M votes
@@ -668,11 +669,11 @@ class TestAnalyticsPerformance:
 
     def test_time_series_performance_large_dataset(self, poll, choices):
         """Test time series performance with large dataset."""
+        import time
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-        import time
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"

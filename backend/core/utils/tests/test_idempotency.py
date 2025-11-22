@@ -3,8 +3,6 @@ Comprehensive tests for idempotency and voter token utilities.
 """
 
 import pytest
-from django.test import RequestFactory
-
 from core.utils.idempotency import (
     check_duplicate_vote_by_idempotency,
     check_idempotency,
@@ -14,6 +12,7 @@ from core.utils.idempotency import (
     store_idempotency_result,
     validate_idempotency_key,
 )
+from django.test import RequestFactory
 
 
 @pytest.mark.unit
@@ -107,8 +106,8 @@ class TestIdempotencyCheck:
 
     def test_check_idempotency_returns_true_for_cached_key(self):
         """Test that cached idempotency key returns True."""
-        from django.core.cache import cache
         from django.conf import settings
+        from django.core.cache import cache
 
         # Skip if cache backend is dummy (doesn't store anything)
         cache_backend = (
@@ -137,8 +136,8 @@ class TestIdempotencyCheck:
 
     def test_duplicate_idempotency_keys_are_detected(self):
         """Test that duplicate idempotency keys are detected."""
-        from django.core.cache import cache
         from django.conf import settings
+        from django.core.cache import cache
 
         # Skip if cache backend is dummy (doesn't store anything)
         cache_backend = (
@@ -424,8 +423,8 @@ class TestIdempotencyServiceIntegration:
     )
     def test_full_idempotency_flow(self, user):
         """Test complete idempotency flow."""
-        from django.core.cache import cache
         from django.conf import settings
+        from django.core.cache import cache
 
         cache.clear()
 

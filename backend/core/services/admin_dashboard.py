@@ -6,11 +6,6 @@ import logging
 from datetime import timedelta
 from typing import Dict, List, Optional
 
-from django.contrib.auth.models import User
-from django.db import models
-from django.db.models import Count, Q, Avg, Max, Min
-from django.utils import timezone
-
 from apps.analytics.models import (
     AuditLog,
     FraudAlert,
@@ -20,6 +15,10 @@ from apps.analytics.models import (
 )
 from apps.polls.models import Poll
 from apps.votes.models import Vote, VoteAttempt
+from django.contrib.auth.models import User
+from django.db import models
+from django.db.models import Avg, Count, Max, Min, Q
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 

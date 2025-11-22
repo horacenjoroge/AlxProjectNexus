@@ -2,10 +2,10 @@
 Tests for sliding window rate limiter.
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
+import pytest
 from core.utils.rate_limiter import SlidingWindowRateLimiter, get_rate_limiter
 
 

@@ -11,18 +11,18 @@ Tests cover:
 
 import json
 import os
-import pytest
-import time
 import threading
-from unittest.mock import Mock, patch, MagicMock
+import time
+from unittest.mock import MagicMock, Mock, patch
 
+import pytest
 from core.utils.redis_pubsub import (
+    VOTE_EVENTS_CHANNEL,
     VoteEventPublisher,
     VoteEventSubscriber,
     get_publisher,
     get_subscriber,
     publish_vote_event,
-    VOTE_EVENTS_CHANNEL,
 )
 
 
@@ -298,8 +298,8 @@ class TestRedisPubSubIntegration:
     def test_event_published_to_redis(self):
         """Test that events are published to Redis."""
         try:
-            from django.conf import settings
             import redis
+            from django.conf import settings
 
             # Try to get Redis URL from settings or environment
             redis_url = getattr(
@@ -349,8 +349,8 @@ class TestRedisPubSubIntegration:
     def test_event_received_by_subscriber(self):
         """Test that subscribers receive published events."""
         try:
-            from django.conf import settings
             import redis
+            from django.conf import settings
 
             # Try to get Redis URL from settings or environment
             redis_url = getattr(
@@ -401,8 +401,8 @@ class TestRedisPubSubIntegration:
     def test_multiple_servers_receive_events(self):
         """Test that multiple subscribers (simulating multiple servers) receive events."""
         try:
-            from django.conf import settings
             import redis
+            from django.conf import settings
 
             # Try to get Redis URL from settings or environment
             redis_url = getattr(
@@ -462,8 +462,8 @@ class TestRedisPubSubIntegration:
     def test_server_crash_doesnt_lose_events(self):
         """Test that events published before server crash are not lost."""
         try:
-            from django.conf import settings
             import redis
+            from django.conf import settings
 
             # Try to get Redis URL from settings or environment
             redis_url = getattr(
@@ -544,8 +544,8 @@ class TestRedisPubSubIntegration:
     def test_publish_vote_event_convenience_function(self):
         """Test the convenience function publish_vote_event."""
         try:
-            from django.conf import settings
             import redis
+            from django.conf import settings
 
             # Try to get Redis URL from settings or environment
             redis_url = getattr(

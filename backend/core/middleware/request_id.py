@@ -3,6 +3,7 @@ Request ID middleware for tracing requests across services.
 """
 
 import uuid
+
 from django.utils.deprecation import MiddlewareMixin
 
 

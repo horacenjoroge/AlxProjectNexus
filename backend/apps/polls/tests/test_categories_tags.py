@@ -3,12 +3,11 @@ Tests for poll categories and tags functionality.
 """
 
 import pytest
+from apps.polls.models import Category, Poll, PollOption, Tag
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from apps.polls.models import Category, Poll, PollOption, Tag
 
 
 @pytest.fixture

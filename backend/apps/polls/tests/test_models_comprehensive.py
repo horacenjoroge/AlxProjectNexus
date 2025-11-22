@@ -3,12 +3,9 @@ Comprehensive unit tests for Poll models using factories.
 Tests all edge cases, error paths, and model methods.
 """
 
-import pytest
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
-from django.utils import timezone
 from datetime import timedelta
 
+import pytest
 from apps.polls.factories import (
     CategoryFactory,
     PollFactory,
@@ -16,6 +13,9 @@ from apps.polls.factories import (
     TagFactory,
 )
 from apps.polls.models import Category, Poll, PollOption, Tag
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.utils import timezone
 
 
 @pytest.mark.unit
@@ -234,8 +234,8 @@ class TestPollModelComprehensive:
 
     def test_poll_update_cached_totals_with_multiple_users(self, user):
         """Test updating cached totals with multiple users."""
-        from apps.votes.factories import VoteFactory
         from apps.users.factories import UserFactory
+        from apps.votes.factories import VoteFactory
 
         poll = PollFactory(created_by=user)
         option = PollOptionFactory(poll=poll)
@@ -314,8 +314,8 @@ class TestPollOptionModelComprehensive:
 
     def test_poll_option_vote_count_property(self, user):
         """Test vote_count property with multiple votes."""
-        from apps.votes.factories import VoteFactory
         from apps.users.factories import UserFactory
+        from apps.votes.factories import VoteFactory
 
         poll = PollFactory(created_by=user)
         option = PollOptionFactory(poll=poll)
@@ -329,8 +329,8 @@ class TestPollOptionModelComprehensive:
 
     def test_poll_option_update_cached_vote_count(self, user):
         """Test updating cached vote count."""
-        from apps.votes.factories import VoteFactory
         from apps.users.factories import UserFactory
+        from apps.votes.factories import VoteFactory
 
         poll = PollFactory(created_by=user)
         option = PollOptionFactory(poll=poll)

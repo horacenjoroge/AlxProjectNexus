@@ -3,12 +3,8 @@ Tests for fingerprint validation utilities.
 """
 
 import hashlib
-import pytest
-from django.core.cache import cache
-from django.test import RequestFactory
-from django.utils import timezone
-from freezegun import freeze_time
 
+import pytest
 from core.utils.fingerprint_validation import (
     check_fingerprint_ip_combination,
     check_fingerprint_suspicious,
@@ -18,6 +14,10 @@ from core.utils.fingerprint_validation import (
     update_fingerprint_cache,
     validate_fingerprint_format,
 )
+from django.core.cache import cache
+from django.test import RequestFactory
+from django.utils import timezone
+from freezegun import freeze_time
 
 
 def make_fingerprint(seed: str) -> str:
@@ -300,9 +300,10 @@ class TestFingerprintSuspiciousDetection:
 
     def test_time_windowed_query_efficiency(self, user):
         """Test that only recent votes are queried."""
+        from datetime import timedelta
+
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
-        from datetime import timedelta
 
         cache.clear()
 
@@ -442,8 +443,8 @@ class TestPermanentFingerprintBlocking:
         # Update cache to mark as suspicious - need to simulate multiple users
         fp = make_fingerprint("suspicious_fp")
         # Manually set cache to show multiple users
-        from django.core.cache import cache
         from core.utils.fingerprint_validation import get_fingerprint_cache_key
+        from django.core.cache import cache
 
         cache_key = get_fingerprint_cache_key(fp, poll.id)
         cache.set(
@@ -478,9 +479,10 @@ class TestPermanentFingerprintBlocking:
 
     def test_blocked_fingerprint_persists_across_time_windows(self, user):
         """Test that blocked fingerprints remain blocked even after cache expires."""
+        from datetime import timedelta
+
         from apps.analytics.models import FingerprintBlock
         from apps.polls.models import Poll, PollOption
-        from datetime import timedelta
         from django.utils import timezone
 
         poll = Poll.objects.create(title="Test Poll", created_by=user)
@@ -599,8 +601,9 @@ class TestRequireFingerprintForAnonymous:
 
     def test_require_fingerprint_for_authenticated_optional(self):
         """Test that authenticated users don't require fingerprint."""
-        from django.contrib.auth.models import User
         from unittest.mock import Mock
+
+        from django.contrib.auth.models import User
 
         # Create a mock user with is_authenticated = True
         user = Mock(spec=User)
@@ -719,9 +722,10 @@ class TestDetectSuspiciousFingerprintChanges:
 
     def test_legitimate_fingerprint_change_allowed(self, user):
         """Test that legitimate fingerprint changes are allowed."""
+        from datetime import timedelta
+
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
-        from datetime import timedelta
 
         poll = Poll.objects.create(title="Test Poll", created_by=user)
         option = PollOption.objects.create(poll=poll, text="Option 1")

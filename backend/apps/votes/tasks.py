@@ -6,19 +6,17 @@ import logging
 from datetime import timedelta
 from typing import Optional
 
+# Import Poll at module level for test patching
+from apps.polls.models import Poll
 from celery import shared_task
-from django.conf import settings
-from django.core.cache import cache
-from django.utils import timezone
-
 from core.utils.pattern_analysis import (
     analyze_vote_patterns,
     flag_suspicious_votes,
     generate_pattern_alerts,
 )
-
-# Import Poll at module level for test patching
-from apps.polls.models import Poll
+from django.conf import settings
+from django.core.cache import cache
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 

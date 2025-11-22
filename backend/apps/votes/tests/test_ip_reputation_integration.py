@@ -2,18 +2,18 @@
 Integration tests for IP reputation system in vote casting.
 """
 
-import pytest
 from datetime import timedelta
 from unittest.mock import patch
+
+import pytest
+from apps.analytics.models import IPBlock, IPReputation, IPWhitelist
+from apps.polls.models import Poll, PollOption
+from core.exceptions import IPBlockedError
+from core.utils.ip_reputation import block_ip, record_ip_violation, whitelist_ip
 from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from apps.polls.models import Poll, PollOption
-from apps.analytics.models import IPBlock, IPReputation, IPWhitelist
-from core.exceptions import IPBlockedError
-from core.utils.ip_reputation import block_ip, record_ip_violation, whitelist_ip
 
 
 @pytest.mark.django_db

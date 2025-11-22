@@ -3,12 +3,6 @@ Comprehensive tests for poll templates.
 """
 
 import pytest
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.utils import timezone
-from rest_framework import status
-from rest_framework.test import APIClient
-
 from apps.polls.models import Poll, PollOption
 from apps.polls.templates import (
     create_poll_from_template,
@@ -16,6 +10,11 @@ from apps.polls.templates import (
     list_templates,
     validate_template_options,
 )
+from django.contrib.auth.models import User
+from django.urls import reverse
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.test import APIClient
 
 
 @pytest.mark.unit

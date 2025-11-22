@@ -3,15 +3,14 @@ Comprehensive tests for custom middleware.
 """
 
 import pytest
-from django.contrib.auth.models import User
-from django.core.cache import cache
-from django.test import RequestFactory
-from django.http import JsonResponse
-
-from core.middleware.rate_limit import RateLimitMiddleware
 from core.middleware.audit_log import AuditLogMiddleware
 from core.middleware.fingerprint import FingerprintMiddleware
+from core.middleware.rate_limit import RateLimitMiddleware
 from core.middleware.request_id import RequestIDMiddleware
+from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.http import JsonResponse
+from django.test import RequestFactory
 
 
 @pytest.mark.unit
@@ -380,6 +379,7 @@ class TestMiddlewareOrder:
     def test_audit_log_includes_response_time(self):
         """Test that audit log includes response time."""
         import time
+
         from apps.analytics.models import AuditLog
 
         def slow_view(request):

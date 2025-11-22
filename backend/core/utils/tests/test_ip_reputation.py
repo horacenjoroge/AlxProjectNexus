@@ -2,26 +2,26 @@
 Tests for IP reputation system.
 """
 
-import pytest
 from datetime import timedelta
-from django.utils import timezone
 from unittest.mock import Mock, patch
 
+import pytest
 from apps.analytics.models import IPBlock, IPReputation, IPWhitelist
 from core.exceptions import IPBlockedError
 from core.utils.ip_reputation import (
+    auto_unblock_expired_ips,
+    block_ip,
     check_ip_reputation,
     get_or_create_ip_reputation,
     is_ip_blocked,
     is_ip_whitelisted,
     record_ip_success,
     record_ip_violation,
-    block_ip,
+    remove_whitelist,
     unblock_ip,
     whitelist_ip,
-    remove_whitelist,
-    auto_unblock_expired_ips,
 )
+from django.utils import timezone
 
 
 @pytest.mark.django_db

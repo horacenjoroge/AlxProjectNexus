@@ -4,10 +4,9 @@ Tests efficiency with large datasets.
 """
 
 import pytest
+from core.utils.fingerprint_validation import check_fingerprint_suspicious
 from django.core.cache import cache
 from django.utils import timezone
-
-from core.utils.fingerprint_validation import check_fingerprint_suspicious
 
 
 @pytest.mark.performance
@@ -42,9 +41,10 @@ class TestFingerprintValidationPerformance:
 
     def test_time_windowed_query_efficiency(self, user):
         """Test that time-windowed queries are efficient."""
+        from datetime import timedelta
+
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
-        from datetime import timedelta
 
         cache.clear()
 
@@ -125,9 +125,10 @@ class TestFingerprintValidationPerformance:
 
     def test_handles_millions_of_votes_efficiently(self, user):
         """Test that validation works efficiently even with concept of millions of votes."""
+        from datetime import timedelta
+
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
-        from datetime import timedelta
 
         cache.clear()
 

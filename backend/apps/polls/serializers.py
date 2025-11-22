@@ -2,13 +2,12 @@
 Serializers for Polls app with nested option creation and advanced validation.
 """
 
+from core.utils.language import get_request_language, get_translated_field
 from django.db import models
 from django.utils import timezone
 from rest_framework import serializers
 
-from core.utils.language import get_request_language, get_translated_field
-
-from .models import Poll, PollOption, Category, Tag
+from .models import Category, Poll, PollOption, Tag
 
 # Validation constants
 MIN_OPTIONS = 2

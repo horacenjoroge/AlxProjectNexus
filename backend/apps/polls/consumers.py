@@ -5,16 +5,15 @@ WebSocket consumers for poll results.
 import json
 import logging
 
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-from django.contrib.auth.models import AnonymousUser
-
 from apps.polls.models import Poll
 from apps.polls.services import (
     calculate_poll_results,
     can_view_results,
     get_poll_group_name,
 )
+from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
+from django.contrib.auth.models import AnonymousUser
 
 logger = logging.getLogger(__name__)
 

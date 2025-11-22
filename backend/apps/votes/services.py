@@ -13,9 +13,9 @@ from core.exceptions import (
     DuplicateVoteError,
     FingerprintValidationError,
     FraudDetectedError,
-    IPBlockedError,
     InvalidPollError,
     InvalidVoteError,
+    IPBlockedError,
     PollClosedError,
     PollNotFoundError,
 )

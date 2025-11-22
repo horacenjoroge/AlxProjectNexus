@@ -2,16 +2,16 @@
 Tests for IP geolocation utilities.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-from django.core.cache import cache
-from django.conf import settings
+from unittest.mock import MagicMock, patch
 
+import pytest
 from core.utils.geolocation import (
     get_country_from_ip,
     get_region_from_ip,
     validate_geographic_restriction,
 )
+from django.conf import settings
+from django.core.cache import cache
 
 
 class TestIPGeolocation:

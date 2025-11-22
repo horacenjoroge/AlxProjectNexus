@@ -3,12 +3,11 @@ Comprehensive tests for Vote models with idempotency and audit logging.
 """
 
 import pytest
+from apps.polls.models import Poll, PollOption
+from apps.votes.models import Vote, VoteAttempt
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-
-from apps.polls.models import Poll, PollOption
-from apps.votes.models import Vote, VoteAttempt
 
 
 @pytest.mark.unit

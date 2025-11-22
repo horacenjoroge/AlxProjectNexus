@@ -2,21 +2,20 @@
 Tests for vote pattern analysis.
 """
 
-import pytest
 from datetime import timedelta
-from freezegun import freeze_time
 
-from django.utils import timezone
-
+import pytest
 from core.utils.pattern_analysis import (
+    analyze_vote_patterns,
+    detect_geographic_anomalies,
     detect_single_ip_single_option_pattern,
     detect_time_clustered_votes,
-    detect_geographic_anomalies,
     detect_user_agent_anomalies,
-    analyze_vote_patterns,
-    generate_pattern_alerts,
     flag_suspicious_votes,
+    generate_pattern_alerts,
 )
+from django.utils import timezone
+from freezegun import freeze_time
 
 
 @pytest.mark.django_db
@@ -25,10 +24,10 @@ class TestSingleIPSingleOptionPattern:
 
     def test_detect_single_ip_single_option(self, poll, choices):
         """Test detection of all votes from one IP to same option."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         ip_address = "192.168.1.1"
 
@@ -56,10 +55,10 @@ class TestSingleIPSingleOptionPattern:
 
     def test_legitimate_pattern_not_flagged(self, poll, choices):
         """Test that legitimate voting patterns are not flagged."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         ip_address = "192.168.1.1"
 
@@ -94,10 +93,10 @@ class TestSingleIPSingleOptionPattern:
 
     def test_below_threshold_not_flagged(self, poll, choices):
         """Test that patterns below threshold are not flagged."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         ip_address = "192.168.1.1"
 
@@ -127,10 +126,10 @@ class TestTimeClusteredVotes:
 
     def test_detect_time_clustered_votes(self, poll, choices):
         """Test detection of votes clustered in time."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -165,10 +164,10 @@ class TestTimeClusteredVotes:
 
     def test_legitimate_votes_not_clustered(self, poll, choices):
         """Test that legitimate votes spread over time are not flagged."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -232,10 +231,10 @@ class TestGeographicAnomalies:
 
     def test_legitimate_geographic_changes(self, poll, choices):
         """Test that legitimate geographic changes are not flagged."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -347,10 +346,10 @@ class TestPatternAnalysisIntegration:
 
     def test_analyze_vote_patterns_detects_all_patterns(self, poll, choices):
         """Test that analyze_vote_patterns detects all pattern types."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -385,11 +384,11 @@ class TestPatternAnalysisIntegration:
 
     def test_generate_pattern_alerts(self, poll, choices):
         """Test that pattern alerts are generated."""
+        import uuid
+
         from apps.analytics.models import FraudAlert
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
@@ -431,10 +430,10 @@ class TestPatternAnalysisIntegration:
 
     def test_flag_suspicious_votes(self, poll, choices):
         """Test that suspicious votes are flagged."""
+        import uuid
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-
-        import uuid
 
         user = User.objects.create_user(
             username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"

@@ -185,7 +185,7 @@ def validate_template_options(options: List[Dict]) -> bool:
     Raises:
         ValueError: If options are invalid
     """
-    from .serializers import MIN_OPTIONS, MAX_OPTIONS
+    from .serializers import MAX_OPTIONS, MIN_OPTIONS
 
     if len(options) < MIN_OPTIONS:
         raise ValueError(

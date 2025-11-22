@@ -24,6 +24,7 @@ class PollsConfig(AppConfig):
 
         # Only start subscriber in non-test environments
         import sys
+
         from django.conf import settings
 
         # Skip if running tests, migrations, or in test settings

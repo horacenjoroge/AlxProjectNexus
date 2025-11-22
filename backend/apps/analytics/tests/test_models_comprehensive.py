@@ -3,12 +3,9 @@ Comprehensive unit tests for Analytics models using factories.
 Tests all edge cases, error paths, and model methods.
 """
 
-import pytest
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
-from django.utils import timezone
 from datetime import timedelta
 
+import pytest
 from apps.analytics.factories import (
     AuditLogFactory,
     FingerprintBlockFactory,
@@ -27,6 +24,9 @@ from apps.analytics.models import (
     IPWhitelist,
     PollAnalytics,
 )
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.utils import timezone
 
 
 @pytest.mark.unit

@@ -3,16 +3,15 @@ Tests for Vote services.
 """
 
 import pytest
-from django.core.cache import cache
-from django.test import RequestFactory
-
 from apps.votes.services import create_vote
 from core.exceptions import (
     DuplicateVoteError,
+    FraudDetectedError,
     InvalidVoteError,
     PollNotFoundError,
-    FraudDetectedError,
 )
+from django.core.cache import cache
+from django.test import RequestFactory
 
 
 @pytest.mark.unit
@@ -99,6 +98,7 @@ class TestVoteServiceFingerprintValidation:
     def test_fingerprint_validation_blocks_suspicious_vote(self, user):
         """Test that suspicious fingerprints block votes."""
         import hashlib
+
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote
 
@@ -191,9 +191,10 @@ class TestVoteServiceFingerprintValidation:
     def test_vote_attempt_logged_on_failure(self, user):
         """Test that failed vote attempts are logged."""
         import hashlib
+
+        from apps.analytics.models import FingerprintBlock
         from apps.polls.models import Poll, PollOption
         from apps.votes.models import Vote, VoteAttempt
-        from apps.analytics.models import FingerprintBlock
 
         cache.clear()
 
@@ -272,6 +273,7 @@ class TestVoteServiceFingerprintValidation:
     def test_vote_attempt_logged_on_success(self, user, poll, choices):
         """Test that successful votes are logged."""
         import hashlib
+
         from apps.votes.models import VoteAttempt
 
         cache.clear()

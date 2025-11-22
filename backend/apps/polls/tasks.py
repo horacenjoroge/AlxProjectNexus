@@ -6,12 +6,8 @@ import json
 import logging
 from typing import Optional
 
-from celery import shared_task
-from django.conf import settings
-from django.core.mail import send_mail
-from django.utils import timezone
 import pytz
-
+from celery import shared_task
 from core.services.export_service import (
     estimate_export_size,
     export_analytics_report_pdf,
@@ -21,6 +17,9 @@ from core.services.export_service import (
     export_poll_results_pdf,
     export_vote_log,
 )
+from django.conf import settings
+from django.core.mail import send_mail
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +52,7 @@ def export_poll_data_task(
         dict: Task result with status and file info
     """
     from datetime import datetime
+
     from django.core.files.base import ContentFile
     from django.core.files.storage import default_storage
 
@@ -323,9 +323,10 @@ def check_poll_expiration_warnings():
     Runs periodically to notify poll creators.
     """
     try:
-        from apps.polls.models import Poll
-        from apps.notifications.services import notify_poll_about_to_expire
         from datetime import timedelta
+
+        from apps.notifications.services import notify_poll_about_to_expire
+        from apps.polls.models import Poll
 
         now = timezone.now()
         # Check polls expiring in the next 24 hours

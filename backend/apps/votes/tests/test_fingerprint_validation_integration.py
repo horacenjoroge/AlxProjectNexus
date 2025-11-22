@@ -3,13 +3,13 @@ Integration tests for fingerprint validation in vote casting.
 """
 
 import hashlib
+
 import pytest
+from apps.votes.services import cast_vote
+from core.exceptions import FingerprintValidationError, FraudDetectedError
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.utils import timezone
-
-from apps.votes.services import cast_vote
-from core.exceptions import FingerprintValidationError, FraudDetectedError
 
 
 def make_fingerprint(seed: str) -> str:
@@ -219,9 +219,10 @@ class TestFingerprintValidationInVoteCasting:
 
     def test_legitimate_fingerprint_change_allowed(self, user, poll, choices):
         """Test that legitimate fingerprint changes are allowed (on different polls)."""
-        from apps.votes.models import Vote
         from datetime import timedelta
+
         from apps.polls.factories import PollFactory, PollOptionFactory
+        from apps.votes.models import Vote
 
         factory = RequestFactory()
 

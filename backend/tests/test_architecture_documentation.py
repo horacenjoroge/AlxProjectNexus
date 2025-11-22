@@ -8,10 +8,11 @@ These tests ensure that:
 4. API flows match implementation
 """
 
-import pytest
-import re
 import os
+import re
 from pathlib import Path
+
+import pytest
 
 
 class TestArchitectureDocumentation:
@@ -96,23 +97,23 @@ class TestArchitectureDocumentation:
 
     def test_database_models_match_documentation(self, doc_content):
         """Test that documented models match actual models."""
-        from apps.polls.models import Poll, PollOption, Category, Tag
-        from apps.votes.models import Vote, VoteAttempt
         from apps.analytics.models import (
-            PollAnalytics,
             AuditLog,
             FingerprintBlock,
             FraudAlert,
-            IPReputation,
             IPBlock,
+            IPReputation,
             IPWhitelist,
+            PollAnalytics,
         )
-        from apps.users.models import UserProfile, Follow
         from apps.notifications.models import (
             Notification,
-            NotificationPreference,
             NotificationDelivery,
+            NotificationPreference,
         )
+        from apps.polls.models import Category, Poll, PollOption, Tag
+        from apps.users.models import Follow, UserProfile
+        from apps.votes.models import Vote, VoteAttempt
 
         # Check that all documented models exist
         documented_models = [

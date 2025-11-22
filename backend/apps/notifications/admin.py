@@ -4,7 +4,7 @@ Admin configuration for notifications app.
 
 from django.contrib import admin
 
-from .models import Notification, NotificationPreference, NotificationDelivery
+from .models import Notification, NotificationDelivery, NotificationPreference
 
 
 @admin.register(Notification)

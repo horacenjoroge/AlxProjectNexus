@@ -2,18 +2,18 @@
 Tests for timezone utilities.
 """
 
-import pytest
 from datetime import datetime
-import pytz
-from django.utils import timezone as django_timezone
 
+import pytest
+import pytz
 from core.utils.timezone_utils import (
-    convert_to_utc,
     convert_from_utc,
+    convert_to_utc,
+    get_common_timezones,
     get_timezone_aware_datetime,
     is_valid_timezone,
-    get_common_timezones,
 )
+from django.utils import timezone as django_timezone
 
 
 class TestTimezoneUtils:

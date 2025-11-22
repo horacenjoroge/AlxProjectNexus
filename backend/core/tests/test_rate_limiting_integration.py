@@ -10,14 +10,14 @@ Tests:
 - Load test with burst traffic
 """
 
-import pytest
 import time
+
+import pytest
+from apps.polls.models import Poll, PollOption
+from apps.votes.models import Vote
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from apps.polls.models import Poll, PollOption
-from apps.votes.models import Vote
 
 
 @pytest.mark.django_db

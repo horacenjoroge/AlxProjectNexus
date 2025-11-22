@@ -2,18 +2,18 @@
 Tests for poll notification service.
 """
 
-import pytest
 from datetime import timedelta
-from django.contrib.auth.models import User
-from django.utils import timezone
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 from apps.polls.models import Poll
 from core.services.poll_notifications import (
-    send_poll_opened_notification,
-    send_poll_closed_notification,
     get_poll_url,
+    send_poll_closed_notification,
+    send_poll_opened_notification,
 )
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 @pytest.mark.django_db
@@ -74,8 +74,8 @@ class TestPollNotifications:
         )
 
         # Create some votes
-        from apps.votes.models import Vote
         from apps.polls.models import PollOption
+        from apps.votes.models import Vote
 
         option = PollOption.objects.create(poll=poll, text="Option 1", order=0)
         Vote.objects.create(

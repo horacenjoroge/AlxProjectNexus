@@ -10,8 +10,8 @@ Supports multiple geolocation providers:
 import logging
 from typing import Dict, Optional, Tuple
 
-from django.core.cache import cache
 from django.conf import settings
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 

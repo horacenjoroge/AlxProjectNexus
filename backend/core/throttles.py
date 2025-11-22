@@ -12,10 +12,9 @@ Provides:
 import time
 from typing import Optional
 
-from rest_framework.throttling import BaseThrottle, AnonRateThrottle, UserRateThrottle
-from rest_framework.exceptions import Throttled
-
 from core.utils.rate_limiter import get_rate_limiter
+from rest_framework.exceptions import Throttled
+from rest_framework.throttling import AnonRateThrottle, BaseThrottle, UserRateThrottle
 
 
 class LoadTestBypassMixin:

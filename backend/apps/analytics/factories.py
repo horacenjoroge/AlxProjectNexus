@@ -3,11 +3,10 @@ Factory Boy factories for Analytics models.
 """
 
 import factory
-from faker import Faker
-
 from apps.polls.factories import PollFactory, UserFactory
 from apps.polls.models import Poll
 from django.contrib.auth.models import User
+from faker import Faker
 
 from .models import (
     AuditLog,

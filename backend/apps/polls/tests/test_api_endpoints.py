@@ -3,12 +3,11 @@ Comprehensive tests for poll CRUD API endpoints.
 """
 
 import pytest
+from apps.polls.models import Poll, PollOption
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from apps.polls.models import Poll, PollOption
 
 
 @pytest.mark.django_db

@@ -2,11 +2,6 @@
 Views for Analytics app.
 """
 
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
-from rest_framework.response import Response
-
 from core.services.admin_dashboard import (
     get_active_polls_and_voters,
     get_dashboard_summary,
@@ -16,17 +11,21 @@ from core.services.admin_dashboard import (
     get_system_statistics,
 )
 from core.services.poll_analytics import (
-    get_comprehensive_analytics,
     get_analytics_summary,
-    get_total_votes_over_time,
-    get_votes_by_hour,
-    get_votes_by_day,
-    get_voter_demographics,
-    get_participation_rate,
     get_average_time_to_vote,
+    get_comprehensive_analytics,
     get_drop_off_rate,
+    get_participation_rate,
+    get_total_votes_over_time,
     get_vote_distribution,
+    get_voter_demographics,
+    get_votes_by_day,
+    get_votes_by_hour,
 )
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 
 from .models import PollAnalytics
 from .serializers import PollAnalyticsSerializer

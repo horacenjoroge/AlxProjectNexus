@@ -5,11 +5,10 @@ Comprehensive tests for Poll models.
 from datetime import timedelta
 
 import pytest
+from apps.polls.models import Poll, PollOption
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-
-from apps.polls.models import Poll, PollOption
 
 
 @pytest.mark.unit
@@ -80,9 +79,10 @@ class TestPollModel:
 
     def test_poll_update_cached_totals(self, poll, user):
         """Test updating cached totals."""
+        import time
+
         from apps.votes.models import Vote
         from django.contrib.auth.models import User
-        import time
 
         # Create some votes from different users (same user can't vote twice on same poll)
         option1 = PollOption.objects.create(poll=poll, text="Option 1")

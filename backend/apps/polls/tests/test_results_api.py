@@ -3,13 +3,13 @@ Comprehensive tests for poll results API endpoints.
 """
 
 import json
-import pytest
-from django.contrib.auth.models import User
-from django.utils import timezone
 from datetime import timedelta
 
+import pytest
 from apps.polls.models import Poll, PollOption
 from apps.votes.models import Vote
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 @pytest.mark.django_db
@@ -347,8 +347,9 @@ class TestResultsExportEndpoint:
 
     def test_results_export_json_format(self, authenticated_client, poll, choices):
         """Test export/resultsing results in JSON format."""
-        from django.contrib.auth.models import User
         import time
+
+        from django.contrib.auth.models import User
 
         # Create some votes
         user = User.objects.create_user(
@@ -381,9 +382,10 @@ class TestResultsExportEndpoint:
 
     def test_results_export_csv_format(self, authenticated_client, poll, choices):
         """Test export/resultsing results in CSV format."""
+        import time
+
         from django.contrib.auth.models import User
         from django.urls import reverse
-        import time
 
         # Create some votes
         user = User.objects.create_user(
@@ -462,9 +464,10 @@ class TestResultsExportEndpoint:
         poll.save()
 
         # Create another user
-        from django.contrib.auth.models import User
         import time
         import uuid
+
+        from django.contrib.auth.models import User
 
         other_user = User.objects.create_user(
             username=f"other_{int(time.time())}_{uuid.uuid4().hex[:8]}", password="pass"
@@ -482,11 +485,11 @@ class TestResultsExportEndpoint:
         self, authenticated_client, poll, choices
     ):
         """Test that CSV export/results has correct structure."""
-        from django.contrib.auth.models import User
-
         # Create votes for multiple options
         import time
         import uuid
+
+        from django.contrib.auth.models import User
 
         users = []
         for i in range(3):

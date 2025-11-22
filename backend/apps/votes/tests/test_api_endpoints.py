@@ -3,12 +3,11 @@ Comprehensive tests for voting API endpoints.
 """
 
 import pytest
+from apps.votes.models import Vote
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from apps.votes.models import Vote
 
 
 @pytest.mark.django_db
@@ -434,8 +433,8 @@ class TestRateLimiting:
 
     def test_rate_limiting_returns_429(self, user, poll, choices):
         """Test that rate limiting returns 429 Too Many Requests."""
-        from django.core.cache import cache
         from django.conf import settings
+        from django.core.cache import cache
 
         # Skip test if rate limiting is disabled or cache is dummy backend
         if getattr(settings, "DISABLE_RATE_LIMITING", False):

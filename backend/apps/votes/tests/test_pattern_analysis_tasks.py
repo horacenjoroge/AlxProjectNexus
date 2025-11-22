@@ -2,9 +2,9 @@
 Tests for pattern analysis Celery tasks.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 from apps.votes.tasks import analyze_vote_patterns_task, periodic_pattern_analysis
 
 

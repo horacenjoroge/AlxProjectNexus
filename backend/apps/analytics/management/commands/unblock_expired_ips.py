@@ -5,9 +5,8 @@ This command should be run periodically (e.g., via cron or Celery beat)
 to unblock IPs whose auto-unblock time has passed.
 """
 
-from django.core.management.base import BaseCommand
-
 from core.utils.ip_reputation import auto_unblock_expired_ips
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):

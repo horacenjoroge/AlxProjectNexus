@@ -16,19 +16,18 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pytest
-from django.contrib.auth.models import User
-from django.core.cache import cache
-from django.db import transaction
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
-
 from apps.polls.factories import PollFactory, PollOptionFactory
 from apps.polls.models import Poll
 from apps.polls.services import calculate_poll_results, invalidate_results_cache
 from apps.votes.models import Vote, VoteAttempt
 from apps.votes.services import cast_vote
 from core.exceptions import DuplicateVoteError
+from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.db import transaction
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient
 
 
 @pytest.mark.integration
@@ -452,8 +451,8 @@ class TestCacheInvalidation:
 
     def test_results_cache_invalidated_on_vote(self, user, poll, choices):
         """Test that results cache is invalidated when vote is cast."""
-        from django.core.cache import cache
         from django.conf import settings
+        from django.core.cache import cache
 
         # Skip if using DummyCache (test settings)
         if hasattr(settings, "CACHES") and "dummy" in str(
@@ -488,8 +487,8 @@ class TestCacheInvalidation:
 
     def test_cache_invalidation_on_multiple_votes(self, poll, choices):
         """Test cache invalidation with multiple votes."""
-        from django.core.cache import cache
         from django.conf import settings
+        from django.core.cache import cache
 
         # Skip if using DummyCache (test settings)
         if hasattr(settings, "CACHES") and "dummy" in str(
@@ -541,8 +540,8 @@ class TestCacheInvalidation:
 
     def test_manual_cache_invalidation(self, user, poll, choices):
         """Test manual cache invalidation."""
-        from django.core.cache import cache
         from django.conf import settings
+        from django.core.cache import cache
 
         # Skip if using DummyCache (test settings)
         if hasattr(settings, "CACHES") and "dummy" in str(

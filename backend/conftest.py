@@ -75,8 +75,8 @@ def tag(db):
 @pytest.fixture
 def vote(db, poll, user):
     """Create a test vote using factory."""
-    from apps.votes.factories import VoteFactory
     from apps.polls.factories import PollOptionFactory
+    from apps.votes.factories import VoteFactory
 
     option = PollOptionFactory(poll=poll)
     return VoteFactory(user=user, poll=poll, option=option)

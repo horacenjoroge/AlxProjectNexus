@@ -2,10 +2,11 @@
 Timezone utilities for handling poll scheduling across different timezones.
 """
 
+from datetime import datetime
+from typing import Optional, Union
+
 import pytz
 from django.utils import timezone
-from typing import Optional, Union
-from datetime import datetime
 
 
 def convert_to_utc(

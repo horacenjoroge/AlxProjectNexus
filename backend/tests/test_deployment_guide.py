@@ -9,10 +9,11 @@ These tests ensure that:
 5. Deployment guide can be followed on a fresh system
 """
 
-import pytest
 import os
 import re
 from pathlib import Path
+
+import pytest
 
 
 class TestDeploymentGuide:

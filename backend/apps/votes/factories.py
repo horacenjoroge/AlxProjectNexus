@@ -3,11 +3,10 @@ Factory Boy factories for Vote models.
 """
 
 import factory
-from faker import Faker
-
 from apps.polls.factories import PollFactory, PollOptionFactory, UserFactory
 from apps.polls.models import Poll, PollOption
 from django.contrib.auth.models import User
+from faker import Faker
 
 from .models import Vote, VoteAttempt
 

@@ -4,7 +4,7 @@ Serializers for notifications app.
 
 from rest_framework import serializers
 
-from .models import Notification, NotificationPreference, NotificationDelivery
+from .models import Notification, NotificationDelivery, NotificationPreference
 
 
 class NotificationDeliverySerializer(serializers.ModelSerializer):

@@ -3,9 +3,6 @@ Comprehensive tests for poll results calculation service.
 """
 
 import pytest
-from django.core.cache import cache
-from django.contrib.auth.models import User
-
 from apps.polls.models import Poll, PollOption
 from apps.polls.services import (
     calculate_participation_rate,
@@ -16,6 +13,8 @@ from apps.polls.services import (
     invalidate_results_cache,
 )
 from apps.votes.models import Vote
+from django.contrib.auth.models import User
+from django.core.cache import cache
 
 
 @pytest.mark.django_db
@@ -447,8 +446,8 @@ class TestResultsCaching:
 
     def test_cache_invalidated_on_new_vote(self, poll, choices):
         """Test that cache is invalidated on new vote."""
-        from django.contrib.auth.models import User
         from apps.votes.services import cast_vote
+        from django.contrib.auth.models import User
 
         cache.clear()
 
@@ -555,8 +554,8 @@ class TestResultsServiceIntegration:
 
     def test_results_use_denormalized_counts(self, poll, choices):
         """Test that results use denormalized counts for speed."""
-        from django.contrib.auth.models import User
         from apps.polls.models import PollOption
+        from django.contrib.auth.models import User
 
         user = User.objects.create_user(username="user1", password="pass")
         Vote.objects.create(
@@ -604,13 +603,12 @@ class TestResultsPerformance:
 
     def test_calculate_results_for_poll_with_many_votes(self, poll, choices):
         """Performance test: calculate results for poll with many votes."""
-        from django.contrib.auth.models import User
-        from django.db import transaction
-        import time
-
         # Create many users and votes
         import time
         import uuid
+
+        from django.contrib.auth.models import User
+        from django.db import transaction
 
         users = []
         for i in range(1000):  # 1000 users
@@ -685,14 +683,14 @@ class TestResultsPerformance:
 
     def test_calculate_results_for_poll_with_1m_votes(self, poll, choices):
         """Performance test: calculate results for poll with 1M votes."""
+        import time
+
         from django.contrib.auth.models import User
         from django.db import transaction
-        import time
 
         # For performance test, we'll simulate 1M votes using cached counts
         # rather than actually creating 1M database records
         # This tests the calculation logic, not database performance
-
         # Set cached counts to simulate 1M votes
         total_votes = 1000000
         unique_voters = 100000  # 100k unique voters, 10 votes each on average
@@ -744,8 +742,9 @@ class TestResultsPerformance:
 
     def test_cached_results_performance(self, poll, choices):
         """Test that cached results are faster."""
-        from django.contrib.auth.models import User
         import time
+
+        from django.contrib.auth.models import User
 
         user = User.objects.create_user(username="user1", password="pass")
         Vote.objects.create(
