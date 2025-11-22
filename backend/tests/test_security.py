@@ -265,7 +265,7 @@ class TestCSRFProtection:
         client.force_login(user)
 
         # Get CSRF token
-        csrf_response = client.get("/api/v1/polls/")
+        _csrf_response = client.get("/api/v1/polls/")
         csrf_token = client.cookies.get("csrftoken")
 
         if csrf_token:
@@ -756,7 +756,7 @@ class TestAuditLogCapture:
 
     def test_audit_log_captures_requests(self, client):
         """Test that all requests are logged in audit log."""
-        initial_count = AuditLog.objects.count()
+        _initial_count = AuditLog.objects.count()
 
         # Make a request
         client.get("/api/v1/polls/")
@@ -766,7 +766,7 @@ class TestAuditLogCapture:
 
     def test_audit_log_captures_sql_injection_attempts(self, client):
         """Test that SQL injection attempts are logged."""
-        initial_count = AuditLog.objects.count()
+        _initial_count = AuditLog.objects.count()
 
         # Make SQL injection attempt
         client.get("/api/v1/polls/1' OR '1'='1/")
@@ -786,7 +786,7 @@ class TestAuditLogCapture:
 
     def test_audit_log_captures_failed_authentication(self, client):
         """Test that failed authentication attempts are logged."""
-        initial_count = AuditLog.objects.count()
+        _initial_count = AuditLog.objects.count()
 
         # Try to access protected endpoint without auth
         client.get("/api/v1/votes/my-votes/")
