@@ -385,7 +385,7 @@ class TestPollCloningAPI:
             created_by=user,
         )
 
-        _option1 = PollOption.objects.create(
+        option1 = PollOption.objects.create(
             poll=original_poll, text="Option 1", order=0
         )
 

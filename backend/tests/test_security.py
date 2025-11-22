@@ -756,7 +756,7 @@ class TestAuditLogCapture:
 
     def test_audit_log_captures_requests(self, client):
         """Test that all requests are logged in audit log."""
-        _initial_count = AuditLog.objects.count()
+        initial_count = AuditLog.objects.count()
 
         # Make a request
         client.get("/api/v1/polls/")
