@@ -37,7 +37,7 @@ class TestActivateScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_opened_notification"
         ) as mock_notify:
-            result = activate_scheduledpoll.apply(args=(poll.id,))
+            result = activate_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
@@ -60,7 +60,7 @@ class TestActivateScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_opened_notification"
         ) as mock_notify:
-            result = activate_scheduledpoll.apply(args=(poll.id,))
+            result = activate_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
@@ -83,7 +83,7 @@ class TestActivateScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_opened_notification"
         ) as mock_notify:
-            result = activate_scheduledpoll.apply(args=(poll.id,))
+            result = activate_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
@@ -120,7 +120,7 @@ class TestCloseScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_closed_notification"
         ) as mock_notify:
-            result = close_scheduledpoll.apply(args=(poll.id,))
+            result = close_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
@@ -144,7 +144,7 @@ class TestCloseScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_closed_notification"
         ) as mock_notify:
-            result = close_scheduledpoll.apply(args=(poll.id,))
+            result = close_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
@@ -168,7 +168,7 @@ class TestCloseScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_closed_notification"
         ) as mock_notify:
-            result = close_scheduledpoll.apply(args=(poll.id,))
+            result = close_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
@@ -191,7 +191,7 @@ class TestCloseScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_closed_notification"
         ) as mock_notify:
-            result = close_scheduledpoll.apply(args=(poll.id,))
+            result = close_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
@@ -328,7 +328,7 @@ class TestProcessScheduledPolls:
 
         # Mock activate_scheduled_poll to raise an exception
         with patch(
-            "apps.polls.tasks.activate_scheduledpoll.apply",
+            "apps.polls.tasks.activate_scheduled_poll",
             side_effect=Exception("Test error"),
         ):
             result = process_scheduled_polls.apply()
@@ -360,7 +360,7 @@ class TestScheduledPollsTimezoneHandling:
         )
 
         with patch("core.services.poll_notifications.send_poll_opened_notification"):
-            result = activate_scheduledpoll.apply(args=(poll.id,))
+            result = activate_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
@@ -382,7 +382,7 @@ class TestScheduledPollsTimezoneHandling:
         )
 
         with patch("core.services.poll_notifications.send_poll_closed_notification"):
-            result = close_scheduledpoll.apply(args=(poll.id,))
+            result = close_scheduled_poll(poll.id)
 
             poll.refresh_from_db()
 
