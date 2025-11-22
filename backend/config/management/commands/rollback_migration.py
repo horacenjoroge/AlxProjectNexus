@@ -53,8 +53,8 @@ class Command(BaseCommand):
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT COUNT(*) 
-                    FROM django_migrations 
+                    SELECT COUNT(*)
+                    FROM django_migrations
                     WHERE app = %s AND name = %s
                     """,
                     [app_label, migration_name],
@@ -160,8 +160,8 @@ class Command(BaseCommand):
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT COUNT(*) 
-                    FROM django_migrations 
+                    SELECT COUNT(*)
+                    FROM django_migrations
                     WHERE app = %s AND name = %s
                     """,
                     [app_label, migration_name],
