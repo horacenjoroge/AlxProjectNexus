@@ -392,8 +392,8 @@ def process_scheduled_polls():
         for poll in polls_to_activate:
             try:
                 # Call activation directly (not as a separate task) for efficiency
-                result = activate_scheduled_poll.apply(args=(poll.id,))
-                if result.result.get("success"):
+                result = activate_scheduled_poll(poll.id)
+                if result.get("success"):
                     activated_count += 1
             except Exception as e:
                 logger.error(f"Error processing poll {poll.id} for activation: {e}")
@@ -406,8 +406,8 @@ def process_scheduled_polls():
         for poll in polls_to_close:
             try:
                 # Call closing directly (not as a separate task) for efficiency
-                result = close_scheduled_poll.apply(args=(poll.id,))
-                if result.result.get("success"):
+                result = close_scheduled_poll(poll.id)
+                if result.get("success"):
                     closed_count += 1
             except Exception as e:
                 logger.error(f"Error processing poll {poll.id} for closing: {e}")
