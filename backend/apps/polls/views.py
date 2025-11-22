@@ -21,7 +21,6 @@ from core.services.poll_analytics import (
 )
 from core.throttles import PollCreateRateThrottle, PollReadRateThrottle
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import models, transaction
 from drf_spectacular.utils import (
     OpenApiExample,

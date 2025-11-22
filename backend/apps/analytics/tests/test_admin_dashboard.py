@@ -7,8 +7,6 @@ from datetime import timedelta
 
 import pytest
 from apps.analytics.models import FraudAlert, IPBlock
-from apps.polls.models import Poll, PollOption
-from apps.votes.models import Vote
 from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework import status
@@ -35,9 +33,7 @@ class TestAdminDashboardStatistics:
 
     def test_statistics_accurate(self, user):
         """Test that statistics are calculated accurately."""
-        from apps.polls.models import Poll, PollOption
-        from apps.votes.models import Vote
-
+                
         # Create admin user with unique username
         admin_user = User.objects.create_user(
             username=get_unique_username("admin"),
@@ -101,9 +97,7 @@ class TestAdminDashboardStatistics:
 
     def test_statistics_includes_fraud_alerts(self, user):
         """Test that statistics include fraud alert counts."""
-        from apps.polls.models import Poll, PollOption
-        from apps.votes.models import Vote
-
+                
         # Create admin user with unique username
         admin_user = User.objects.create_user(
             username=get_unique_username("admin"),
@@ -158,9 +152,7 @@ class TestAdminDashboardActivity:
 
     def test_activity_feed_shows_recent_events(self, user):
         """Test that activity feed shows recent events."""
-        from apps.polls.models import Poll, PollOption
-        from apps.votes.models import Vote
-
+                
         # Create admin user with unique username
         admin_user = User.objects.create_user(
             username=get_unique_username("admin"),
@@ -246,9 +238,7 @@ class TestAdminDashboardFraudAlerts:
 
     def test_fraud_alerts_appear(self, user):
         """Test that fraud alerts appear in the response."""
-        from apps.polls.models import Poll, PollOption
-        from apps.votes.models import Vote
-
+                
         # Create admin user with unique username
         admin_user = User.objects.create_user(
             username=get_unique_username("admin"),
@@ -293,9 +283,7 @@ class TestAdminDashboardFraudAlerts:
 
     def test_fraud_alerts_by_risk_score(self, user):
         """Test that fraud alerts are categorized by risk score."""
-        from apps.polls.models import Poll, PollOption
-        from apps.votes.models import Vote
-
+                
         # Create admin user with unique username
         admin_user = User.objects.create_user(
             username=get_unique_username("admin"),
@@ -405,9 +393,7 @@ class TestAdminDashboardActivePolls:
 
     def test_active_polls_and_voters(self, user):
         """Test that active polls and voters are returned."""
-        from apps.polls.models import Poll, PollOption
-        from apps.votes.models import Vote
-
+                
         # Create admin user with unique username
         admin_user = User.objects.create_user(
             username=get_unique_username("admin"),
@@ -493,9 +479,7 @@ class TestAdminDashboardSummary:
 
     def test_summary_returns_all_data(self, user):
         """Test that summary returns all dashboard data."""
-        from apps.polls.models import Poll, PollOption
-        from apps.votes.models import Vote
-
+                
         # Create admin user with unique username
         admin_user = User.objects.create_user(
             username=get_unique_username("admin"),

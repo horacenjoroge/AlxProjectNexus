@@ -19,14 +19,12 @@ from core.mixins import RateLimitHeadersMixin
 from core.throttles import VoteCastRateThrottle
 from drf_spectacular.utils import (
     OpenApiExample,
-    OpenApiParameter,
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
 )
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Vote
@@ -58,7 +56,7 @@ logger = logging.getLogger(__name__)
         - User owns the vote
         - Poll allows vote retraction (poll.settings.allow_vote_retraction = True)
         - Poll is still open
-        
+
         **Rate Limits**: Subject to general API rate limits.
         """,
         responses={
@@ -101,29 +99,30 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         summary="Cast a vote",
         description="""
         Cast a vote on a poll. This endpoint supports idempotency for safe retries.
-        
+
         ## Idempotency
-        If you send the same request twice with the same `idempotency_key`, the second request 
-        will return the same result (200 OK) without creating a duplicate vote. If no idempotency 
+        If you send the same request twice with the same `idempotency_key`, the second request
+        will return the same result (200 OK) without creating a duplicate vote. If no idempotency
         key is provided, one will be generated automatically.
-        
+
         ## Rate Limits
         - Anonymous users: 50 requests/hour
         - Authenticated users: 200 requests/hour
-        
+
         ## Authentication
         Currently requires authentication. Future: Support anonymous voting with voter tokens.
-        
+
         ## Geographic Restrictions
-        If the poll has geographic restrictions configured (via poll.security_rules), votes from 
-        restricted locations will be rejected with a 400 Bad Request error.
-        
+        If the poll has geographic restrictions configured
+        (via poll.security_rules), votes from restricted locations will
+        be rejected with a 400 Bad Request error.
+
         ## Fraud Detection
         The system automatically detects and blocks suspicious voting patterns including:
         - Multiple votes from the same IP/fingerprint
         - Rapid voting patterns
         - Geographic anomalies
-        
+
         If fraud is detected, the vote will be rejected with a 403 Forbidden error.
         """,
         request=VoteCastSerializer,

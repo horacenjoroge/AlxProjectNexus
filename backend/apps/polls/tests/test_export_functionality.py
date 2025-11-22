@@ -2,14 +2,11 @@
 Tests for export functionality.
 """
 
-import json
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
 from apps.analytics.models import AuditLog
-from apps.polls.models import Poll, PollOption
-from apps.votes.models import Vote
 from django.contrib.auth.models import User
 from django.core import mail
 from django.urls import reverse
@@ -24,8 +21,7 @@ class TestPollResultsExport:
 
     def test_export_csv_format_generates_correctly(self, user, poll, choices):
         """Test that CSV export generates correctly."""
-        from apps.votes.models import Vote
-
+        
         # Ensure poll is owned by user and results are visible
         poll.created_by = user
         poll.settings["show_results_during_voting"] = True
@@ -71,8 +67,7 @@ class TestPollResultsExport:
 
     def test_export_json_format_generates_correctly(self, user, poll, choices):
         """Test that JSON export generates correctly."""
-        from apps.votes.models import Vote
-
+        
         # Ensure poll is owned by user and results are visible
         poll.created_by = user
         poll.settings["show_results_during_voting"] = True
@@ -110,8 +105,7 @@ class TestPollResultsExport:
 
     def test_export_pdf_format_generates_correctly(self, user, poll, choices):
         """Test that PDF export generates correctly."""
-        from apps.votes.models import Vote
-
+        
         # Ensure poll is owned by user and results are visible
         poll.created_by = user
         poll.settings["show_results_during_voting"] = True
@@ -158,8 +152,7 @@ class TestPollResultsExport:
 
     def test_export_contains_correct_data(self, user, poll, choices):
         """Test that exports contain correct data."""
-        from apps.votes.models import Vote
-
+        
         # Ensure poll is owned by user and results are visible
         poll.created_by = user
         poll.settings["show_results_during_voting"] = True
@@ -214,8 +207,7 @@ class TestVoteLogExport:
 
     def test_export_vote_log_csv(self, user, poll, choices):
         """Test exporting vote log as CSV."""
-        from apps.votes.models import Vote
-
+        
         # Make user poll owner first
         poll.created_by = user
         poll.save()
@@ -252,8 +244,7 @@ class TestVoteLogExport:
 
     def test_export_vote_log_anonymized(self, user, poll, choices):
         """Test that anonymization works in vote log export."""
-        from apps.votes.models import Vote
-
+        
         # Make user poll owner first
         poll.created_by = user
         poll.save()
@@ -291,8 +282,7 @@ class TestVoteLogExport:
 
     def test_export_vote_log_json(self, user, poll, choices):
         """Test exporting vote log as JSON."""
-        from apps.votes.models import Vote
-
+        
         # Make user poll owner first
         poll.created_by = user
         poll.save()
@@ -342,8 +332,7 @@ class TestAnalyticsReportExport:
 
     def test_export_analytics_report_pdf(self, user, poll, choices):
         """Test exporting analytics report as PDF."""
-        from apps.votes.models import Vote
-
+        
         # Create votes
         user1 = User.objects.create_user(
             username="user1_1763649008_fd45023a", password="pass"
@@ -507,8 +496,7 @@ class TestLargeExportsBackgroundTask:
         self, mock_task, user, poll, choices
     ):
         """Test that large exports are handled by background task."""
-        from apps.votes.models import Vote
-
+        
         # Make user poll owner first
         poll.created_by = user
         poll.save()
@@ -558,8 +546,7 @@ class TestLargeExportsBackgroundTask:
         client.force_authenticate(user=user)
 
         # Create at least one vote so the endpoint doesn't fail for other reasons
-        from apps.votes.models import Vote
-
+        
         user1 = User.objects.create_user(
             username="user1_1763649008_fd45023a", password="pass"
         )

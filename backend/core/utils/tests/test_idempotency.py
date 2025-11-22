@@ -3,6 +3,7 @@ Comprehensive tests for idempotency and voter token utilities.
 """
 
 import pytest
+from django.conf import settings
 from core.utils.idempotency import (
     check_duplicate_vote_by_idempotency,
     check_idempotency,

@@ -5,6 +5,7 @@ Tests for fingerprint validation utilities.
 import hashlib
 
 import pytest
+from django.conf import settings
 from core.utils.fingerprint_validation import (
     check_fingerprint_ip_combination,
     check_fingerprint_suspicious,

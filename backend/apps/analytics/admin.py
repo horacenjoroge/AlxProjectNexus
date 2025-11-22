@@ -3,7 +3,6 @@ Admin interface for Analytics app.
 """
 
 from django.contrib import admin
-from django.utils.html import format_html
 
 from .models import (
     AuditLog,
@@ -144,7 +143,11 @@ class IPReputationAdmin(admin.ModelAdmin):
             try:
                 block_ip(
                     ip_address=reputation.ip_address,
-                    reason=f"Manually blocked by admin (score: {reputation.reputation_score}, violations: {reputation.violation_count})",
+                    reason=(
+                        f"Manually blocked by admin "
+                        f"(score: {reputation.reputation_score}, "
+                        f"violations: {reputation.violation_count})"
+                    ),
                     is_manual=True,
                     blocked_by=request.user,
                 )

@@ -4,11 +4,9 @@ Efficient vote counting and results computation using denormalized counts and ca
 """
 
 import logging
-from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 
 from django.core.cache import cache
-from django.db.models import Count, Q, Sum
 from django.utils import timezone
 
 from .models import Poll, PollOption
@@ -126,7 +124,7 @@ def clone_poll(
         poll_data["security_rules"] = {}
 
     # Create the cloned poll
-    cloned_poll = Poll.objects.create(**poll_data)
+    cloned__poll = Poll.objects.create(**poll_data)
 
     # Clone all options
     for original_option in poll.options.all().order_by("order"):
@@ -153,7 +151,7 @@ def calculate_poll_results(poll_id: int, use_cache: bool = True) -> Dict:
     Returns:
         Dict with poll results including options, winners, percentages, etc.
     """
-    poll = Poll.objects.get(id=poll_id)
+    _poll = Poll.objects.get(id=poll_id)
 
     # Check cache first if enabled
     if use_cache:
@@ -316,7 +314,7 @@ def calculate_winners(poll_id: int) -> Tuple[List[Dict], bool]:
         - winners_list: List of winner option dicts with option_id and votes
         - is_tie: True if there's a tie, False otherwise
     """
-    poll = Poll.objects.get(id=poll_id)
+    _poll = Poll.objects.get(id=poll_id)
     options = poll.options.all()
 
     # Always get actual count to ensure accuracy
@@ -385,7 +383,7 @@ def calculate_participation_rate(poll_id: int) -> float:
     Returns:
         Participation rate as a percentage (0-100)
     """
-    poll = Poll.objects.get(id=poll_id)
+    _poll = Poll.objects.get(id=poll_id)
 
     # Always get actual counts to ensure accuracy
     actual_total_votes = poll.votes.filter(is_valid=True).count()
@@ -434,7 +432,7 @@ def export_results_to_csv(poll_id: int) -> str:
     import csv
     from io import StringIO
 
-    poll = Poll.objects.get(id=poll_id)
+    _poll = Poll.objects.get(id=poll_id)
     results = calculate_poll_results(poll_id, use_cache=False)
 
     output = StringIO()

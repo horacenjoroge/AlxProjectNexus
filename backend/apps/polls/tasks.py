@@ -6,7 +6,6 @@ import json
 import logging
 from typing import Optional
 
-import pytz
 from celery import shared_task
 from core.services.export_service import (
     estimate_export_size,

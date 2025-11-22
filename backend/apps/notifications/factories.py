@@ -5,7 +5,6 @@ Factory Boy factories for Notification models.
 import factory
 from apps.polls.factories import PollFactory
 from apps.users.factories import UserFactory
-from apps.votes.factories import VoteFactory
 from faker import Faker
 
 from .models import (

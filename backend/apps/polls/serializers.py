@@ -471,9 +471,9 @@ class PollTemplateCreateSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         """Validate template data."""
-        from .templates import create_poll_from_template, validate_template_options
+        from .templates import validate_template_options
 
-        template_id = attrs.get("template_id")
+        attrs.get("template_id")
         custom_options = attrs.get("custom_options")
 
         # If custom options provided, validate them

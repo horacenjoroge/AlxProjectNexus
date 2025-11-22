@@ -6,7 +6,7 @@ Enhanced with atomic operations, select-for-update locks, and comprehensive vali
 import logging
 from typing import Optional, Tuple
 
-from apps.polls.models import Choice, Poll, PollOption
+from apps.polls.models import Poll, PollOption
 from apps.votes.models import Vote, VoteAttempt
 from core.exceptions import (
     CaptchaVerificationError,
@@ -21,7 +21,6 @@ from core.exceptions import (
 )
 from core.utils.fingerprint_validation import (
     check_fingerprint_ip_combination,
-    check_fingerprint_suspicious,
     detect_suspicious_fingerprint_changes,
     require_fingerprint_for_anonymous,
     update_fingerprint_cache,

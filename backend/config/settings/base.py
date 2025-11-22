@@ -309,27 +309,27 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Provote API",
     "DESCRIPTION": """
     Professional voting platform API with comprehensive features:
-    
+
     ## Features
     - **Polls**: Create, manage, and analyze polls
     - **Voting**: Secure voting with idempotency, fraud detection, and rate limiting
     - **Analytics**: Real-time poll analytics and insights
     - **Users**: User management and following system
     - **Notifications**: Real-time notifications for poll updates
-    
+
     ## Authentication
     Currently using Django session authentication. Future: JWT tokens.
-    
+
     ## Rate Limiting
     - Anonymous users: 100 requests/hour (general), 50 requests/hour (voting)
     - Authenticated users: 1000 requests/hour (general), 200 requests/hour (voting)
     - Poll creation: 10 polls/hour
     - Poll reading: 200 requests/hour
-    
+
     ## Idempotency
-    Vote creation supports idempotency keys. If you send the same request twice with the same idempotency key, 
+    Vote creation supports idempotency keys. If you send the same request twice with the same idempotency key,
     the second request will return the same result without creating a duplicate vote.
-    
+
     ## Geographic Restrictions
     Polls can be restricted by country/region using IP geolocation. Configure via poll.security_rules:
     - `allowed_countries`: List of allowed country codes (ISO 3166-1 alpha-2)

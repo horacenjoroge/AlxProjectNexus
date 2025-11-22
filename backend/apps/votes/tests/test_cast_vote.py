@@ -15,10 +15,8 @@ from core.exceptions import (
     PollClosedError,
     PollNotFoundError,
 )
-from django.core.cache import cache
 from django.test import RequestFactory
 from django.utils import timezone
-from freezegun import freeze_time
 
 
 def make_fingerprint(seed: str) -> str:
@@ -519,8 +517,7 @@ class TestCastVoteCacheInvalidation:
 
     def test_cache_invalidation_on_vote(self, user, poll, choices):
         """Test that cache is invalidated when vote is created."""
-        from django.core.cache import cache
-
+        
         # Set some cache keys
         cache.set(f"poll:{poll.id}", {"data": "test"}, 3600)
         cache.set(f"poll:{poll.id}:results", {"results": []}, 3600)

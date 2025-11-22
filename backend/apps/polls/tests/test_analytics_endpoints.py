@@ -2,12 +2,10 @@
 Tests for poll analytics API endpoints.
 """
 
-from datetime import timedelta
 
 import pytest
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.test import APIClient
