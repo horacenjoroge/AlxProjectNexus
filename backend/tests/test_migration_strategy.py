@@ -422,8 +422,6 @@ class TestZeroDowntimeDeployment:
     def test_migration_does_not_block_health_check(self, db):
         """Test that migrations don't block health checks."""
         # Health check should work even if migrations are running
-        from django.db import connection
-
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
             # If this works, database is accessible

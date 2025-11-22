@@ -2,6 +2,8 @@
 Production settings for Provote project.
 """
 
+import json
+import logging
 import os
 
 import environ
@@ -33,8 +35,6 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")  # noqa: F405
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")  # noqa: F405
 
 # Logging for production - structured JSON logging for Docker
-import json
-import logging
 
 LOG_LEVEL = env("LOG_LEVEL", default="INFO")  # noqa: F405
 

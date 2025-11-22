@@ -92,8 +92,8 @@ class Command(BaseCommand):
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT COUNT(*) 
-                    FROM django_migrations 
+                    SELECT COUNT(*)
+                    FROM django_migrations
                     WHERE app = %s
                     """,
                     [app_label],
