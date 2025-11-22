@@ -77,7 +77,9 @@ def create_notification(
     return notification
 
 
-def deliver_notification(notification: Notification, preferences: NotificationPreference):
+def deliver_notification(
+    notification: Notification, preferences: NotificationPreference
+):
     """
     Deliver a notification via all enabled channels.
 
@@ -114,7 +116,9 @@ def deliver_notification(notification: Notification, preferences: NotificationPr
                     deliver_via_push(notification, delivery)
 
             except Exception as e:
-                logger.error(f"Error delivering notification {notification.id} via {channel_value}: {e}")
+                logger.error(
+                    f"Error delivering notification {notification.id} via {channel_value}: {e}"
+                )
                 if created:
                     delivery.mark_as_failed(str(e))
 
@@ -130,7 +134,9 @@ def deliver_via_email(notification: Notification, delivery: NotificationDelivery
     try:
         user = notification.user
         if not user.email:
-            logger.warning(f"User {user.id} has no email address, skipping email delivery")
+            logger.warning(
+                f"User {user.id} has no email address, skipping email delivery"
+            )
             delivery.mark_as_failed("User has no email address")
             return
 
@@ -178,7 +184,9 @@ def deliver_via_in_app(notification: Notification, delivery: NotificationDeliver
     # In-app notifications are automatically available once created
     # Just mark delivery as sent
     delivery.mark_as_sent()
-    logger.info(f"In-app notification {notification.id} delivered to user {notification.user.id}")
+    logger.info(
+        f"In-app notification {notification.id} delivered to user {notification.user.id}"
+    )
 
 
 def deliver_via_push(notification: Notification, delivery: NotificationDelivery):
@@ -191,7 +199,9 @@ def deliver_via_push(notification: Notification, delivery: NotificationDelivery)
     """
     # TODO: Implement push notification service (FCM, APNS, etc.)
     # For now, mark as pending or implement basic logging
-    logger.info(f"Push notification {notification.id} would be sent to user {notification.user.id}")
+    logger.info(
+        f"Push notification {notification.id} would be sent to user {notification.user.id}"
+    )
     # Mark as sent for now (or implement actual push service)
     delivery.mark_as_sent()
 
@@ -260,7 +270,9 @@ def notify_poll_about_to_expire(poll, hours_before: int = 24):
             title=f"Poll Expiring Soon: {poll.title}",
             message=f"Your poll '{poll.title}' will expire in less than {hours_before} hours.",
             poll=poll,
-            metadata={"hours_until_expiry": int(time_until_expiry.total_seconds() / 3600)},
+            metadata={
+                "hours_until_expiry": int(time_until_expiry.total_seconds() / 3600)
+            },
         )
 
 
@@ -282,4 +294,3 @@ def notify_vote_flagged(vote, reasons: List[str]):
         vote=vote,
         metadata={"fraud_reasons": reasons},
     )
-

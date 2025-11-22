@@ -21,15 +21,19 @@ class TestRateLimitMiddleware:
     def test_rate_limit_blocks_after_threshold(self):
         """Test that rate limiting blocks requests after threshold."""
         from django.conf import settings
-        
+
         # Skip test if rate limiting is disabled or cache is dummy backend
-        if getattr(settings, 'DISABLE_RATE_LIMITING', False):
+        if getattr(settings, "DISABLE_RATE_LIMITING", False):
             pytest.skip("Rate limiting is disabled in test environment")
-        
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Rate limiting requires a functional cache backend (Redis or locmem), not DummyCache")
-        
+
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Rate limiting requires a functional cache backend (Redis or locmem), not DummyCache"
+            )
+
         middleware = RateLimitMiddleware(lambda req: JsonResponse({"ok": True}))
         factory = RequestFactory()
 
@@ -75,15 +79,19 @@ class TestRateLimitMiddleware:
     def test_rate_limit_per_user(self, user):
         """Test user-based rate limiting."""
         from django.conf import settings
-        
+
         # Skip test if rate limiting is disabled or cache is dummy backend
-        if getattr(settings, 'DISABLE_RATE_LIMITING', False):
+        if getattr(settings, "DISABLE_RATE_LIMITING", False):
             pytest.skip("Rate limiting is disabled in test environment")
-        
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Rate limiting requires a functional cache backend (Redis or locmem), not DummyCache")
-        
+
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Rate limiting requires a functional cache backend (Redis or locmem), not DummyCache"
+            )
+
         middleware = RateLimitMiddleware(lambda req: JsonResponse({"ok": True}))
         factory = RequestFactory()
 
@@ -328,21 +336,27 @@ class TestMiddlewareOrder:
         # The request_id should be set by RequestIDMiddleware before AuditLogMiddleware reads it
         # RequestIDMiddleware is the innermost, so it runs first and sets request.request_id
         # AuditLogMiddleware now reads request_id after get_response(), so it should capture it
-        assert log.request_id == request.request_id, f"Expected request_id '{request.request_id}', got '{log.request_id}'"
+        assert (
+            log.request_id == request.request_id
+        ), f"Expected request_id '{request.request_id}', got '{log.request_id}'"
         assert log.user == user
 
     def test_rate_limit_with_forwarded_for_header(self):
         """Test rate limiting with X-Forwarded-For header."""
         from django.conf import settings
-        
+
         # Skip test if rate limiting is disabled or cache is dummy backend
-        if getattr(settings, 'DISABLE_RATE_LIMITING', False):
+        if getattr(settings, "DISABLE_RATE_LIMITING", False):
             pytest.skip("Rate limiting is disabled in test environment")
-        
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Rate limiting requires a functional cache backend (Redis or locmem), not DummyCache")
-        
+
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Rate limiting requires a functional cache backend (Redis or locmem), not DummyCache"
+            )
+
         middleware = RateLimitMiddleware(lambda req: JsonResponse({"ok": True}))
         factory = RequestFactory()
 
@@ -413,4 +427,3 @@ class TestMiddlewareOrder:
 
         # All request IDs should be unique
         assert len(request_ids) == 100
-

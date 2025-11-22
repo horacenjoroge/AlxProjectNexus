@@ -233,34 +233,66 @@ CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE", default=False)
 FINGERPRINT_CHECK_ENABLED = env.bool("FINGERPRINT_CHECK_ENABLED", default=True)
 FINGERPRINT_CACHE_TTL = env.int("FINGERPRINT_CACHE_TTL", default=3600)  # 1 hour
 FINGERPRINT_TIME_WINDOW_HOURS = env.int("FINGERPRINT_TIME_WINDOW_HOURS", default=24)
-FINGERPRINT_ANALYSIS_WINDOW_HOURS = env.int("FINGERPRINT_ANALYSIS_WINDOW_HOURS", default=168)  # 7 days for async analysis
+FINGERPRINT_ANALYSIS_WINDOW_HOURS = env.int(
+    "FINGERPRINT_ANALYSIS_WINDOW_HOURS", default=168
+)  # 7 days for async analysis
 FINGERPRINT_SUSPICIOUS_THRESHOLDS = {
-    "different_users": env.int("FP_THRESHOLD_DIFF_USERS", default=2),  # Same fingerprint, different users
-    "rapid_votes_minutes": env.int("FP_THRESHOLD_RAPID_MINUTES", default=5),  # Multiple votes within minutes
-    "rapid_votes_count": env.int("FP_THRESHOLD_RAPID_COUNT", default=3),  # Number of votes in time window
-    "different_ips": env.int("FP_THRESHOLD_DIFF_IPS", default=2),  # Same fingerprint, different IPs
+    "different_users": env.int(
+        "FP_THRESHOLD_DIFF_USERS", default=2
+    ),  # Same fingerprint, different users
+    "rapid_votes_minutes": env.int(
+        "FP_THRESHOLD_RAPID_MINUTES", default=5
+    ),  # Multiple votes within minutes
+    "rapid_votes_count": env.int(
+        "FP_THRESHOLD_RAPID_COUNT", default=3
+    ),  # Number of votes in time window
+    "different_ips": env.int(
+        "FP_THRESHOLD_DIFF_IPS", default=2
+    ),  # Same fingerprint, different IPs
 }
 
 # reCAPTCHA Settings
 RECAPTCHA_SECRET_KEY = env("RECAPTCHA_SECRET_KEY", default="")
 RECAPTCHA_SITE_KEY = env("RECAPTCHA_SITE_KEY", default="")
-RECAPTCHA_MIN_SCORE = env.float("RECAPTCHA_MIN_SCORE", default=0.5)  # Minimum score threshold (0.0 to 1.0)
+RECAPTCHA_MIN_SCORE = env.float(
+    "RECAPTCHA_MIN_SCORE", default=0.5
+)  # Minimum score threshold (0.0 to 1.0)
 
 # IP Reputation Settings
-IP_VIOLATION_THRESHOLD = env.int("IP_VIOLATION_THRESHOLD", default=5)  # Block after N violations
-IP_REPUTATION_THRESHOLD = env.int("IP_REPUTATION_THRESHOLD", default=30)  # Block if score below this
-IP_AUTO_UNBLOCK_HOURS = env.int("IP_AUTO_UNBLOCK_HOURS", default=24)  # Auto-unblock after N hours
+IP_VIOLATION_THRESHOLD = env.int(
+    "IP_VIOLATION_THRESHOLD", default=5
+)  # Block after N violations
+IP_REPUTATION_THRESHOLD = env.int(
+    "IP_REPUTATION_THRESHOLD", default=30
+)  # Block if score below this
+IP_AUTO_UNBLOCK_HOURS = env.int(
+    "IP_AUTO_UNBLOCK_HOURS", default=24
+)  # Auto-unblock after N hours
 
 # Pattern Analysis Settings
-PATTERN_ANALYSIS_MIN_VOTES = env.int("PATTERN_ANALYSIS_MIN_VOTES", default=5)  # Minimum votes to flag single IP pattern
-PATTERN_ANALYSIS_TIME_WINDOW_HOURS = env.int("PATTERN_ANALYSIS_TIME_WINDOW_HOURS", default=24)  # Default analysis window
-PATTERN_ANALYSIS_CLUSTER_WINDOW_SECONDS = env.int("PATTERN_ANALYSIS_CLUSTER_WINDOW_SECONDS", default=60)  # Time cluster window
-PATTERN_ANALYSIS_MIN_VOTES_IN_CLUSTER = env.int("PATTERN_ANALYSIS_MIN_VOTES_IN_CLUSTER", default=10)  # Min votes in cluster
-PATTERN_ANALYSIS_UA_MIN_VOTERS = env.int("PATTERN_ANALYSIS_UA_MIN_VOTERS", default=10)  # Min voters for UA anomaly
-VPN_PROXY_IP_RANGES = env.list("VPN_PROXY_IP_RANGES", default=[])  # List of VPN/proxy IP prefixes to flag
+PATTERN_ANALYSIS_MIN_VOTES = env.int(
+    "PATTERN_ANALYSIS_MIN_VOTES", default=5
+)  # Minimum votes to flag single IP pattern
+PATTERN_ANALYSIS_TIME_WINDOW_HOURS = env.int(
+    "PATTERN_ANALYSIS_TIME_WINDOW_HOURS", default=24
+)  # Default analysis window
+PATTERN_ANALYSIS_CLUSTER_WINDOW_SECONDS = env.int(
+    "PATTERN_ANALYSIS_CLUSTER_WINDOW_SECONDS", default=60
+)  # Time cluster window
+PATTERN_ANALYSIS_MIN_VOTES_IN_CLUSTER = env.int(
+    "PATTERN_ANALYSIS_MIN_VOTES_IN_CLUSTER", default=10
+)  # Min votes in cluster
+PATTERN_ANALYSIS_UA_MIN_VOTERS = env.int(
+    "PATTERN_ANALYSIS_UA_MIN_VOTERS", default=10
+)  # Min voters for UA anomaly
+VPN_PROXY_IP_RANGES = env.list(
+    "VPN_PROXY_IP_RANGES", default=[]
+)  # List of VPN/proxy IP prefixes to flag
 
 # Export Settings
-LARGE_EXPORT_THRESHOLD = env.int("LARGE_EXPORT_THRESHOLD", default=1024 * 1024)  # 1MB default threshold for background exports
+LARGE_EXPORT_THRESHOLD = env.int(
+    "LARGE_EXPORT_THRESHOLD", default=1024 * 1024
+)  # 1MB default threshold for background exports
 
 # Load Testing Settings
 # Set DISABLE_RATE_LIMITING=True to disable rate limiting for load tests
@@ -268,7 +300,9 @@ DISABLE_RATE_LIMITING = env.bool("DISABLE_RATE_LIMITING", default=False)
 
 # Email Settings
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@provote.com")
-EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
 
 # drf-spectacular Settings (API Documentation)
 SPECTACULAR_SETTINGS = {
@@ -310,7 +344,10 @@ SPECTACULAR_SETTINGS = {
     "SCHEMA_PATH_PREFIX": "/api/v1",
     "TAGS": [
         {"name": "Polls", "description": "Poll management and operations"},
-        {"name": "Votes", "description": "Voting operations with idempotency and fraud detection"},
+        {
+            "name": "Votes",
+            "description": "Voting operations with idempotency and fraud detection",
+        },
         {"name": "Users", "description": "User management and profiles"},
         {"name": "Analytics", "description": "Poll analytics and insights"},
         {"name": "Notifications", "description": "User notifications"},

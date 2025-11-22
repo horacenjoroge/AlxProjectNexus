@@ -188,10 +188,14 @@ def validate_template_options(options: List[Dict]) -> bool:
     from .serializers import MIN_OPTIONS, MAX_OPTIONS
 
     if len(options) < MIN_OPTIONS:
-        raise ValueError(f"Template must have at least {MIN_OPTIONS} options. Provided: {len(options)}")
+        raise ValueError(
+            f"Template must have at least {MIN_OPTIONS} options. Provided: {len(options)}"
+        )
 
     if len(options) > MAX_OPTIONS:
-        raise ValueError(f"Template cannot have more than {MAX_OPTIONS} options. Provided: {len(options)}")
+        raise ValueError(
+            f"Template cannot have more than {MAX_OPTIONS} options. Provided: {len(options)}"
+        )
 
     # Validate each option has required fields
     for i, option in enumerate(options):
@@ -199,4 +203,3 @@ def validate_template_options(options: List[Dict]) -> bool:
             raise ValueError(f"Option {i} is missing 'text' field")
 
     return True
-

@@ -25,10 +25,13 @@ IS_SQLITE = connection.vendor == "sqlite"
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.slow
-@pytest.mark.skipif(IS_SQLITE, reason="SQLite doesn't support concurrent writes. Use PostgreSQL for load tests.")
+@pytest.mark.skipif(
+    IS_SQLITE,
+    reason="SQLite doesn't support concurrent writes. Use PostgreSQL for load tests.",
+)
 class TestConcurrentLoad:
     """Load tests for concurrent voting.
-    
+
     Note: These tests require PostgreSQL. SQLite uses file-level locking
     and will fail with "database table is locked" errors under concurrent load.
     """
@@ -46,8 +49,10 @@ class TestConcurrentLoad:
                 request.META["REMOTE_ADDR"] = "192.168.1.1"
                 request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
                 user_id = user.id if hasattr(user, "id") else 0
-                request.fingerprint = hashlib.sha256(f"user_{user_id}".encode()).hexdigest()
-                
+                request.fingerprint = hashlib.sha256(
+                    f"user_{user_id}".encode()
+                ).hexdigest()
+
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
@@ -60,12 +65,22 @@ class TestConcurrentLoad:
                 with lock:
                     error_msg = str(e)
                     import traceback
-                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+
+                    results.append(
+                        {
+                            "success": False,
+                            "error": error_msg,
+                            "traceback": traceback.format_exc(),
+                        }
+                    )
                     # Print first few errors for debugging
                     failed_count = len([r for r in results if not r.get("success")])
                     if failed_count <= 5:
                         print(f"Error in vote (attempt {failed_count}): {error_msg}")
-                        if "DuplicateVoteError" not in error_msg and "PollNotFoundError" not in error_msg:
+                        if (
+                            "DuplicateVoteError" not in error_msg
+                            and "PollNotFoundError" not in error_msg
+                        ):
                             print(traceback.format_exc())
 
         start_time = time.time()
@@ -85,11 +100,17 @@ class TestConcurrentLoad:
         # Verify database state
         poll.refresh_from_db()
         actual_vote_count = Vote.objects.filter(poll=poll).count()
-        print(f"\nVote count: Database={actual_vote_count}, Cached={poll.cached_total_votes}, Successful={len(successful)}")
-        
+        print(
+            f"\nVote count: Database={actual_vote_count}, Cached={poll.cached_total_votes}, Successful={len(successful)}"
+        )
+
         # Check actual database count (more reliable than cached)
-        assert actual_vote_count == len(successful), f"Database has {actual_vote_count} votes but {len(successful)} were reported successful"
-        assert actual_vote_count >= 95, f"Expected at least 95 votes, got {actual_vote_count}"
+        assert actual_vote_count == len(
+            successful
+        ), f"Database has {actual_vote_count} votes but {len(successful)} were reported successful"
+        assert (
+            actual_vote_count >= 95
+        ), f"Expected at least 95 votes, got {actual_vote_count}"
 
     def test_50_concurrent_polls_and_votes(self, user):
         """Test 50 concurrent poll creations and votes."""
@@ -110,8 +131,11 @@ class TestConcurrentLoad:
                 request.META["REMOTE_ADDR"] = "192.168.1.1"
                 request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
                 import hashlib
-                request.fingerprint = hashlib.sha256(f"fingerprint_{poll.id}".encode()).hexdigest()
-                
+
+                request.fingerprint = hashlib.sha256(
+                    f"fingerprint_{poll.id}".encode()
+                ).hexdigest()
+
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
@@ -125,12 +149,22 @@ class TestConcurrentLoad:
                 with lock:
                     error_msg = str(e)
                     import traceback
-                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+
+                    results.append(
+                        {
+                            "success": False,
+                            "error": error_msg,
+                            "traceback": traceback.format_exc(),
+                        }
+                    )
                     # Print first few errors for debugging
                     failed_count = len([r for r in results if not r.get("success")])
                     if failed_count <= 5:
                         print(f"Error in vote (attempt {failed_count}): {error_msg}")
-                        if "DuplicateVoteError" not in error_msg and "PollNotFoundError" not in error_msg:
+                        if (
+                            "DuplicateVoteError" not in error_msg
+                            and "PollNotFoundError" not in error_msg
+                        ):
                             print(traceback.format_exc())
 
         start_time = time.time()
@@ -143,17 +177,21 @@ class TestConcurrentLoad:
         # All should succeed (allow for some failures due to race conditions)
         successful = [r for r in results if r["success"]]
         failed = [r for r in results if not r.get("success")]
-        
+
         if failed:
             error_types = {}
             for f in failed:
                 error_msg = f.get("error", "Unknown error")
-                error_type = error_msg.split(":")[0] if ":" in error_msg else error_msg[:50]
+                error_type = (
+                    error_msg.split(":")[0] if ":" in error_msg else error_msg[:50]
+                )
                 error_types[error_type] = error_types.get(error_type, 0) + 1
             print(f"\nError summary: {error_types}")
-        
+
         success_rate = len(successful) / len(results) if results else 0
-        assert success_rate >= 0.95, f"Success rate too low: {success_rate:.2%}. Got {len(successful)}/{len(results)} successful."
+        assert (
+            success_rate >= 0.95
+        ), f"Success rate too low: {success_rate:.2%}. Got {len(successful)}/{len(results)} successful."
 
         # Should complete in reasonable time
         assert (end_time - start_time) < 60  # 60 seconds
@@ -162,7 +200,9 @@ class TestConcurrentLoad:
         for poll_id in poll_ids:
             poll = Poll.objects.get(id=poll_id)
             actual_votes = poll.votes.count()
-            assert actual_votes == 1, f"Poll {poll_id} should have 1 vote, got {actual_votes}"
+            assert (
+                actual_votes == 1
+            ), f"Poll {poll_id} should have 1 vote, got {actual_votes}"
 
     def test_200_concurrent_votes_mixed_options(self, poll, choices):
         """Test 200 concurrent votes distributed across options."""
@@ -174,12 +214,15 @@ class TestConcurrentLoad:
             try:
                 from django.test import RequestFactory
                 import hashlib
+
                 factory = RequestFactory()
                 request = factory.post("/api/v1/votes/")
                 request.META["REMOTE_ADDR"] = "192.168.1.1"
                 request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
-                user_id = user.id if hasattr(user, 'id') else 0
-                request.fingerprint = hashlib.sha256(f"user_{user_id}".encode()).hexdigest()
+                user_id = user.id if hasattr(user, "id") else 0
+                request.fingerprint = hashlib.sha256(
+                    f"user_{user_id}".encode()
+                ).hexdigest()
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
@@ -187,24 +230,34 @@ class TestConcurrentLoad:
                     request=request,
                 )
                 with lock:
-                    results.append({"success": True, "user_id": user.id, "choice": choice_index})
+                    results.append(
+                        {"success": True, "user_id": user.id, "choice": choice_index}
+                    )
             except Exception as e:
                 with lock:
                     error_msg = str(e)
                     import traceback
-                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+
+                    results.append(
+                        {
+                            "success": False,
+                            "error": error_msg,
+                            "traceback": traceback.format_exc(),
+                        }
+                    )
                     # Print first few errors for debugging
                     failed_count = len([r for r in results if not r.get("success")])
                     if failed_count <= 5:
                         print(f"Error in vote (attempt {failed_count}): {error_msg}")
-                        if "DuplicateVoteError" not in error_msg and "PollNotFoundError" not in error_msg:
+                        if (
+                            "DuplicateVoteError" not in error_msg
+                            and "PollNotFoundError" not in error_msg
+                        ):
                             print(traceback.format_exc())
 
         start_time = time.time()
         with ThreadPoolExecutor(max_workers=25) as executor:
-            futures = [
-                executor.submit(vote, user, i) for i, user in enumerate(users)
-            ]
+            futures = [executor.submit(vote, user, i) for i, user in enumerate(users)]
             for future in futures:
                 future.result()
         end_time = time.time()
@@ -212,7 +265,9 @@ class TestConcurrentLoad:
         # All should succeed (allow for some failures due to race conditions)
         successful = [r for r in results if r["success"]]
         success_rate = len(successful) / len(results) if results else 0
-        assert success_rate >= 0.95, f"Success rate too low: {success_rate:.2%}. Got {len(successful)}/{len(results)} successful."
+        assert (
+            success_rate >= 0.95
+        ), f"Success rate too low: {success_rate:.2%}. Got {len(successful)}/{len(results)} successful."
 
         # Should complete in reasonable time
         assert (end_time - start_time) < 60  # 60 seconds
@@ -220,11 +275,21 @@ class TestConcurrentLoad:
         # Verify database state
         poll.refresh_from_db()
         actual_vote_count = Vote.objects.filter(poll=poll).count()
-        print(f"\nVote count: Database={actual_vote_count}, Cached={poll.cached_total_votes}")
-        assert actual_vote_count >= int(200 * 0.95), f"Expected at least {int(200 * 0.95)} votes, got {actual_vote_count}"
-        actual_unique_voters = Vote.objects.filter(poll=poll).values('user').distinct().count()
-        print(f"Unique voters: Database={actual_unique_voters}, Cached={poll.cached_unique_voters}")
-        assert actual_unique_voters >= int(200 * 0.95), f"Expected at least {int(200 * 0.95)} unique voters, got {actual_unique_voters}"
+        print(
+            f"\nVote count: Database={actual_vote_count}, Cached={poll.cached_total_votes}"
+        )
+        assert actual_vote_count >= int(
+            200 * 0.95
+        ), f"Expected at least {int(200 * 0.95)} votes, got {actual_vote_count}"
+        actual_unique_voters = (
+            Vote.objects.filter(poll=poll).values("user").distinct().count()
+        )
+        print(
+            f"Unique voters: Database={actual_unique_voters}, Cached={poll.cached_unique_voters}"
+        )
+        assert actual_unique_voters >= int(
+            200 * 0.95
+        ), f"Expected at least {int(200 * 0.95)} unique voters, got {actual_unique_voters}"
 
         # Verify votes distributed across options
         for choice in choices:
@@ -245,27 +310,41 @@ class TestConcurrentLoad:
                 request.META["REMOTE_ADDR"] = "192.168.1.1"
                 request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
                 user_id = user.id if hasattr(user, "id") else 0
-                request.fingerprint = hashlib.sha256(f"user_{user_id}".encode()).hexdigest()
+                request.fingerprint = hashlib.sha256(
+                    f"user_{user_id}".encode()
+                ).hexdigest()
 
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
                     choice_id=choices[0].id,
                     idempotency_key=idempotency_key,
-                request=request,
+                    request=request,
                 )
                 with lock:
-                    results.append({"success": True, "vote_id": vote.id, "is_new": is_new})
+                    results.append(
+                        {"success": True, "vote_id": vote.id, "is_new": is_new}
+                    )
             except Exception as e:
                 with lock:
                     error_msg = str(e)
                     import traceback
-                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+
+                    results.append(
+                        {
+                            "success": False,
+                            "error": error_msg,
+                            "traceback": traceback.format_exc(),
+                        }
+                    )
                     # Print first few errors for debugging
                     failed_count = len([r for r in results if not r.get("success")])
                     if failed_count <= 5:
                         print(f"Error in vote (attempt {failed_count}): {error_msg}")
-                        if "DuplicateVoteError" not in error_msg and "PollNotFoundError" not in error_msg:
+                        if (
+                            "DuplicateVoteError" not in error_msg
+                            and "PollNotFoundError" not in error_msg
+                        ):
                             print(traceback.format_exc())
 
         # Attempt 20 concurrent votes with same idempotency key
@@ -300,12 +379,15 @@ class TestConcurrentLoad:
             try:
                 from django.test import RequestFactory
                 import hashlib
+
                 factory = RequestFactory()
                 request = factory.post("/api/v1/votes/")
                 request.META["REMOTE_ADDR"] = "192.168.1.1"
                 request.META["HTTP_USER_AGENT"] = "ConcurrentTest/1.0"
-                user_id = user.id if hasattr(user, 'id') else 0
-                request.fingerprint = hashlib.sha256(f"user_{user_id}".encode()).hexdigest()
+                user_id = user.id if hasattr(user, "id") else 0
+                request.fingerprint = hashlib.sha256(
+                    f"user_{user_id}".encode()
+                ).hexdigest()
                 vote, is_new = cast_vote(
                     user=user,
                     poll_id=poll.id,
@@ -318,12 +400,22 @@ class TestConcurrentLoad:
                 with lock:
                     error_msg = str(e)
                     import traceback
-                    results.append({"success": False, "error": error_msg, "traceback": traceback.format_exc()})
+
+                    results.append(
+                        {
+                            "success": False,
+                            "error": error_msg,
+                            "traceback": traceback.format_exc(),
+                        }
+                    )
                     # Print first few errors for debugging
                     failed_count = len([r for r in results if not r.get("success")])
                     if failed_count <= 5:
                         print(f"Error in vote (attempt {failed_count}): {error_msg}")
-                        if "DuplicateVoteError" not in error_msg and "PollNotFoundError" not in error_msg:
+                        if (
+                            "DuplicateVoteError" not in error_msg
+                            and "PollNotFoundError" not in error_msg
+                        ):
                             print(traceback.format_exc())
 
         start_time = time.time()
@@ -336,7 +428,9 @@ class TestConcurrentLoad:
         # All should succeed (allow for some failures due to race conditions)
         successful = [r for r in results if r["success"]]
         success_rate = len(successful) / len(results) if results else 0
-        assert success_rate >= 0.95, f"Success rate too low: {success_rate:.2%}. Got {len(successful)}/{len(results)} successful."
+        assert (
+            success_rate >= 0.95
+        ), f"Success rate too low: {success_rate:.2%}. Got {len(successful)}/{len(results)} successful."
 
         # Should complete in reasonable time
         assert (end_time - start_time) < 120  # 2 minutes
@@ -344,10 +438,19 @@ class TestConcurrentLoad:
         # Verify database state
         poll.refresh_from_db()
         actual_vote_count = Vote.objects.filter(poll=poll).count()
-        actual_unique_voters = Vote.objects.filter(poll=poll).values('user').distinct().count()
-        print(f"\nVote count: Database={actual_vote_count}, Cached={poll.cached_total_votes}, Successful={len(successful)}")
-        print(f"Unique voters: Database={actual_unique_voters}, Cached={poll.cached_unique_voters}")
-        
-        assert actual_vote_count == len(successful), f"Database has {actual_vote_count} votes but {len(successful)} were reported successful"
-        assert actual_vote_count >= 475, f"Expected at least 475 votes, got {actual_vote_count}"
+        actual_unique_voters = (
+            Vote.objects.filter(poll=poll).values("user").distinct().count()
+        )
+        print(
+            f"\nVote count: Database={actual_vote_count}, Cached={poll.cached_total_votes}, Successful={len(successful)}"
+        )
+        print(
+            f"Unique voters: Database={actual_unique_voters}, Cached={poll.cached_unique_voters}"
+        )
 
+        assert actual_vote_count == len(
+            successful
+        ), f"Database has {actual_vote_count} votes but {len(successful)} were reported successful"
+        assert (
+            actual_vote_count >= 475
+        ), f"Expected at least 475 votes, got {actual_vote_count}"

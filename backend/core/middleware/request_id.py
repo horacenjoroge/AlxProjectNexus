@@ -30,4 +30,3 @@ class RequestIDMiddleware(MiddlewareMixin):
         response["X-Request-ID"] = request_id
 
         return response
-

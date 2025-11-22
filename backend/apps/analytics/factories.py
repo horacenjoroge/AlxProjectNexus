@@ -117,4 +117,3 @@ class FraudAlertFactory(factory.django.DjangoModelFactory):
     reasons = factory.Faker("sentence")
     risk_score = factory.Faker("random_int", min=0, max=100)
     ip_address = factory.LazyAttribute(lambda obj: obj.vote.ip_address)
-

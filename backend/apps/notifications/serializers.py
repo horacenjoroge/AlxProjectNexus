@@ -19,8 +19,12 @@ class NotificationDeliverySerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     """Serializer for notifications."""
 
-    poll_title = serializers.CharField(source="poll.title", read_only=True, allow_null=True)
-    poll_id = serializers.IntegerField(source="poll.id", read_only=True, allow_null=True)
+    poll_title = serializers.CharField(
+        source="poll.title", read_only=True, allow_null=True
+    )
+    poll_id = serializers.IntegerField(
+        source="poll.id", read_only=True, allow_null=True
+    )
     deliveries = NotificationDeliverySerializer(many=True, read_only=True)
 
     class Meta:
@@ -78,4 +82,3 @@ class NotificationMarkReadSerializer(serializers.Serializer):
         child=serializers.IntegerField(),
         help_text="List of notification IDs to mark as read",
     )
-

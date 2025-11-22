@@ -26,11 +26,14 @@ class TestRapidVotesFromIP:
         from django.contrib.auth.models import User
 
         import time
+
         timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
         users = []
         for i in range(5):
-            user = User.objects.create_user(username=f"user_{timestamp}_{i}", password="pass")
+            user = User.objects.create_user(
+                username=f"user_{timestamp}_{i}", password="pass"
+            )
             users.append(user)
 
         # Create 3 rapid votes from same IP
@@ -44,7 +47,9 @@ class TestRapidVotesFromIP:
                 idempotency_key=f"key{i}",
             )
 
-        result = check_rapid_votes_from_ip(poll.id, ip_address, time_window_minutes=5, max_votes=3)
+        result = check_rapid_votes_from_ip(
+            poll.id, ip_address, time_window_minutes=5, max_votes=3
+        )
 
         assert result["suspicious"] is True
         assert len(result["reasons"]) > 0
@@ -71,7 +76,9 @@ class TestRapidVotesFromIP:
                 idempotency_key=f"key_{timestamp}_{i}",
             )
 
-        result = check_rapid_votes_from_ip(poll.id, ip_address, time_window_minutes=5, max_votes=3)
+        result = check_rapid_votes_from_ip(
+            poll.id, ip_address, time_window_minutes=5, max_votes=3
+        )
 
         assert result["suspicious"] is False
 
@@ -97,7 +104,10 @@ class TestBotUserAgent:
             assert result["suspicious"] is True
             assert len(result["reasons"]) > 0
             if agent:  # Empty string handled separately
-                assert "bot" in result["reasons"][0].lower() or "missing" in result["reasons"][0].lower()
+                assert (
+                    "bot" in result["reasons"][0].lower()
+                    or "missing" in result["reasons"][0].lower()
+                )
 
     def test_legitimate_user_agents_not_flagged(self):
         """Test that legitimate user agents are not flagged."""
@@ -126,7 +136,9 @@ class TestSuspiciousVotingPattern:
         ip_address = "192.168.1.100"
         users = []
         for i in range(10):
-            user = User.objects.create_user(username=f"user_{timestamp}_{i}", password="pass")
+            user = User.objects.create_user(
+                username=f"user_{timestamp}_{i}", password="pass"
+            )
             users.append(user)
 
         # Create 10 votes all going to same option from same IP
@@ -290,11 +302,14 @@ class TestDetectFraud:
         from django.contrib.auth.models import User
 
         import time
+
         timestamp = int(time.time() * 1000000)
         ip_address = "192.168.1.100"
         users = []
         for i in range(5):
-            user = User.objects.create_user(username=f"user_{timestamp}_{i}", password="pass")
+            user = User.objects.create_user(
+                username=f"user_{timestamp}_{i}", password="pass"
+            )
             users.append(user)
 
         # Create rapid votes from same IP
@@ -406,6 +421,7 @@ class TestFraudDetectionIntegration:
         from django.contrib.auth.models import User
 
         import time
+
         timestamp = int(time.time() * 1000000)
         user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
         user2 = User.objects.create_user(username=f"user2_{timestamp}", password="pass")
@@ -417,7 +433,9 @@ class TestFraudDetectionIntegration:
         request1.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request1.fingerprint = "a" * 64
 
-        vote1, _ = cast_vote(user=user1, poll_id=poll.id, choice_id=choices[0].id, request=request1)
+        vote1, _ = cast_vote(
+            user=user1, poll_id=poll.id, choice_id=choices[0].id, request=request1
+        )
         assert vote1.is_valid is True
 
         # Fraud vote
@@ -425,7 +443,9 @@ class TestFraudDetectionIntegration:
         request2.META["HTTP_USER_AGENT"] = "curl/7.68.0"
         request2.fingerprint = None
 
-        vote2, _ = cast_vote(user=user2, poll_id=poll.id, choice_id=choices[0].id, request=request2)
+        vote2, _ = cast_vote(
+            user=user2, poll_id=poll.id, choice_id=choices[0].id, request=request2
+        )
         assert vote2.is_valid is False
 
         # Check vote counts (only valid votes should count)
@@ -439,4 +459,3 @@ class TestFraudDetectionIntegration:
         # But both votes exist in database
         assert Vote.objects.filter(poll=poll).count() == 2
         assert Vote.objects.filter(poll=poll, is_valid=True).count() == 1
-

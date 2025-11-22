@@ -66,7 +66,9 @@ class Poll(models.Model):
     starts_at = models.DateTimeField(default=timezone.now)
     ends_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    is_draft = models.BooleanField(default=False, help_text="If True, poll is a draft and not visible publicly")
+    is_draft = models.BooleanField(
+        default=False, help_text="If True, poll is a draft and not visible publicly"
+    )
     # Category and tags
     category = models.ForeignKey(
         Category,
@@ -83,12 +85,24 @@ class Poll(models.Model):
         help_text="Tags associated with this poll",
     )
     # Settings: JSON field for flexible poll configuration
-    settings = models.JSONField(default=dict, blank=True, help_text="Poll settings (e.g., allow_multiple_votes, show_results)")
+    settings = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Poll settings (e.g., allow_multiple_votes, show_results)",
+    )
     # Security rules: JSON field for security configuration
-    security_rules = models.JSONField(default=dict, blank=True, help_text="Security rules (e.g., require_authentication, ip_whitelist)")
+    security_rules = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Security rules (e.g., require_authentication, ip_whitelist)",
+    )
     # Cached totals for performance
-    cached_total_votes = models.IntegerField(default=0, help_text="Cached total vote count")
-    cached_unique_voters = models.IntegerField(default=0, help_text="Cached unique voter count")
+    cached_total_votes = models.IntegerField(
+        default=0, help_text="Cached total vote count"
+    )
+    cached_unique_voters = models.IntegerField(
+        default=0, help_text="Cached unique voter count"
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -130,7 +144,9 @@ class PollOption(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="options")
     text = models.CharField(max_length=200)
     order = models.IntegerField(default=0, help_text="Display order for options")
-    cached_vote_count = models.IntegerField(default=0, help_text="Cached vote count for performance")
+    cached_vote_count = models.IntegerField(
+        default=0, help_text="Cached vote count for performance"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

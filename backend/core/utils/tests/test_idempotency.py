@@ -111,9 +111,13 @@ class TestIdempotencyCheck:
         from django.conf import settings
 
         # Skip if cache backend is dummy (doesn't store anything)
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Idempotency cache tests require a functional cache backend (Redis or locmem)")
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Idempotency cache tests require a functional cache backend (Redis or locmem)"
+            )
 
         cache.clear()
         key = generate_idempotency_key(user_id=1, poll_id=2, choice_id=3)
@@ -137,9 +141,13 @@ class TestIdempotencyCheck:
         from django.conf import settings
 
         # Skip if cache backend is dummy (doesn't store anything)
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Idempotency cache tests require a functional cache backend (Redis or locmem)")
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Idempotency cache tests require a functional cache backend (Redis or locmem)"
+            )
 
         cache.clear()
         key = generate_idempotency_key(user_id=1, poll_id=2, choice_id=3)
@@ -235,10 +243,16 @@ class TestVoterTokenGeneration:
     def test_voter_token_different_for_different_ips(self):
         """Test that different IPs generate different tokens for anonymous users."""
         token1 = generate_voter_token(
-            user_id=None, ip_address="192.168.1.1", user_agent="Mozilla/5.0", fingerprint="fp123"
+            user_id=None,
+            ip_address="192.168.1.1",
+            user_agent="Mozilla/5.0",
+            fingerprint="fp123",
         )
         token2 = generate_voter_token(
-            user_id=None, ip_address="192.168.1.2", user_agent="Mozilla/5.0", fingerprint="fp123"
+            user_id=None,
+            ip_address="192.168.1.2",
+            user_agent="Mozilla/5.0",
+            fingerprint="fp123",
         )
 
         assert token1 != token2
@@ -246,10 +260,16 @@ class TestVoterTokenGeneration:
     def test_voter_token_different_for_different_user_agents(self):
         """Test that different user agents generate different tokens."""
         token1 = generate_voter_token(
-            user_id=None, ip_address="192.168.1.1", user_agent="Mozilla/5.0", fingerprint="fp123"
+            user_id=None,
+            ip_address="192.168.1.1",
+            user_agent="Mozilla/5.0",
+            fingerprint="fp123",
         )
         token2 = generate_voter_token(
-            user_id=None, ip_address="192.168.1.1", user_agent="Chrome/91.0", fingerprint="fp123"
+            user_id=None,
+            ip_address="192.168.1.1",
+            user_agent="Chrome/91.0",
+            fingerprint="fp123",
         )
 
         assert token1 != token2
@@ -257,10 +277,16 @@ class TestVoterTokenGeneration:
     def test_voter_token_different_for_different_fingerprints(self):
         """Test that different fingerprints generate different tokens."""
         token1 = generate_voter_token(
-            user_id=None, ip_address="192.168.1.1", user_agent="Mozilla/5.0", fingerprint="fp123"
+            user_id=None,
+            ip_address="192.168.1.1",
+            user_agent="Mozilla/5.0",
+            fingerprint="fp123",
         )
         token2 = generate_voter_token(
-            user_id=None, ip_address="192.168.1.1", user_agent="Mozilla/5.0", fingerprint="fp456"
+            user_id=None,
+            ip_address="192.168.1.1",
+            user_agent="Mozilla/5.0",
+            fingerprint="fp456",
         )
 
         assert token1 != token2
@@ -294,7 +320,9 @@ class TestIPExtraction:
     def test_extract_ip_from_x_forwarded_for(self):
         """Test IP extraction from X-Forwarded-For header."""
         factory = RequestFactory()
-        request = factory.get("/api/test/", HTTP_X_FORWARDED_FOR="203.0.113.1, 198.51.100.1")
+        request = factory.get(
+            "/api/test/", HTTP_X_FORWARDED_FOR="203.0.113.1, 198.51.100.1"
+        )
 
         ip = extract_ip_address(request)
 
@@ -390,8 +418,9 @@ class TestIdempotencyServiceIntegration:
     """Integration tests for idempotency service."""
 
     @pytest.mark.skipif(
-        lambda: settings.CACHES["default"]["BACKEND"] == "django.core.cache.backends.dummy.DummyCache",
-        reason="Idempotency tests require a functional cache backend (not DummyCache)"
+        lambda: settings.CACHES["default"]["BACKEND"]
+        == "django.core.cache.backends.dummy.DummyCache",
+        reason="Idempotency tests require a functional cache backend (not DummyCache)",
     )
     def test_full_idempotency_flow(self, user):
         """Test complete idempotency flow."""
@@ -433,4 +462,3 @@ class TestIdempotencyServiceIntegration:
 
         # They should be different
         assert voter_token != idempotency_key
-

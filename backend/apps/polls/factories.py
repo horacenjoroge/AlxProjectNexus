@@ -98,4 +98,3 @@ class PollOptionFactory(factory.django.DjangoModelFactory):
     text = factory.Sequence(lambda n: f"Option {n}")
     order = factory.Sequence(lambda n: n)
     cached_vote_count = 0
-

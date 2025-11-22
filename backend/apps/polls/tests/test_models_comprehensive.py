@@ -9,7 +9,12 @@ from django.db import IntegrityError
 from django.utils import timezone
 from datetime import timedelta
 
-from apps.polls.factories import CategoryFactory, PollFactory, PollOptionFactory, TagFactory
+from apps.polls.factories import (
+    CategoryFactory,
+    PollFactory,
+    PollOptionFactory,
+    TagFactory,
+)
 from apps.polls.models import Category, Poll, PollOption, Tag
 
 
@@ -20,10 +25,7 @@ class TestCategoryModel:
 
     def test_category_creation(self):
         """Test creating a category with all fields."""
-        category = CategoryFactory(
-            name="Politics",
-            description="Political polls"
-        )
+        category = CategoryFactory(name="Politics", description="Political polls")
         assert category.name == "Politics"
         assert category.description == "Political polls"
         assert category.slug == "politics"
@@ -37,6 +39,7 @@ class TestCategoryModel:
     def test_category_unique_name(self):
         """Test that category name must be unique."""
         from apps.polls.models import Category
+
         Category.objects.create(name="Unique Category", slug="unique-category")
         with pytest.raises(IntegrityError):
             Category.objects.create(name="Unique Category", slug="unique-category-2")
@@ -44,6 +47,7 @@ class TestCategoryModel:
     def test_category_unique_slug(self):
         """Test that category slug must be unique."""
         from apps.polls.models import Category
+
         Category.objects.create(name="Test Category", slug="test-category")
         with pytest.raises(IntegrityError):
             Category.objects.create(name="Different Name", slug="test-category")
@@ -58,7 +62,7 @@ class TestCategoryModel:
         CategoryFactory(name="Zebra")
         CategoryFactory(name="Alpha")
         CategoryFactory(name="Beta")
-        
+
         categories = list(Category.objects.all())
         assert categories[0].name == "Alpha"
         assert categories[1].name == "Beta"
@@ -69,12 +73,17 @@ class TestCategoryModel:
         category = CategoryFactory(description="")
         assert category.description == ""
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_category_slug_index(self):
         """Test that slug has an index for efficient lookups."""
         from django.db import connection
+
         category = CategoryFactory()
-        indexes = connection.introspection.get_indexes(connection.cursor(), "polls_category")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "polls_category"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
         assert any("slug" in fields for fields in index_fields)
 
@@ -99,6 +108,7 @@ class TestTagModel:
     def test_tag_unique_name(self):
         """Test that tag name must be unique."""
         from apps.polls.models import Tag
+
         Tag.objects.create(name="unique-tag", slug="unique-tag")
         with pytest.raises(IntegrityError):
             Tag.objects.create(name="unique-tag", slug="unique-tag-2")
@@ -106,6 +116,7 @@ class TestTagModel:
     def test_tag_unique_slug(self):
         """Test that tag slug must be unique."""
         from apps.polls.models import Tag
+
         Tag.objects.create(name="Test Tag", slug="test-tag")
         with pytest.raises(IntegrityError):
             Tag.objects.create(name="Different Tag", slug="test-tag")
@@ -120,25 +131,31 @@ class TestTagModel:
         TagFactory(name="zebra")
         TagFactory(name="alpha")
         TagFactory(name="beta")
-        
+
         tags = list(Tag.objects.all())
         assert tags[0].name == "alpha"
         assert tags[1].name == "beta"
         assert tags[2].name == "zebra"
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_tag_slug_index(self):
         """Test that slug has an index."""
         from django.db import connection
+
         tag = TagFactory()
         indexes = connection.introspection.get_indexes(connection.cursor(), "polls_tag")
         index_fields = [idx["columns"] for idx in indexes.values()]
         assert any("slug" in fields for fields in index_fields)
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_tag_name_index(self):
         """Test that name has an index."""
         from django.db import connection
+
         tag = TagFactory()
         indexes = connection.introspection.get_indexes(connection.cursor(), "polls_tag")
         index_fields = [idx["columns"] for idx in indexes.values()]
@@ -175,13 +192,13 @@ class TestPollModelComprehensive:
     def test_poll_is_open_edge_cases(self, user):
         """Test is_open property with various edge cases."""
         now = timezone.now()
-        
+
         # Poll that hasn't started
         poll = PollFactory(
             created_by=user,
             starts_at=now + timedelta(days=1),
             is_active=True,
-            is_draft=False
+            is_draft=False,
         )
         assert poll.is_open is False
 
@@ -191,7 +208,7 @@ class TestPollModelComprehensive:
             starts_at=now - timedelta(days=2),
             ends_at=now - timedelta(days=1),
             is_active=True,
-            is_draft=False
+            is_draft=False,
         )
         assert poll.is_open is False
 
@@ -201,7 +218,7 @@ class TestPollModelComprehensive:
             starts_at=now - timedelta(days=1),
             ends_at=None,
             is_active=True,
-            is_draft=False
+            is_draft=False,
         )
         assert poll.is_open is True
 
@@ -211,7 +228,7 @@ class TestPollModelComprehensive:
             starts_at=now - timedelta(days=1),
             ends_at=now + timedelta(days=1),
             is_active=True,
-            is_draft=False
+            is_draft=False,
         )
         assert poll.is_open is True
 
@@ -219,19 +236,19 @@ class TestPollModelComprehensive:
         """Test updating cached totals with multiple users."""
         from apps.votes.factories import VoteFactory
         from apps.users.factories import UserFactory
-        
+
         poll = PollFactory(created_by=user)
         option = PollOptionFactory(poll=poll)
-        
+
         # Create votes from different users
         user1 = UserFactory()
         user2 = UserFactory()
         user3 = UserFactory()
-        
+
         VoteFactory(user=user1, poll=poll, option=option)
         VoteFactory(user=user2, poll=poll, option=option)
         VoteFactory(user=user3, poll=poll, option=option)
-        
+
         poll.update_cached_totals()
         poll.refresh_from_db()
         assert poll.cached_total_votes == 3
@@ -245,24 +262,37 @@ class TestPollModelComprehensive:
         assert poll.cached_total_votes == 0
         assert poll.cached_unique_voters == 0
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_poll_category_index(self, user):
         """Test that category has an index."""
         from django.db import connection
+
         poll = PollFactory(created_by=user)
-        indexes = connection.introspection.get_indexes(connection.cursor(), "polls_poll")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "polls_poll"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
         assert any("category_id" in fields for fields in index_fields)
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_poll_draft_index(self, user):
         """Test that is_draft and created_by have a composite index."""
         from django.db import connection
+
         poll = PollFactory(created_by=user, is_draft=True)
-        indexes = connection.introspection.get_indexes(connection.cursor(), "polls_poll")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "polls_poll"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
         # Check for composite index on is_draft and created_by
-        assert any("is_draft" in fields and "created_by_id" in fields for fields in index_fields)
+        assert any(
+            "is_draft" in fields and "created_by_id" in fields
+            for fields in index_fields
+        )
 
 
 @pytest.mark.unit
@@ -276,7 +306,7 @@ class TestPollOptionModelComprehensive:
         option3 = PollOptionFactory(poll=poll, text="Option 3", order=3)
         option1 = PollOptionFactory(poll=poll, text="Option 1", order=1)
         option2 = PollOptionFactory(poll=poll, text="Option 2", order=2)
-        
+
         options = list(poll.options.all())
         assert options[0] == option1
         assert options[1] == option2
@@ -286,30 +316,30 @@ class TestPollOptionModelComprehensive:
         """Test vote_count property with multiple votes."""
         from apps.votes.factories import VoteFactory
         from apps.users.factories import UserFactory
-        
+
         poll = PollFactory(created_by=user)
         option = PollOptionFactory(poll=poll)
-        
+
         # Create multiple votes
         for _ in range(5):
             vote_user = UserFactory()
             VoteFactory(user=vote_user, poll=poll, option=option)
-        
+
         assert option.vote_count == 5
 
     def test_poll_option_update_cached_vote_count(self, user):
         """Test updating cached vote count."""
         from apps.votes.factories import VoteFactory
         from apps.users.factories import UserFactory
-        
+
         poll = PollFactory(created_by=user)
         option = PollOptionFactory(poll=poll)
-        
+
         # Create votes
         for _ in range(3):
             vote_user = UserFactory()
             VoteFactory(user=vote_user, poll=poll, option=option)
-        
+
         option.update_cached_vote_count()
         option.refresh_from_db()
         assert option.cached_vote_count == 3
@@ -319,17 +349,21 @@ class TestPollOptionModelComprehensive:
         poll = PollFactory(created_by=user)
         option = PollOptionFactory(poll=poll)
         option_id = option.id
-        
+
         poll.delete()
         assert not PollOption.objects.filter(id=option_id).exists()
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_poll_option_poll_index(self, user):
         """Test that poll and order have a composite index."""
         from django.db import connection
+
         poll = PollFactory(created_by=user)
         option = PollOptionFactory(poll=poll)
-        indexes = connection.introspection.get_indexes(connection.cursor(), "polls_polloption")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "polls_polloption"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
         assert any("poll_id" in fields and "order" in fields for fields in index_fields)
-

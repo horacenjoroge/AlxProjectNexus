@@ -41,7 +41,9 @@ class VoteAttemptFactory(factory.django.DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     poll = factory.SubFactory(PollFactory)
-    option = factory.LazyAttribute(lambda obj: PollOptionFactory(poll=obj.poll) if obj.success else None)
+    option = factory.LazyAttribute(
+        lambda obj: PollOptionFactory(poll=obj.poll) if obj.success else None
+    )
     voter_token = factory.Faker("sha256")
     idempotency_key = factory.Faker("sha256")
     ip_address = factory.Faker("ipv4")
@@ -49,4 +51,3 @@ class VoteAttemptFactory(factory.django.DjangoModelFactory):
     fingerprint = factory.Faker("sha256")
     success = True
     error_message = ""
-

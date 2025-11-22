@@ -34,6 +34,7 @@ def user(db):
 def poll(db, user):
     """Create a test poll."""
     from django.utils import timezone
+
     return Poll.objects.create(
         title="Test Poll",
         description="This is a test poll",

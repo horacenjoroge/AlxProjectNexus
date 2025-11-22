@@ -89,7 +89,9 @@ def detect_fraud(
 
     # Rule 2: Suspicious voting patterns (all votes to one option)
     if ip_address or user_id:
-        suspicious_pattern = check_suspicious_voting_pattern(poll_id, ip_address, user_id)
+        suspicious_pattern = check_suspicious_voting_pattern(
+            poll_id, ip_address, user_id
+        )
         if suspicious_pattern["suspicious"]:
             reasons.extend(suspicious_pattern["reasons"])
             risk_score += suspicious_pattern["risk_score"]
@@ -133,7 +135,9 @@ def detect_fraud(
     }
 
 
-def check_rapid_votes_from_ip(poll_id: int, ip_address: str, time_window_minutes: int = 5, max_votes: int = 3) -> Dict:
+def check_rapid_votes_from_ip(
+    poll_id: int, ip_address: str, time_window_minutes: int = 5, max_votes: int = 3
+) -> Dict:
     """
     Check for multiple votes from same IP in short time.
 
@@ -193,7 +197,12 @@ def check_suspicious_voting_pattern(
         option_count = options.count()
 
         if option_count < 2:
-            return {"suspicious": False, "reasons": [], "risk_score": 0, "should_block": False}
+            return {
+                "suspicious": False,
+                "reasons": [],
+                "risk_score": 0,
+                "should_block": False,
+            }
 
         # Check votes from this IP or user
         vote_filter = {"poll_id": poll_id}
@@ -202,12 +211,19 @@ def check_suspicious_voting_pattern(
         if user_id:
             vote_filter["user_id"] = user_id
 
-        votes = Vote.objects.filter(**vote_filter).values("option_id").annotate(
-            count=Count("id")
+        votes = (
+            Vote.objects.filter(**vote_filter)
+            .values("option_id")
+            .annotate(count=Count("id"))
         )
 
         if not votes:
-            return {"suspicious": False, "reasons": [], "risk_score": 0, "should_block": False}
+            return {
+                "suspicious": False,
+                "reasons": [],
+                "risk_score": 0,
+                "should_block": False,
+            }
 
         # Check if all votes go to one option
         if len(votes) == 1:
@@ -331,7 +347,12 @@ def check_voting_hours(poll_id: int, request) -> Dict:
         # Check if poll has voting hours restriction
         voting_hours = poll.settings.get("voting_hours", None)
         if not voting_hours:
-            return {"suspicious": False, "reasons": [], "risk_score": 0, "should_block": False}
+            return {
+                "suspicious": False,
+                "reasons": [],
+                "risk_score": 0,
+                "should_block": False,
+            }
 
         # Get current time
         now = timezone.now()
@@ -342,9 +363,13 @@ def check_voting_hours(poll_id: int, request) -> Dict:
         if allowed_hours and current_hour not in allowed_hours:
             return {
                 "suspicious": True,
-                "reasons": [f"Vote outside allowed hours. Current hour: {current_hour}"],
+                "reasons": [
+                    f"Vote outside allowed hours. Current hour: {current_hour}"
+                ],
                 "risk_score": 25,
-                "should_block": voting_hours.get("strict", False),  # Block if strict mode
+                "should_block": voting_hours.get(
+                    "strict", False
+                ),  # Block if strict mode
             }
 
     except Exception as e:
@@ -392,4 +417,3 @@ def log_fraud_alert(
         )
     except Exception as e:
         logger.error(f"Error logging fraud alert: {e}")
-

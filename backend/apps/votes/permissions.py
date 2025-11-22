@@ -8,7 +8,7 @@ from rest_framework import permissions
 class CanVotePermission(permissions.BasePermission):
     """
     Permission class that allows voting based on poll settings.
-    
+
     - If poll requires authentication, user must be authenticated
     - If poll allows anonymous voting, anyone can vote
     """
@@ -43,4 +43,3 @@ class CanVotePermission(permissions.BasePermission):
             return obj.user == request.user
 
         return True
-

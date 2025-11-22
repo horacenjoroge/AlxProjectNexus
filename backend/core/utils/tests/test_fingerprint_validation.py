@@ -55,9 +55,13 @@ class TestFingerprintValidation:
         from django.conf import settings
 
         # Skip if cache backend is dummy (doesn't store anything)
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Fingerprint cache tests require a functional cache backend (Redis or locmem)")
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Fingerprint cache tests require a functional cache backend (Redis or locmem)"
+            )
 
         cache.clear()
         fp = make_fingerprint("test_fp")
@@ -76,9 +80,13 @@ class TestFingerprintValidation:
         from django.conf import settings
 
         # Skip if cache backend is dummy (doesn't store anything)
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Fingerprint cache tests require a functional cache backend (Redis or locmem)")
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Fingerprint cache tests require a functional cache backend (Redis or locmem)"
+            )
 
         cache.clear()
         fp = make_fingerprint("test_fp")
@@ -96,9 +104,13 @@ class TestFingerprintValidation:
         from django.conf import settings
 
         # Skip if cache backend is dummy (doesn't store anything)
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Fingerprint cache tests require a functional cache backend (Redis or locmem)")
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Fingerprint cache tests require a functional cache backend (Redis or locmem)"
+            )
 
         cache.clear()
         fp = make_fingerprint("test_fp")
@@ -117,9 +129,13 @@ class TestFingerprintValidation:
         from django.conf import settings
 
         # Skip if cache backend is dummy (doesn't store anything)
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' in cache_backend.lower():
-            pytest.skip("Fingerprint cache tests require a functional cache backend (Redis or locmem)")
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if "dummy" in cache_backend.lower():
+            pytest.skip(
+                "Fingerprint cache tests require a functional cache backend (Redis or locmem)"
+            )
 
         cache.clear()
         fp = make_fingerprint("test_fp")
@@ -140,8 +156,9 @@ class TestFingerprintSuspiciousDetection:
     """Test suspicious pattern detection."""
 
     @pytest.mark.skipif(
-        lambda: settings.CACHES["default"]["BACKEND"] == "django.core.cache.backends.dummy.DummyCache",
-        reason="Cache tests require a functional cache backend (not DummyCache)"
+        lambda: settings.CACHES["default"]["BACKEND"]
+        == "django.core.cache.backends.dummy.DummyCache",
+        reason="Cache tests require a functional cache backend (not DummyCache)",
     )
     def test_detect_different_users_from_cache(self, user):
         """Test detection of same fingerprint from different users via cache."""
@@ -172,9 +189,7 @@ class TestFingerprintSuspiciousDetection:
         update_fingerprint_cache(fp, poll.id, user.id, "192.168.1.1")
 
         # Check with different user
-        result = check_fingerprint_suspicious(
-            fp, poll.id, user2.id, "192.168.1.2"
-        )
+        result = check_fingerprint_suspicious(fp, poll.id, user2.id, "192.168.1.2")
 
         assert result["suspicious"] is True
         assert result["block_vote"] is True
@@ -228,7 +243,9 @@ class TestFingerprintSuspiciousDetection:
         # The function expects an int, so we'll use 0 to represent anonymous
         # Freeze time when calling the function to ensure time window includes our votes
         fp = make_fingerprint("rapid_fp")
-        with freeze_time("2024-01-01 10:05:00"):  # After all votes, but within time window
+        with freeze_time(
+            "2024-01-01 10:05:00"
+        ):  # After all votes, but within time window
             result = check_fingerprint_suspicious(
                 fp, poll.id, 0, "192.168.1.1"  # Use 0 for anonymous user
             )
@@ -236,7 +253,10 @@ class TestFingerprintSuspiciousDetection:
         # Should detect rapid votes pattern (3 votes within 4 minutes)
         # The threshold is 3 votes within 5 minutes by default
         assert result["suspicious"] is True
-        assert any("rapid" in reason.lower() or "votes from same fingerprint" in reason.lower() for reason in result["reasons"])
+        assert any(
+            "rapid" in reason.lower() or "votes from same fingerprint" in reason.lower()
+            for reason in result["reasons"]
+        )
 
     def test_detect_different_ips_from_database(self, user):
         """Test detection of same fingerprint from different IPs."""
@@ -315,7 +335,9 @@ class TestFingerprintSuspiciousDetection:
 
         # Check - should only query recent votes - use None for anonymous user
         fp = make_fingerprint("recent_fp")
-        result = check_fingerprint_suspicious(fp, poll.id, None, "192.168.1.1")  # Anonymous user
+        result = check_fingerprint_suspicious(
+            fp, poll.id, None, "192.168.1.1"
+        )  # Anonymous user
 
         # Should not be suspicious (only 1 recent vote)
         assert result["suspicious"] is False
@@ -326,8 +348,9 @@ class TestFingerprintValidationIntegration:
     """Integration tests for fingerprint validation."""
 
     @pytest.mark.skipif(
-        lambda: settings.CACHES["default"]["BACKEND"] == "django.core.cache.backends.dummy.DummyCache",
-        reason="Cache performance tests require a functional cache backend (not DummyCache)"
+        lambda: settings.CACHES["default"]["BACKEND"]
+        == "django.core.cache.backends.dummy.DummyCache",
+        reason="Cache performance tests require a functional cache backend (not DummyCache)",
     )
     def test_redis_cache_hit_performance(self, user):
         """Test that Redis cache provides fast lookups."""
@@ -381,9 +404,7 @@ class TestPermanentFingerprintBlocking:
 
         # Try to check fingerprint
         fp = make_fingerprint("blocked_fp_123")
-        result = check_fingerprint_suspicious(
-            fp, poll.id, user.id, "192.168.1.1"
-        )
+        result = check_fingerprint_suspicious(fp, poll.id, user.id, "192.168.1.1")
 
         assert result["suspicious"] is True
         assert result["block_vote"] is True
@@ -391,8 +412,9 @@ class TestPermanentFingerprintBlocking:
         assert "permanently blocked" in " ".join(result["reasons"]).lower()
 
     @pytest.mark.skipif(
-        lambda: settings.CACHES["default"]["BACKEND"] == "django.core.cache.backends.dummy.DummyCache",
-        reason="Fingerprint blocking tests require a functional cache backend (not DummyCache)"
+        lambda: settings.CACHES["default"]["BACKEND"]
+        == "django.core.cache.backends.dummy.DummyCache",
+        reason="Fingerprint blocking tests require a functional cache backend (not DummyCache)",
     )
     def test_fingerprint_auto_blocked_on_suspicious_activity(self, user):
         """Test that fingerprint is automatically blocked when suspicious pattern detected."""
@@ -422,13 +444,18 @@ class TestPermanentFingerprintBlocking:
         # Manually set cache to show multiple users
         from django.core.cache import cache
         from core.utils.fingerprint_validation import get_fingerprint_cache_key
+
         cache_key = get_fingerprint_cache_key(fp, poll.id)
-        cache.set(cache_key, {
-            "user_count": 2,  # Simulate 2 users
-            "users": [user.id],  # First user
-            "ip_count": 1,
-            "count": 1,
-        }, 3600)
+        cache.set(
+            cache_key,
+            {
+                "user_count": 2,  # Simulate 2 users
+                "users": [user.id],  # First user
+                "ip_count": 1,
+                "count": 1,
+            },
+            3600,
+        )
 
         # Try to vote with different user (should trigger permanent block)
         factory = RequestFactory()
@@ -437,9 +464,7 @@ class TestPermanentFingerprintBlocking:
         request.META["REMOTE_ADDR"] = "192.168.1.2"
 
         # Check fingerprint (should block and create permanent block)
-        result = check_fingerprint_suspicious(
-            fp, poll.id, user2.id, "192.168.1.2"
-        )
+        result = check_fingerprint_suspicious(fp, poll.id, user2.id, "192.168.1.2")
 
         assert result["block_vote"] is True
 
@@ -476,9 +501,7 @@ class TestPermanentFingerprintBlocking:
 
         # Try to check fingerprint (should still be blocked)
         fp = make_fingerprint("persistent_blocked_fp")
-        result = check_fingerprint_suspicious(
-            fp, poll.id, user.id, "192.168.1.1"
-        )
+        result = check_fingerprint_suspicious(fp, poll.id, user.id, "192.168.1.1")
 
         assert result["block_vote"] is True
         assert "permanently blocked" in " ".join(result["reasons"]).lower()
@@ -503,9 +526,7 @@ class TestPermanentFingerprintBlocking:
 
         # Try to check fingerprint (should not be blocked)
         fp = make_fingerprint("unblocked_fp")
-        result = check_fingerprint_suspicious(
-            fp, poll.id, user.id, "192.168.1.1"
-        )
+        result = check_fingerprint_suspicious(fp, poll.id, user.id, "192.168.1.1")
 
         # Should not be blocked (is_active=False)
         assert result["block_vote"] is False or not result.get("suspicious", False)
@@ -601,10 +622,12 @@ class TestRequireFingerprintForAnonymous:
 class TestDetectSuspiciousFingerprintChanges:
     """Test detection of suspicious fingerprint changes."""
 
-    @pytest.mark.skip(reason="Function only checks votes within same poll. "
-                             "Cannot create multiple votes from same user in same poll "
-                             "due to unique constraint. This test needs redesign or "
-                             "function needs to work across polls.")
+    @pytest.mark.skip(
+        reason="Function only checks votes within same poll. "
+        "Cannot create multiple votes from same user in same poll "
+        "due to unique constraint. This test needs redesign or "
+        "function needs to work across polls."
+    )
     def test_detect_fingerprint_change_for_user(self, user):
         """Test detection of fingerprint change for authenticated user."""
         # Note: This test is skipped because detect_suspicious_fingerprint_changes
@@ -614,10 +637,12 @@ class TestDetectSuspiciousFingerprintChanges:
         # across polls or use a different approach.
         pass
 
-    @pytest.mark.skip(reason="Function only checks votes within same poll. "
-                             "Cannot create multiple anonymous votes from same IP in same poll "
-                             "due to unique constraint. This test needs redesign or "
-                             "function needs to work across polls.")
+    @pytest.mark.skip(
+        reason="Function only checks votes within same poll. "
+        "Cannot create multiple anonymous votes from same IP in same poll "
+        "due to unique constraint. This test needs redesign or "
+        "function needs to work across polls."
+    )
     def test_detect_fingerprint_change_for_anonymous(self, user):
         """Test detection of fingerprint change for anonymous user (by IP)."""
         # Note: This test is skipped because detect_suspicious_fingerprint_changes
@@ -819,4 +844,3 @@ class TestFingerprintIPCombination:
             poll_id=1,
         )
         assert result2["suspicious"] is False
-

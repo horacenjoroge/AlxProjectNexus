@@ -77,8 +77,12 @@ class FingerprintBlock(models.Model):
         db_index=True,
         help_text="Blocked browser/device fingerprint hash",
     )
-    reason = models.TextField(help_text="Reason for blocking (e.g., 'Used by multiple users')")
-    blocked_at = models.DateTimeField(auto_now_add=True, help_text="When the fingerprint was blocked")
+    reason = models.TextField(
+        help_text="Reason for blocking (e.g., 'Used by multiple users')"
+    )
+    blocked_at = models.DateTimeField(
+        auto_now_add=True, help_text="When the fingerprint was blocked"
+    )
     blocked_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -176,11 +180,15 @@ class FraudAlert(models.Model):
     ip_address = models.GenericIPAddressField(
         null=True, blank=True, help_text="IP address of suspicious vote"
     )
-    reasons = models.TextField(help_text="Comma-separated list of fraud detection reasons")
+    reasons = models.TextField(
+        help_text="Comma-separated list of fraud detection reasons"
+    )
     risk_score = models.IntegerField(
         help_text="Risk score (0-100) indicating severity of fraud"
     )
-    created_at = models.DateTimeField(auto_now_add=True, help_text="When fraud was detected")
+    created_at = models.DateTimeField(
+        auto_now_add=True, help_text="When fraud was detected"
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -258,12 +266,14 @@ class IPReputation(models.Model):
         if self.reputation_score < 100:
             self.reputation_score = min(100, self.reputation_score + 1)
         self.last_seen = timezone.now()
-        self.save(update_fields=["successful_attempts", "reputation_score", "last_seen"])
+        self.save(
+            update_fields=["successful_attempts", "reputation_score", "last_seen"]
+        )
 
     def record_violation(self, severity=1):
         """
         Record a violation.
-        
+
         Args:
             severity: Severity of violation (1-5, higher is worse)
         """
@@ -273,13 +283,15 @@ class IPReputation(models.Model):
         self.reputation_score = max(0, self.reputation_score - (severity * 10))
         self.last_violation_at = timezone.now()
         self.last_seen = timezone.now()
-        self.save(update_fields=[
-            "violation_count",
-            "failed_attempts",
-            "reputation_score",
-            "last_violation_at",
-            "last_seen",
-        ])
+        self.save(
+            update_fields=[
+                "violation_count",
+                "failed_attempts",
+                "reputation_score",
+                "last_violation_at",
+                "last_seen",
+            ]
+        )
 
 
 class IPBlock(models.Model):

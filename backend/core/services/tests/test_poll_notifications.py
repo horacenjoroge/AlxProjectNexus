@@ -24,7 +24,7 @@ class TestPollNotifications:
         """Test successful poll opened notification."""
         user.email = "test@example.com"
         user.save()
-        
+
         poll = Poll.objects.create(
             title="Test Poll",
             description="Test description",
@@ -32,9 +32,9 @@ class TestPollNotifications:
             starts_at=timezone.now(),
         )
 
-        with patch('core.services.poll_notifications.send_mail') as mock_send:
+        with patch("core.services.poll_notifications.send_mail") as mock_send:
             result = send_poll_opened_notification(poll)
-            
+
             assert result is True
             mock_send.assert_called_once()
             call_args = mock_send.call_args
@@ -46,7 +46,7 @@ class TestPollNotifications:
         """Test poll opened notification when user has no email."""
         user.email = ""
         user.save()
-        
+
         poll = Poll.objects.create(
             title="Test Poll",
             description="Test description",
@@ -54,9 +54,9 @@ class TestPollNotifications:
             starts_at=timezone.now(),
         )
 
-        with patch('core.services.poll_notifications.send_mail') as mock_send:
+        with patch("core.services.poll_notifications.send_mail") as mock_send:
             result = send_poll_opened_notification(poll)
-            
+
             assert result is False
             mock_send.assert_not_called()
 
@@ -64,7 +64,7 @@ class TestPollNotifications:
         """Test successful poll closed notification."""
         user.email = "test@example.com"
         user.save()
-        
+
         poll = Poll.objects.create(
             title="Test Poll",
             description="Test description",
@@ -72,11 +72,11 @@ class TestPollNotifications:
             starts_at=timezone.now() - timedelta(hours=1),
             ends_at=timezone.now(),
         )
-        
+
         # Create some votes
         from apps.votes.models import Vote
         from apps.polls.models import PollOption
-        
+
         option = PollOption.objects.create(poll=poll, text="Option 1", order=0)
         Vote.objects.create(
             poll=poll,
@@ -87,9 +87,11 @@ class TestPollNotifications:
             is_valid=True,
         )
 
-        with patch('apps.notifications.services.notify_poll_results_available') as mock_notify:
+        with patch(
+            "apps.notifications.services.notify_poll_results_available"
+        ) as mock_notify:
             result = send_poll_closed_notification(poll)
-            
+
             assert result is True
             mock_notify.assert_called_once_with(poll, user=user)
 
@@ -97,7 +99,7 @@ class TestPollNotifications:
         """Test poll closed notification when user has no email."""
         user.email = ""
         user.save()
-        
+
         poll = Poll.objects.create(
             title="Test Poll",
             description="Test description",
@@ -106,9 +108,11 @@ class TestPollNotifications:
             ends_at=timezone.now(),
         )
 
-        with patch('apps.notifications.services.notify_poll_results_available') as mock_notify:
+        with patch(
+            "apps.notifications.services.notify_poll_results_available"
+        ) as mock_notify:
             result = send_poll_closed_notification(poll)
-            
+
             # Function returns True even if user has no email (uses notification system)
             # But notify_poll_results_available might not be called if user is None
             assert result is True
@@ -117,7 +121,7 @@ class TestPollNotifications:
         """Test that notification handles errors gracefully."""
         user.email = "test@example.com"
         user.save()
-        
+
         poll = Poll.objects.create(
             title="Test Poll",
             description="Test description",
@@ -125,9 +129,12 @@ class TestPollNotifications:
             starts_at=timezone.now(),
         )
 
-        with patch('core.services.poll_notifications.send_mail', side_effect=Exception("Email error")):
+        with patch(
+            "core.services.poll_notifications.send_mail",
+            side_effect=Exception("Email error"),
+        ):
             result = send_poll_opened_notification(poll)
-            
+
             assert result is False
 
     def test_get_poll_url(self):
@@ -145,7 +152,7 @@ class TestPollNotificationsIntegration:
         """Test that notification is sent when poll is activated."""
         user.email = "test@example.com"
         user.save()
-        
+
         past_time = timezone.now() - timedelta(minutes=5)
         poll = Poll.objects.create(
             title="Integration Test Poll",
@@ -155,10 +162,10 @@ class TestPollNotificationsIntegration:
             is_active=False,
         )
 
-        with patch('core.services.poll_notifications.send_mail') as mock_send:
+        with patch("core.services.poll_notifications.send_mail") as mock_send:
             from apps.polls.tasks import activate_scheduled_poll
+
             result = activate_scheduled_poll.apply(args=(poll.id,))
-            
+
             assert result.result["success"] is True
             mock_send.assert_called_once()
-

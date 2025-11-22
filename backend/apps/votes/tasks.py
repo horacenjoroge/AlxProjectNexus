@@ -27,10 +27,10 @@ logger = logging.getLogger(__name__)
 def analyze_fingerprint_patterns(fingerprint: str, poll_id: int):
     """
     Async task to analyze fingerprint patterns for fraud detection.
-    
+
     This task performs deep analysis of historical fingerprint data
     without blocking vote creation.
-    
+
     Args:
         fingerprint: Browser fingerprint hash
         poll_id: Poll ID
@@ -63,9 +63,7 @@ def analyze_fingerprint_patterns(fingerprint: str, poll_id: int):
 
         # Analyze patterns
         distinct_users = set(v["user_id"] for v in historical_votes if v["user_id"])
-        distinct_ips = set(
-            v["ip_address"] for v in historical_votes if v["ip_address"]
-        )
+        distinct_ips = set(v["ip_address"] for v in historical_votes if v["ip_address"])
         vote_count = len(historical_votes)
 
         # Calculate statistics
@@ -126,39 +124,47 @@ def analyze_fingerprint_patterns(fingerprint: str, poll_id: int):
 
 
 @shared_task
-def analyze_vote_patterns_task(poll_id: Optional[int] = None, time_window_hours: int = 24):
+def analyze_vote_patterns_task(
+    poll_id: Optional[int] = None, time_window_hours: int = 24
+):
     """
     Background task to analyze vote patterns for suspicious activity.
-    
+
     This task runs pattern analysis on votes and generates alerts for
     suspicious patterns like bot attacks, coordinated voting, etc.
-    
+
     Args:
         poll_id: Poll ID to analyze (None for all active polls)
         time_window_hours: Time window to analyze (default: 24 hours)
     """
     try:
-        logger.info(f"Starting vote pattern analysis for poll_id={poll_id}, window={time_window_hours}h")
-        
+        logger.info(
+            f"Starting vote pattern analysis for poll_id={poll_id}, window={time_window_hours}h"
+        )
+
         # Run pattern analysis
-        results = analyze_vote_patterns(poll_id=poll_id, time_window_hours=time_window_hours)
-        
+        results = analyze_vote_patterns(
+            poll_id=poll_id, time_window_hours=time_window_hours
+        )
+
         # Generate alerts for detected patterns
         if poll_id:
             alerts = generate_pattern_alerts(poll_id, results["patterns_detected"])
             logger.info(f"Generated {len(alerts)} fraud alerts for poll {poll_id}")
-        
+
         # Flag high-risk votes
         if poll_id:
             flagged_count = flag_suspicious_votes(poll_id, results["patterns_detected"])
             if flagged_count > 0:
-                logger.warning(f"Flagged {flagged_count} suspicious votes for poll {poll_id}")
-        
+                logger.warning(
+                    f"Flagged {flagged_count} suspicious votes for poll {poll_id}"
+                )
+
         logger.info(
             f"Pattern analysis completed: {results['total_suspicious_patterns']} patterns detected, "
             f"highest risk: {results['highest_risk_score']}, alerts: {results['alerts_generated']}"
         )
-        
+
         return {
             "success": True,
             "poll_id": poll_id,
@@ -166,7 +172,7 @@ def analyze_vote_patterns_task(poll_id: Optional[int] = None, time_window_hours:
             "alerts_generated": results["alerts_generated"],
             "highest_risk_score": results["highest_risk_score"],
         }
-        
+
     except Exception as e:
         logger.error(f"Error in vote pattern analysis task: {e}", exc_info=True)
         return {
@@ -180,58 +186,60 @@ def analyze_vote_patterns_task(poll_id: Optional[int] = None, time_window_hours:
 def periodic_pattern_analysis():
     """
     Periodic task to analyze vote patterns across all active polls.
-    
+
     This task is scheduled to run periodically (e.g., every hour) to detect
     suspicious voting patterns across the entire system.
     """
     try:
         logger.info("Starting periodic pattern analysis for all active polls")
-        
+
         # Get all active polls
         active_polls = Poll.objects.filter(is_active=True)
         # Handle both QuerySet and list (for testing)
-        if hasattr(active_polls, 'count'):
+        if hasattr(active_polls, "count"):
             poll_count = active_polls.count()
         else:
             poll_count = len(active_polls)
-        
+
         logger.info(f"Analyzing {poll_count} active polls")
-        
+
         total_patterns = 0
         total_alerts = 0
         highest_risk = 0
-        
+
         # Analyze each poll
         for poll in active_polls:
             try:
                 results = analyze_vote_patterns(poll_id=poll.id, time_window_hours=24)
-                
+
                 # Generate alerts
                 alerts = generate_pattern_alerts(poll.id, results["patterns_detected"])
-                
+
                 # Flag high-risk votes
-                flagged_count = flag_suspicious_votes(poll.id, results["patterns_detected"])
-                
+                flagged_count = flag_suspicious_votes(
+                    poll.id, results["patterns_detected"]
+                )
+
                 total_patterns += results["total_suspicious_patterns"]
                 total_alerts += len(alerts)
                 highest_risk = max(highest_risk, results["highest_risk_score"])
-                
+
                 if results["total_suspicious_patterns"] > 0:
                     logger.warning(
                         f"Poll {poll.id} ({poll.title}): "
                         f"{results['total_suspicious_patterns']} patterns detected, "
                         f"{len(alerts)} alerts generated, {flagged_count} votes flagged"
                     )
-                    
+
             except Exception as e:
                 logger.error(f"Error analyzing poll {poll.id}: {e}")
                 continue
-        
+
         logger.info(
             f"Periodic analysis completed: {total_patterns} patterns, "
             f"{total_alerts} alerts, highest risk: {highest_risk}"
         )
-        
+
         return {
             "success": True,
             "polls_analyzed": poll_count,
@@ -239,11 +247,10 @@ def periodic_pattern_analysis():
             "total_alerts": total_alerts,
             "highest_risk_score": highest_risk,
         }
-        
+
     except Exception as e:
         logger.error(f"Error in periodic pattern analysis: {e}", exc_info=True)
         return {
             "success": False,
             "error": str(e),
         }
-

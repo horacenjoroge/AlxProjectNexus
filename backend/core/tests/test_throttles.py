@@ -32,7 +32,7 @@ class TestAdvancedRateThrottle:
         throttle = AdvancedRateThrottle()
         request = request_factory.get("/")
         request.META["REMOTE_ADDR"] = "192.168.1.1"
-        
+
         ip = throttle.get_ip_address(request)
         assert ip == "192.168.1.1"
 
@@ -41,7 +41,7 @@ class TestAdvancedRateThrottle:
         throttle = AdvancedRateThrottle()
         request = request_factory.get("/")
         request.META["HTTP_X_FORWARDED_FOR"] = "10.0.0.1, 192.168.1.1"
-        
+
         ip = throttle.get_ip_address(request)
         assert ip == "10.0.0.1"
 
@@ -51,7 +51,7 @@ class TestAdvancedRateThrottle:
         request = request_factory.get("/")
         request.user = AnonymousUser()
         request.META["REMOTE_ADDR"] = "192.168.1.1"
-        
+
         ident = throttle.get_ident(request)
         assert ident.startswith("ip:")
 
@@ -63,7 +63,7 @@ class TestAdvancedRateThrottle:
         user.id = 123
         user.is_authenticated = True
         request.user = user
-        
+
         ident = throttle.get_ident(request)
         assert ident == "user:123"
 
@@ -72,10 +72,10 @@ class TestAdvancedRateThrottle:
         throttle = AdvancedRateThrottle()
         throttle.rate_limit_anon = 10
         throttle.rate_limit_user = 100
-        
+
         request = request_factory.get("/")
         request.user = AnonymousUser()
-        
+
         limit = throttle.get_rate_limit(request)
         assert limit == 10
 
@@ -84,14 +84,14 @@ class TestAdvancedRateThrottle:
         throttle = AdvancedRateThrottle()
         throttle.rate_limit_anon = 10
         throttle.rate_limit_user = 100
-        
+
         request = request_factory.get("/")
         user = Mock()
         user.is_authenticated = True
         user.is_staff = False
         user.is_superuser = False
         request.user = user
-        
+
         limit = throttle.get_rate_limit(request)
         assert limit == 100
 
@@ -100,14 +100,14 @@ class TestAdvancedRateThrottle:
         throttle = AdvancedRateThrottle()
         throttle.rate_limit_anon = 10
         throttle.rate_limit_user = 100
-        
+
         request = request_factory.get("/")
         user = Mock()
         user.is_authenticated = True
         user.is_staff = True
         user.is_superuser = False
         request.user = user
-        
+
         limit = throttle.get_rate_limit(request)
         assert limit is None  # No limit for admin
 
@@ -116,19 +116,22 @@ class TestAdvancedRateThrottle:
         """Test allowing request within rate limit."""
         mock_limiter = MagicMock()
         mock_get_limiter.return_value = mock_limiter
-        mock_limiter.check_rate_limit.return_value = (True, {
-            "remaining": 5,
-            "reset": int(time.time()) + 60,
-            "limit": 10,
-        })
-        
+        mock_limiter.check_rate_limit.return_value = (
+            True,
+            {
+                "remaining": 5,
+                "reset": int(time.time()) + 60,
+                "limit": 10,
+            },
+        )
+
         throttle = AdvancedRateThrottle()
         throttle.rate_limit_anon = 10
         throttle.window_seconds = 60
-        
+
         request = request_factory.get("/")
         request.user = AnonymousUser()
-        
+
         result = throttle.allow_request(request, None)
         assert result is True
         assert hasattr(request, "rate_limit_info")
@@ -138,26 +141,29 @@ class TestAdvancedRateThrottle:
         """Test blocking request that exceeds rate limit."""
         mock_limiter = MagicMock()
         mock_get_limiter.return_value = mock_limiter
-        mock_limiter.check_rate_limit.return_value = (False, {
-            "remaining": 0,
-            "reset": int(time.time()) + 30,
-            "limit": 10,
-        })
-        
+        mock_limiter.check_rate_limit.return_value = (
+            False,
+            {
+                "remaining": 0,
+                "reset": int(time.time()) + 30,
+                "limit": 10,
+            },
+        )
+
         throttle = AdvancedRateThrottle()
         throttle.rate_limit_anon = 10
         throttle.window_seconds = 60
-        
+
         request = request_factory.get("/")
         request.user = AnonymousUser()
-        
+
         with pytest.raises(Throttled) as exc_info:
             throttle.allow_request(request, None)
-        
+
         # DRF may convert detail values to ErrorDetail objects
         limit_value = exc_info.value.detail["limit"]
         # ErrorDetail objects can be compared directly or converted
-        if hasattr(limit_value, '__str__'):
+        if hasattr(limit_value, "__str__"):
             # Convert ErrorDetail to its string representation, then to int
             limit_value = int(str(limit_value))
         assert limit_value == 10
@@ -197,4 +203,3 @@ class TestPollReadRateThrottle:
         assert throttle.rate_limit_anon == 100
         assert throttle.rate_limit_user == 1000
         assert throttle.window_seconds == 60
-

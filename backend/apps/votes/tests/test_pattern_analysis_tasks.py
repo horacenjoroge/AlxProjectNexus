@@ -15,14 +15,18 @@ class TestPatternAnalysisTask:
     @patch("apps.votes.tasks.analyze_vote_patterns")
     @patch("apps.votes.tasks.generate_pattern_alerts")
     @patch("apps.votes.tasks.flag_suspicious_votes")
-    def test_analyze_vote_patterns_task_success(self, mock_flag, mock_alerts, mock_analyze, poll):
+    def test_analyze_vote_patterns_task_success(
+        self, mock_flag, mock_alerts, mock_analyze, poll
+    ):
         """Test successful pattern analysis task execution."""
         # Mock return values
         mock_analyze.return_value = {
             "poll_id": poll.id,
             "analysis_timestamp": "2024-01-01T10:00:00Z",
             "patterns_detected": {
-                "single_ip_single_option": [{"ip_address": "192.168.1.1", "risk_score": 70}],
+                "single_ip_single_option": [
+                    {"ip_address": "192.168.1.1", "risk_score": 70}
+                ],
                 "time_clustered": [],
                 "geographic_anomalies": [],
                 "user_agent_anomalies": [],
@@ -31,7 +35,9 @@ class TestPatternAnalysisTask:
             "highest_risk_score": 70,
             "alerts_generated": 1,  # Changed from 0 to 1 to match test expectation
         }
-        mock_alerts.return_value = [{"vote_id": 1, "pattern_type": "single_ip_single_option"}]
+        mock_alerts.return_value = [
+            {"vote_id": 1, "pattern_type": "single_ip_single_option"}
+        ]
         mock_flag.return_value = 0
 
         result = analyze_vote_patterns_task(poll_id=poll.id, time_window_hours=24)
@@ -60,12 +66,16 @@ class TestPatternAnalysisTask:
     @patch("apps.votes.tasks.analyze_vote_patterns")
     @patch("apps.votes.tasks.generate_pattern_alerts")
     @patch("apps.votes.tasks.flag_suspicious_votes")
-    def test_analyze_vote_patterns_task_flags_votes(self, mock_flag, mock_alerts, mock_analyze, poll):
+    def test_analyze_vote_patterns_task_flags_votes(
+        self, mock_flag, mock_alerts, mock_analyze, poll
+    ):
         """Test that task flags suspicious votes."""
         mock_analyze.return_value = {
             "poll_id": poll.id,
             "patterns_detected": {
-                "single_ip_single_option": [{"ip_address": "192.168.1.1", "risk_score": 85}],
+                "single_ip_single_option": [
+                    {"ip_address": "192.168.1.1", "risk_score": 85}
+                ],
                 "time_clustered": [],
                 "geographic_anomalies": [],
                 "user_agent_anomalies": [],
@@ -91,7 +101,9 @@ class TestPeriodicPatternAnalysis:
     @patch("apps.votes.tasks.analyze_vote_patterns")
     @patch("apps.votes.tasks.generate_pattern_alerts")
     @patch("apps.votes.tasks.flag_suspicious_votes")
-    def test_periodic_pattern_analysis_success(self, mock_flag, mock_alerts, mock_analyze, mock_poll):
+    def test_periodic_pattern_analysis_success(
+        self, mock_flag, mock_alerts, mock_analyze, mock_poll
+    ):
         """Test successful periodic pattern analysis."""
         from apps.polls.models import Poll
 
@@ -160,7 +172,9 @@ class TestPeriodicPatternAnalysis:
     @patch("apps.votes.tasks.analyze_vote_patterns")
     @patch("apps.votes.tasks.generate_pattern_alerts")
     @patch("apps.votes.tasks.flag_suspicious_votes")
-    def test_periodic_pattern_analysis_detects_patterns(self, mock_flag, mock_alerts, mock_analyze, mock_poll):
+    def test_periodic_pattern_analysis_detects_patterns(
+        self, mock_flag, mock_alerts, mock_analyze, mock_poll
+    ):
         """Test that periodic analysis detects and reports patterns."""
         from apps.polls.models import Poll
 
@@ -177,7 +191,9 @@ class TestPeriodicPatternAnalysis:
         mock_analyze.return_value = {
             "poll_id": 1,
             "patterns_detected": {
-                "single_ip_single_option": [{"ip_address": "192.168.1.1", "risk_score": 70}],
+                "single_ip_single_option": [
+                    {"ip_address": "192.168.1.1", "risk_score": 70}
+                ],
                 "time_clustered": [],
                 "geographic_anomalies": [],
                 "user_agent_anomalies": [],
@@ -195,4 +211,3 @@ class TestPeriodicPatternAnalysis:
         assert result["total_patterns"] == 1
         assert result["total_alerts"] == 1
         assert result["highest_risk_score"] == 70
-

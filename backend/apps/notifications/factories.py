@@ -76,4 +76,3 @@ class NotificationDeliveryFactory(factory.django.DjangoModelFactory):
     sent_at = None
     error_message = ""
     external_id = ""
-

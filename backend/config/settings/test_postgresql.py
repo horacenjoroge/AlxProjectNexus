@@ -53,6 +53,7 @@ DATABASES["default"]["TEST"]["SERIALIZE"] = False
 # This allows Redis integration tests to run when Redis is available
 try:
     import redis
+
     redis_client = redis.Redis(
         host=os.environ.get("REDIS_HOST", "localhost"),
         port=int(os.environ.get("REDIS_PORT", 6379)),
@@ -64,7 +65,7 @@ try:
     REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
     REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
     REDIS_DB = int(os.environ.get("REDIS_DB", 0))
-    
+
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
@@ -75,7 +76,7 @@ try:
             "KEY_PREFIX": "provote_test",
         }
     }
-    
+
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -91,7 +92,7 @@ except Exception:
             "BACKEND": "channels.layers.InMemoryChannelLayer",
         },
     }
-    
+
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.dummy.DummyCache",
@@ -109,4 +110,3 @@ except Exception:
 #         return None
 #
 # MIGRATION_MODULES = DisableMigrations()
-

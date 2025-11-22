@@ -48,7 +48,10 @@ class TestOptionCountValidation:
         response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "more than 100 options" in str(response.data).lower() or "cannot have more than 100" in str(response.data).lower()
+        assert (
+            "more than 100 options" in str(response.data).lower()
+            or "cannot have more than 100" in str(response.data).lower()
+        )
 
     def test_poll_with_2_options_accepted(self, user):
         """Test that poll with 2 options is accepted."""
@@ -107,7 +110,10 @@ class TestOptionCountValidation:
         response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "maximum allowed" in str(response.data).lower() or "more than 100" in str(response.data).lower()
+        assert (
+            "maximum allowed" in str(response.data).lower()
+            or "more than 100" in str(response.data).lower()
+        )
 
 
 @pytest.mark.django_db
@@ -133,7 +139,10 @@ class TestDateValidation:
         response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "future" in str(response.data).lower() or "expiry date must be" in str(response.data).lower()
+        assert (
+            "future" in str(response.data).lower()
+            or "expiry date must be" in str(response.data).lower()
+        )
 
     def test_start_date_after_expiry_rejected(self, user):
         """Test that start date after expiry is rejected."""
@@ -156,7 +165,10 @@ class TestDateValidation:
         response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "after start date" in str(response.data).lower() or "before expiry date" in str(response.data).lower()
+        assert (
+            "after start date" in str(response.data).lower()
+            or "before expiry date" in str(response.data).lower()
+        )
 
     def test_valid_dates_accepted(self, user):
         """Test that valid dates are accepted."""
@@ -221,7 +233,10 @@ class TestExpiredPollActivation:
         response = client.patch(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "cannot activate" in str(response.data).lower() or "already expired" in str(response.data).lower()
+        assert (
+            "cannot activate" in str(response.data).lower()
+            or "already expired" in str(response.data).lower()
+        )
 
     def test_expired_poll_stays_inactive(self, user):
         """Test that expired poll stays inactive after update attempt."""
@@ -298,7 +313,10 @@ class TestOptionModificationAfterVotes:
         response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "cannot modify options" in str(response.data).lower() or "cannot add options" in str(response.data).lower()
+        assert (
+            "cannot modify options" in str(response.data).lower()
+            or "cannot add options" in str(response.data).lower()
+        )
 
     def test_can_modify_options_after_votes_when_allowed(self, user, poll, choices):
         """Test that options can be modified after votes when setting allows it."""
@@ -462,4 +480,3 @@ class TestValidationIntegration:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["title"] == "Valid Poll"
         assert len(response.data["options"]) == 2
-

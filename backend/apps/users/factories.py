@@ -53,4 +53,3 @@ class FollowFactory(factory.django.DjangoModelFactory):
 
     follower = factory.SubFactory(UserFactory)
     following = factory.SubFactory(UserFactory)
-

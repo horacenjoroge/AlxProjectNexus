@@ -30,7 +30,9 @@ from apps.votes.models import Vote
 @pytest.fixture
 def user():
     """Create a test user."""
-    return User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+    return User.objects.create_user(
+        username="testuser", email="test@example.com", password="testpass123"
+    )
 
 
 @pytest.fixture
@@ -175,7 +177,10 @@ class TestNotificationTypes:
         ).first()
 
         assert notification is not None
-        assert "expiring" in notification.title.lower() or "expire" in notification.title.lower()
+        assert (
+            "expiring" in notification.title.lower()
+            or "expire" in notification.title.lower()
+        )
 
 
 @pytest.mark.django_db
@@ -213,16 +218,22 @@ class TestNotificationPreferences:
         preferences.email_enabled = True
         preferences.save()
 
-        assert preferences.is_channel_enabled(
-            NotificationType.POLL_RESULTS_AVAILABLE, DeliveryChannel.EMAIL
-        ) is True
+        assert (
+            preferences.is_channel_enabled(
+                NotificationType.POLL_RESULTS_AVAILABLE, DeliveryChannel.EMAIL
+            )
+            is True
+        )
 
         preferences.email_enabled = False
         preferences.save()
 
-        assert preferences.is_channel_enabled(
-            NotificationType.POLL_RESULTS_AVAILABLE, DeliveryChannel.EMAIL
-        ) is False
+        assert (
+            preferences.is_channel_enabled(
+                NotificationType.POLL_RESULTS_AVAILABLE, DeliveryChannel.EMAIL
+            )
+            is False
+        )
 
 
 @pytest.mark.django_db
@@ -366,4 +377,3 @@ class TestNotificationPreferencesAPI:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["unsubscribed"] is False
-

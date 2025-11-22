@@ -50,7 +50,7 @@ class TestAnalyticsEndpoints:
 
         # Create another user (not poll owner)
         other_user = User.objects.create_user(username="otheruser", password="pass")
-        
+
         # Create a vote
         Vote.objects.create(
             user=other_user,
@@ -80,7 +80,7 @@ class TestAnalyticsEndpoints:
         admin_user = User.objects.create_user(
             username="admin", password="pass", is_staff=True
         )
-        
+
         # Create a vote
         Vote.objects.create(
             user=admin_user,
@@ -184,8 +184,11 @@ class TestAnalyticsEndpoints:
 
         # Create votes at different times (use different user for second vote)
         import uuid
-        user2 = User.objects.create_user(username=f"testuser2_{uuid.uuid4().hex[:8]}", password="pass")
-        
+
+        user2 = User.objects.create_user(
+            username=f"testuser2_{uuid.uuid4().hex[:8]}", password="pass"
+        )
+
         with freeze_time("2024-01-01 10:00:00"):
             Vote.objects.create(
                 user=user,
@@ -313,27 +316,38 @@ class TestAnalyticsEndpoints:
         )
 
         url = f"/api/v1/polls/{poll.id}/analytics/"
-        
+
         # First request - should generate and cache
         response1 = client.get(url)
         assert response1.status_code == status.HTTP_200_OK
-        
+
         # Check cache was set (only if cache backend supports it)
         cache_key = f"poll_analytics:{poll.id}"
         cached_data = cache.get(cache_key)
         # Cache might not be available in test environment (Redis not running)
         # If cache is available, verify it was set
         from django.conf import settings
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' not in cache_backend.lower() and 'locmem' not in cache_backend.lower():
-            assert cached_data is not None, "Cache should be set if cache backend is available"
-        
+
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if (
+            "dummy" not in cache_backend.lower()
+            and "locmem" not in cache_backend.lower()
+        ):
+            assert (
+                cached_data is not None
+            ), "Cache should be set if cache backend is available"
+
         # Second request - should use cache
         # Create another vote from a different user (should not affect cached response)
         from django.contrib.auth.models import User
         import time
+
         timestamp = int(time.time() * 1000000)
-        other_user = User.objects.create_user(username=f"other_{timestamp}", password="pass")
+        other_user = User.objects.create_user(
+            username=f"other_{timestamp}", password="pass"
+        )
         Vote.objects.create(
             user=other_user,
             poll=poll,
@@ -342,10 +356,10 @@ class TestAnalyticsEndpoints:
             voter_token="token2",
             idempotency_key="key2",
         )
-        
+
         response2 = client.get(url)
         assert response2.status_code == status.HTTP_200_OK
-        
+
         # Cached response should have same total_votes (before new vote)
         # Note: In a real scenario, cache would be invalidated on new vote
         # For this test, we're just verifying caching works
@@ -374,21 +388,29 @@ class TestAnalyticsEndpoints:
         )
 
         url = f"/api/v1/polls/{poll.id}/analytics/timeseries/?interval=hour"
-        
+
         # First request
         response1 = client.get(url)
         assert response1.status_code == status.HTTP_200_OK
-        
+
         # Check cache was set (only if cache backend supports it)
         cache_key = f"poll_timeseries:{poll.id}:hour:None:None"
         cached_data = cache.get(cache_key)
         # Cache might not be available in test environment (Redis not running)
         # If cache is available, verify it was set
         from django.conf import settings
-        cache_backend = getattr(settings, 'CACHES', {}).get('default', {}).get('BACKEND', '')
-        if 'dummy' not in cache_backend.lower() and 'locmem' not in cache_backend.lower():
-            assert cached_data is not None, "Cache should be set if cache backend is available"
-        
+
+        cache_backend = (
+            getattr(settings, "CACHES", {}).get("default", {}).get("BACKEND", "")
+        )
+        if (
+            "dummy" not in cache_backend.lower()
+            and "locmem" not in cache_backend.lower()
+        ):
+            assert (
+                cached_data is not None
+            ), "Cache should be set if cache backend is available"
+
         # Second request - should use cache
         response2 = client.get(url)
         assert response2.status_code == status.HTTP_200_OK
@@ -427,7 +449,7 @@ class TestAnalyticsEndpoints:
 
         # Create non-owner user
         other_user = User.objects.create_user(username="otheruser", password="pass")
-        
+
         Vote.objects.create(
             user=other_user,
             poll=poll,
@@ -449,5 +471,6 @@ class TestAnalyticsEndpoints:
 
         for endpoint in endpoints:
             response = client.get(endpoint)
-            assert response.status_code == status.HTTP_403_FORBIDDEN, f"Endpoint {endpoint} should be forbidden"
-
+            assert (
+                response.status_code == status.HTTP_403_FORBIDDEN
+            ), f"Endpoint {endpoint} should be forbidden"

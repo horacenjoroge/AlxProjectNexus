@@ -73,8 +73,14 @@ class Notification(models.Model):
         help_text="Additional metadata for the notification",
     )
     # Status
-    is_read = models.BooleanField(default=False, db_index=True, help_text="Whether user has read this notification")
-    read_at = models.DateTimeField(null=True, blank=True, help_text="When notification was read")
+    is_read = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether user has read this notification",
+    )
+    read_at = models.DateTimeField(
+        null=True, blank=True, help_text="When notification was read"
+    )
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -108,30 +114,64 @@ class NotificationPreference(models.Model):
         help_text="User these preferences belong to",
     )
     # Preferences for each notification type
-    poll_results_available_email = models.BooleanField(default=True, help_text="Email for poll results")
-    poll_results_available_in_app = models.BooleanField(default=True, help_text="In-app for poll results")
-    poll_results_available_push = models.BooleanField(default=False, help_text="Push for poll results")
+    poll_results_available_email = models.BooleanField(
+        default=True, help_text="Email for poll results"
+    )
+    poll_results_available_in_app = models.BooleanField(
+        default=True, help_text="In-app for poll results"
+    )
+    poll_results_available_push = models.BooleanField(
+        default=False, help_text="Push for poll results"
+    )
 
-    new_poll_from_followed_email = models.BooleanField(default=True, help_text="Email for new polls from followed creators")
-    new_poll_from_followed_in_app = models.BooleanField(default=True, help_text="In-app for new polls from followed creators")
-    new_poll_from_followed_push = models.BooleanField(default=False, help_text="Push for new polls from followed creators")
+    new_poll_from_followed_email = models.BooleanField(
+        default=True, help_text="Email for new polls from followed creators"
+    )
+    new_poll_from_followed_in_app = models.BooleanField(
+        default=True, help_text="In-app for new polls from followed creators"
+    )
+    new_poll_from_followed_push = models.BooleanField(
+        default=False, help_text="Push for new polls from followed creators"
+    )
 
-    poll_about_to_expire_email = models.BooleanField(default=True, help_text="Email for poll expiration warnings")
-    poll_about_to_expire_in_app = models.BooleanField(default=True, help_text="In-app for poll expiration warnings")
-    poll_about_to_expire_push = models.BooleanField(default=False, help_text="Push for poll expiration warnings")
+    poll_about_to_expire_email = models.BooleanField(
+        default=True, help_text="Email for poll expiration warnings"
+    )
+    poll_about_to_expire_in_app = models.BooleanField(
+        default=True, help_text="In-app for poll expiration warnings"
+    )
+    poll_about_to_expire_push = models.BooleanField(
+        default=False, help_text="Push for poll expiration warnings"
+    )
 
-    vote_flagged_email = models.BooleanField(default=True, help_text="Email for flagged votes")
-    vote_flagged_in_app = models.BooleanField(default=True, help_text="In-app for flagged votes")
-    vote_flagged_push = models.BooleanField(default=False, help_text="Push for flagged votes")
+    vote_flagged_email = models.BooleanField(
+        default=True, help_text="Email for flagged votes"
+    )
+    vote_flagged_in_app = models.BooleanField(
+        default=True, help_text="In-app for flagged votes"
+    )
+    vote_flagged_push = models.BooleanField(
+        default=False, help_text="Push for flagged votes"
+    )
 
     # Global preferences
-    email_enabled = models.BooleanField(default=True, help_text="Enable all email notifications")
-    in_app_enabled = models.BooleanField(default=True, help_text="Enable all in-app notifications")
-    push_enabled = models.BooleanField(default=False, help_text="Enable all push notifications")
+    email_enabled = models.BooleanField(
+        default=True, help_text="Enable all email notifications"
+    )
+    in_app_enabled = models.BooleanField(
+        default=True, help_text="Enable all in-app notifications"
+    )
+    push_enabled = models.BooleanField(
+        default=False, help_text="Enable all push notifications"
+    )
 
     # Unsubscribe
-    unsubscribed = models.BooleanField(default=False, help_text="User has unsubscribed from all notifications")
-    unsubscribed_at = models.DateTimeField(null=True, blank=True, help_text="When user unsubscribed")
+    unsubscribed = models.BooleanField(
+        default=False, help_text="User has unsubscribed from all notifications"
+    )
+    unsubscribed_at = models.DateTimeField(
+        null=True, blank=True, help_text="When user unsubscribed"
+    )
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -205,8 +245,12 @@ class NotificationDelivery(models.Model):
         help_text="Delivery status",
     )
     # Delivery metadata
-    sent_at = models.DateTimeField(null=True, blank=True, help_text="When notification was sent")
-    error_message = models.TextField(blank=True, help_text="Error message if delivery failed")
+    sent_at = models.DateTimeField(
+        null=True, blank=True, help_text="When notification was sent"
+    )
+    error_message = models.TextField(
+        blank=True, help_text="Error message if delivery failed"
+    )
     # External references (e.g., email message ID, push notification ID)
     external_id = models.CharField(
         max_length=255,
@@ -227,7 +271,9 @@ class NotificationDelivery(models.Model):
         verbose_name_plural = "Notification Deliveries"
 
     def __str__(self):
-        return f"{self.notification.notification_type} via {self.channel} - {self.status}"
+        return (
+            f"{self.notification.notification_type} via {self.channel} - {self.status}"
+        )
 
     def mark_as_sent(self, external_id: str = None):
         """Mark delivery as sent."""
@@ -243,4 +289,3 @@ class NotificationDelivery(models.Model):
         if error_message:
             self.error_message = error_message
         self.save(update_fields=["status", "error_message"])
-

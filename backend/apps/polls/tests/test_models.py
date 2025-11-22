@@ -30,7 +30,10 @@ class TestPollModel:
         assert poll.created_by == user
         assert poll.is_active is True
         assert poll.settings == {"allow_multiple_votes": False, "show_results": True}
-        assert poll.security_rules == {"require_authentication": True, "ip_whitelist": []}
+        assert poll.security_rules == {
+            "require_authentication": True,
+            "ip_whitelist": [],
+        }
         assert poll.cached_total_votes == 0
         assert poll.cached_unique_voters == 0
         assert poll.created_at is not None
@@ -84,7 +87,7 @@ class TestPollModel:
         # Create some votes from different users (same user can't vote twice on same poll)
         option1 = PollOption.objects.create(poll=poll, text="Option 1")
         option2 = PollOption.objects.create(poll=poll, text="Option 2")
-        
+
         timestamp = int(time.time() * 1000000)
         user2 = User.objects.create_user(username=f"user2_{timestamp}", password="pass")
 
@@ -211,12 +214,16 @@ class TestPollModelDatabaseConstraints:
         with pytest.raises(Exception):
             Poll.objects.create(title="Test Poll")
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_poll_indexes_exist(self, poll):
         """Test that poll indexes exist."""
         from django.db import connection
 
-        indexes = connection.introspection.get_indexes(connection.cursor(), "polls_poll")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "polls_poll"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
 
         # Check for created_at index
@@ -248,13 +255,17 @@ class TestPollOptionModelDatabaseConstraints:
         with pytest.raises(ValidationError):
             option.full_clean()
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_poll_option_indexes_exist(self, poll):
         """Test that poll option indexes exist."""
         from django.db import connection
 
         PollOption.objects.create(poll=poll, text="Option 1", order=1)
-        indexes = connection.introspection.get_indexes(connection.cursor(), "polls_polloption")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "polls_polloption"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
 
         # Check for poll, order index

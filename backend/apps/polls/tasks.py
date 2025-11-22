@@ -38,7 +38,7 @@ def export_poll_data_task(
 ):
     """
     Background task to export poll data and email the result.
-    
+
     Args:
         poll_id: Poll ID
         export_type: Type of export ('results', 'vote_log', 'analytics', 'audit')
@@ -48,21 +48,23 @@ def export_poll_data_task(
         include_invalid: Whether to include invalid votes (for vote_log)
         start_date: Start date for audit trail (ISO format string)
         end_date: End date for audit trail (ISO format string)
-        
+
     Returns:
         dict: Task result with status and file info
     """
     from datetime import datetime
     from django.core.files.base import ContentFile
     from django.core.files.storage import default_storage
-    
+
     try:
         from apps.polls.models import Poll
-        
+
         poll = Poll.objects.get(id=poll_id)
-        
-        logger.info(f"Starting export task: poll_id={poll_id}, type={export_type}, format={format}")
-        
+
+        logger.info(
+            f"Starting export task: poll_id={poll_id}, type={export_type}, format={format}"
+        )
+
         # Generate export
         if export_type == "results":
             if format == "csv":
@@ -80,18 +82,20 @@ def export_poll_data_task(
                 content_type = "application/pdf"
             else:
                 raise ValueError(f"Unsupported format for results: {format}")
-        
+
         elif export_type == "vote_log":
             content = export_vote_log(
                 poll_id=poll_id,
                 format=format,
                 anonymize=anonymize,
-                include_invalid=include_invalid
+                include_invalid=include_invalid,
             )
             ext = format
             filename = f"poll_{poll_id}_vote_log_{timezone.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
-            content_type = f"text/{format}" if format == "csv" else f"application/{format}"
-        
+            content_type = (
+                f"text/{format}" if format == "csv" else f"application/{format}"
+            )
+
         elif export_type == "analytics":
             if format != "pdf":
                 raise ValueError("Analytics reports only support PDF format")
@@ -99,30 +103,35 @@ def export_poll_data_task(
             content = pdf_buffer.getvalue()
             filename = f"poll_{poll_id}_analytics_{timezone.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             content_type = "application/pdf"
-        
+
         elif export_type == "audit":
             start_dt = datetime.fromisoformat(start_date) if start_date else None
             end_dt = datetime.fromisoformat(end_date) if end_date else None
             content = export_audit_trail(
-                poll_id=poll_id,
-                format=format,
-                start_date=start_dt,
-                end_date=end_dt
+                poll_id=poll_id, format=format, start_date=start_dt, end_date=end_dt
             )
             ext = format
-            filename = f"poll_{poll_id}_audit_{timezone.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
-            content_type = f"text/{format}" if format == "csv" else f"application/{format}"
-        
+            filename = (
+                f"poll_{poll_id}_audit_{timezone.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+            )
+            content_type = (
+                f"text/{format}" if format == "csv" else f"application/{format}"
+            )
+
         else:
             raise ValueError(f"Unsupported export type: {export_type}")
-        
+
         # Save to storage
         file_path = f"exports/{filename}"
         default_storage.save(file_path, ContentFile(content))
-        
+
         # Generate download URL (this would be your actual URL generation logic)
-        download_url = f"{settings.BASE_URL}/media/{file_path}" if hasattr(settings, 'BASE_URL') else file_path
-        
+        download_url = (
+            f"{settings.BASE_URL}/media/{file_path}"
+            if hasattr(settings, "BASE_URL")
+            else file_path
+        )
+
         # Send email
         subject = f"Poll Export Ready: {poll.title}"
         message = f"""
@@ -137,7 +146,7 @@ Download: {download_url}
 
 This link will be available for 7 days.
         """.strip()
-        
+
         send_mail(
             subject=subject,
             message=message,
@@ -145,9 +154,9 @@ This link will be available for 7 days.
             recipient_list=[user_email],
             fail_silently=False,
         )
-        
+
         logger.info(f"Export task completed: poll_id={poll_id}, file={filename}")
-        
+
         return {
             "success": True,
             "poll_id": poll_id,
@@ -158,10 +167,10 @@ This link will be available for 7 days.
             "download_url": download_url,
             "size_bytes": len(content) if isinstance(content, (str, bytes)) else 0,
         }
-        
+
     except Exception as e:
         logger.error(f"Export task failed: poll_id={poll_id}, error={e}", exc_info=True)
-        
+
         # Send error email
         try:
             send_mail(
@@ -173,7 +182,7 @@ This link will be available for 7 days.
             )
         except Exception as email_error:
             logger.error(f"Failed to send error email: {email_error}")
-        
+
         return {
             "success": False,
             "poll_id": poll_id,
@@ -185,30 +194,32 @@ This link will be available for 7 days.
 def activate_scheduled_poll(poll_id: int):
     """
     Activate a poll that has reached its start time.
-    
+
     Args:
         poll_id: Poll ID to activate
-        
+
     Returns:
         dict: Task result with activation status
     """
     try:
         from apps.polls.models import Poll
         from core.services.poll_notifications import send_poll_opened_notification
-        
+
         poll = Poll.objects.get(id=poll_id)
         now = timezone.now()
-        
+
         # Check if poll should be activated
         if poll.starts_at <= now and not poll.is_active:
             poll.is_active = True
             poll.save(update_fields=["is_active"])
-            
-            logger.info(f"Activated scheduled poll: poll_id={poll_id}, starts_at={poll.starts_at}")
-            
+
+            logger.info(
+                f"Activated scheduled poll: poll_id={poll_id}, starts_at={poll.starts_at}"
+            )
+
             # Send notification
             send_poll_opened_notification(poll)
-            
+
             return {
                 "success": True,
                 "poll_id": poll_id,
@@ -225,7 +236,7 @@ def activate_scheduled_poll(poll_id: int):
                 "poll_id": poll_id,
                 "reason": "Poll already active or not yet ready",
             }
-            
+
     except Poll.DoesNotExist:
         logger.error(f"Poll {poll_id} not found for activation")
         return {
@@ -246,30 +257,32 @@ def activate_scheduled_poll(poll_id: int):
 def close_scheduled_poll(poll_id: int):
     """
     Close a poll that has reached its end time.
-    
+
     Args:
         poll_id: Poll ID to close
-        
+
     Returns:
         dict: Task result with closing status
     """
     try:
         from apps.polls.models import Poll
         from core.services.poll_notifications import send_poll_closed_notification
-        
+
         poll = Poll.objects.get(id=poll_id)
         now = timezone.now()
-        
+
         # Check if poll should be closed
         if poll.ends_at and poll.ends_at <= now and poll.is_active:
             poll.is_active = False
             poll.save(update_fields=["is_active"])
-            
-            logger.info(f"Closed scheduled poll: poll_id={poll_id}, ends_at={poll.ends_at}")
-            
+
+            logger.info(
+                f"Closed scheduled poll: poll_id={poll_id}, ends_at={poll.ends_at}"
+            )
+
             # Send notification
             send_poll_closed_notification(poll)
-            
+
             return {
                 "success": True,
                 "poll_id": poll_id,
@@ -286,7 +299,7 @@ def close_scheduled_poll(poll_id: int):
                 "poll_id": poll_id,
                 "reason": "Poll already closed or not yet ready",
             }
-            
+
     except Poll.DoesNotExist:
         logger.error(f"Poll {poll_id} not found for closing")
         return {
@@ -313,11 +326,11 @@ def check_poll_expiration_warnings():
         from apps.polls.models import Poll
         from apps.notifications.services import notify_poll_about_to_expire
         from datetime import timedelta
-        
+
         now = timezone.now()
         # Check polls expiring in the next 24 hours
         warning_time = now + timedelta(hours=24)
-        
+
         # Find polls that will expire in the next 24 hours and haven't been notified
         polls_to_warn = Poll.objects.filter(
             is_active=True,
@@ -325,7 +338,7 @@ def check_poll_expiration_warnings():
             ends_at__gt=now,
             ends_at__lte=warning_time,
         ).select_related("created_by")
-        
+
         notified_count = 0
         for poll in polls_to_warn:
             try:
@@ -335,14 +348,16 @@ def check_poll_expiration_warnings():
                 notify_poll_about_to_expire(poll, hours_before=24)
                 notified_count += 1
             except Exception as e:
-                logger.error(f"Error sending expiration warning for poll {poll.id}: {e}")
-        
+                logger.error(
+                    f"Error sending expiration warning for poll {poll.id}: {e}"
+                )
+
         logger.info(f"Sent expiration warnings for {notified_count} polls")
         return {
             "success": True,
             "notified_count": notified_count,
         }
-        
+
     except Exception as e:
         logger.error(f"Error checking poll expiration warnings: {e}", exc_info=True)
         return {
@@ -356,27 +371,24 @@ def process_scheduled_polls():
     """
     Periodic task to check and process scheduled polls.
     Checks for polls that need to be activated or closed.
-    
+
     This task should run frequently (e.g., every minute) via Celery Beat.
-    
+
     Returns:
         dict: Summary of processed polls
     """
     try:
         from apps.polls.models import Poll
-        
+
         now = timezone.now()
         activated_count = 0
         closed_count = 0
         errors = []
-        
+
         # Find polls that need to be activated
         # Polls where starts_at <= now and is_active=False
-        polls_to_activate = Poll.objects.filter(
-            starts_at__lte=now,
-            is_active=False
-        )
-        
+        polls_to_activate = Poll.objects.filter(starts_at__lte=now, is_active=False)
+
         for poll in polls_to_activate:
             try:
                 # Call activation directly (not as a separate task) for efficiency
@@ -386,14 +398,11 @@ def process_scheduled_polls():
             except Exception as e:
                 logger.error(f"Error processing poll {poll.id} for activation: {e}")
                 errors.append(f"Poll {poll.id}: {str(e)}")
-        
+
         # Find polls that need to be closed
         # Polls where ends_at <= now and is_active=True
-        polls_to_close = Poll.objects.filter(
-            ends_at__lte=now,
-            is_active=True
-        )
-        
+        polls_to_close = Poll.objects.filter(ends_at__lte=now, is_active=True)
+
         for poll in polls_to_close:
             try:
                 # Call closing directly (not as a separate task) for efficiency
@@ -403,12 +412,12 @@ def process_scheduled_polls():
             except Exception as e:
                 logger.error(f"Error processing poll {poll.id} for closing: {e}")
                 errors.append(f"Poll {poll.id}: {str(e)}")
-        
+
         logger.info(
             f"Processed scheduled polls: {activated_count} activated, "
             f"{closed_count} closed, {len(errors)} errors"
         )
-        
+
         return {
             "success": True,
             "activated_count": activated_count,
@@ -416,11 +425,10 @@ def process_scheduled_polls():
             "errors": errors,
             "processed_at": now.isoformat(),
         }
-        
+
     except Exception as e:
         logger.error(f"Error processing scheduled polls: {e}", exc_info=True)
         return {
             "success": False,
             "error": str(e),
         }
-

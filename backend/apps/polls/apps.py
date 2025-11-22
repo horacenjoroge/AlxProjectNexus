@@ -21,11 +21,11 @@ class PollsConfig(AppConfig):
             from . import translation  # noqa: F401
         except ImportError:
             pass  # Translation module may not exist in all environments
-        
+
         # Only start subscriber in non-test environments
         import sys
         from django.conf import settings
-        
+
         # Skip if running tests, migrations, or in test settings
         if (
             "test" in sys.argv
@@ -35,13 +35,13 @@ class PollsConfig(AppConfig):
             or getattr(settings, "TESTING", False)
         ):
             return
-        
+
         try:
             from core.utils.redis_pubsub import get_subscriber, setup_signal_handlers
-            
+
             # Setup signal handlers for graceful shutdown
             setup_signal_handlers()
-            
+
             # Start the subscriber
             subscriber = get_subscriber()
             if not subscriber.is_running():

@@ -23,9 +23,7 @@ def create_websocket_communicator(poll_id, user=None):
     if user:
         communicator.scope["user"] = user
     # Add url_route information that the consumer expects
-    communicator.scope["url_route"] = {
-        "kwargs": {"poll_id": poll_id}
-    }
+    communicator.scope["url_route"] = {"kwargs": {"poll_id": poll_id}}
     return communicator
 
 
@@ -37,6 +35,7 @@ class TestWebSocketConnection:
     async def test_websocket_connection_established(self, poll, choices):
         """Test that WebSocket connection is successfully established."""
         import time
+
         # Configure poll to show results
         poll.settings["show_results_during_voting"] = True
         await database_sync_to_async(poll.save)()
@@ -98,6 +97,7 @@ class TestWebSocketConnection:
     async def test_websocket_connection_rejected_for_nonexistent_poll(self):
         """Test that WebSocket connection is rejected for nonexistent poll."""
         import time
+
         user = await database_sync_to_async(User.objects.create_user)(
             username=f"testuser_{int(time.time() * 1000000)}", password="testpass"
         )
@@ -120,6 +120,7 @@ class TestWebSocketSubscription:
         await database_sync_to_async(poll.save)()
 
         import time
+
         user = await database_sync_to_async(User.objects.create_user)(
             username=f"testuser_{int(time.time() * 1000000)}", password="testpass"
         )
@@ -144,6 +145,7 @@ class TestWebSocketSubscription:
         await database_sync_to_async(poll.save)()
 
         import time
+
         user = await database_sync_to_async(User.objects.create_user)(
             username=f"testuser_{int(time.time() * 1000000)}", password="testpass"
         )
@@ -171,6 +173,7 @@ class TestWebSocketSubscription:
         await database_sync_to_async(poll.save)()
 
         import time
+
         user = await database_sync_to_async(User.objects.create_user)(
             username=f"testuser_{int(time.time() * 1000000)}", password="testpass"
         )
@@ -206,6 +209,7 @@ class TestWebSocketUpdates:
         await database_sync_to_async(poll.save)()
 
         import time
+
         user = await database_sync_to_async(User.objects.create_user)(
             username=f"testuser_{int(time.time() * 1000000)}", password="testpass"
         )
@@ -248,6 +252,7 @@ class TestWebSocketUpdates:
         await database_sync_to_async(poll.save)()
 
         import time
+
         timestamp = int(time.time() * 1000000)
         user1 = await database_sync_to_async(User.objects.create_user)(
             username=f"user1_{timestamp}", password="testpass"
@@ -307,6 +312,7 @@ class TestWebSocketDisconnection:
         await database_sync_to_async(poll.save)()
 
         import time
+
         user = await database_sync_to_async(User.objects.create_user)(
             username=f"testuser_{int(time.time() * 1000000)}", password="testpass"
         )
@@ -327,6 +333,7 @@ class TestWebSocketDisconnection:
         await database_sync_to_async(poll.save)()
 
         import time
+
         timestamp = int(time.time() * 1000000)
         user1 = await database_sync_to_async(User.objects.create_user)(
             username=f"user1_{timestamp}", password="testpass"
@@ -388,6 +395,7 @@ class TestWebSocketErrorHandling:
         await database_sync_to_async(poll.save)()
 
         import time
+
         user = await database_sync_to_async(User.objects.create_user)(
             username=f"testuser_{int(time.time() * 1000000)}", password="testpass"
         )
@@ -415,6 +423,7 @@ class TestWebSocketErrorHandling:
         await database_sync_to_async(poll.save)()
 
         import time
+
         user = await database_sync_to_async(User.objects.create_user)(
             username=f"testuser_{int(time.time() * 1000000)}", password="testpass"
         )
@@ -451,13 +460,16 @@ class TestWebSocketLoad:
 
         # Skip this test on SQLite as it doesn't handle concurrent connections well
         if connection.vendor == "sqlite":
-            pytest.skip("Concurrent WebSocket load test requires PostgreSQL, skipped on SQLite")
+            pytest.skip(
+                "Concurrent WebSocket load test requires PostgreSQL, skipped on SQLite"
+            )
 
         poll.settings["show_results_during_voting"] = True
         await database_sync_to_async(poll.save)()
 
         # Create 1000 users (use unique usernames to avoid conflicts)
         import time
+
         timestamp = int(time.time() * 1000000)
         users = []
         for i in range(1000):
@@ -477,10 +489,12 @@ class TestWebSocketLoad:
             tasks = [comm.connect() for comm in communicators]
             results = await asyncio.wait_for(
                 asyncio.gather(*tasks, return_exceptions=True),
-                timeout=30.0  # 30 second timeout
+                timeout=30.0,  # 30 second timeout
             )
         except asyncio.TimeoutError:
-            pytest.skip("WebSocket load test timed out - may need more resources or PostgreSQL")
+            pytest.skip(
+                "WebSocket load test timed out - may need more resources or PostgreSQL"
+            )
 
         # Count successful connections
         successful_connections = sum(
@@ -488,9 +502,10 @@ class TestWebSocketLoad:
         )
 
         # Should have at least 95% success rate (allowing for some failures)
-        assert successful_connections >= 950, f"Only {successful_connections}/1000 connections succeeded"
+        assert (
+            successful_connections >= 950
+        ), f"Only {successful_connections}/1000 connections succeeded"
 
         # Disconnect all
         disconnect_tasks = [comm.disconnect() for comm in communicators]
         await asyncio.gather(*disconnect_tasks, return_exceptions=True)
-

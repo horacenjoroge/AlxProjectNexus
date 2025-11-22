@@ -53,20 +53,27 @@ class PollOptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PollOption
-        fields = ["id", "text", "order", "vote_count", "cached_vote_count", "created_at"]
+        fields = [
+            "id",
+            "text",
+            "order",
+            "vote_count",
+            "cached_vote_count",
+            "created_at",
+        ]
         read_only_fields = ["id", "vote_count", "cached_vote_count", "created_at"]
 
     def to_representation(self, instance):
         """Override to return translated text based on request language."""
         data = super().to_representation(instance)
-        
+
         # Get language from request context
         request = self.context.get("request")
         if request:
             language_code = get_request_language(request)
             # Get translated text
             data["text"] = get_translated_field(instance, "text", language_code)
-        
+
         return data
 
 
@@ -94,12 +101,16 @@ class PollSerializer(serializers.ModelSerializer):
     created_by = serializers.StringRelatedField(read_only=True)
     created_by_id = serializers.IntegerField(source="created_by.id", read_only=True)
     category = CategorySerializer(read_only=True)
-    category_id = serializers.IntegerField(source="category.id", read_only=True, allow_null=True)
+    category_id = serializers.IntegerField(
+        source="category.id", read_only=True, allow_null=True
+    )
     tags = TagSerializer(many=True, read_only=True)
     tag_ids = serializers.SerializerMethodField()
     is_open = serializers.ReadOnlyField()
     total_votes = serializers.IntegerField(source="cached_total_votes", read_only=True)
-    unique_voters = serializers.IntegerField(source="cached_unique_voters", read_only=True)
+    unique_voters = serializers.IntegerField(
+        source="cached_unique_voters", read_only=True
+    )
 
     class Meta:
         model = Poll
@@ -134,15 +145,17 @@ class PollSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Override to return translated fields based on request language."""
         data = super().to_representation(instance)
-        
+
         # Get language from request context
         request = self.context.get("request")
         if request:
             language_code = get_request_language(request)
             # Get translated title and description
             data["title"] = get_translated_field(instance, "title", language_code)
-            data["description"] = get_translated_field(instance, "description", language_code)
-        
+            data["description"] = get_translated_field(
+                instance, "description", language_code
+            )
+
         return data
 
 
@@ -195,7 +208,7 @@ class PollCreateSerializer(serializers.ModelSerializer):
         # Allow drafts to be created without options (for auto-save)
         # Check if this is a draft poll
         is_draft = self.initial_data.get("is_draft", False)
-        
+
         if not is_draft and len(value) < MIN_OPTIONS:
             raise serializers.ValidationError(
                 f"A poll must have at least {MIN_OPTIONS} options. Provided: {len(value)}"
@@ -211,9 +224,7 @@ class PollCreateSerializer(serializers.ModelSerializer):
         if value:
             now = timezone.now()
             if value <= now:
-                raise serializers.ValidationError(
-                    "Expiry date must be in the future."
-                )
+                raise serializers.ValidationError("Expiry date must be in the future.")
         return value
 
     def validate(self, attrs):
@@ -235,7 +246,7 @@ class PollCreateSerializer(serializers.ModelSerializer):
         # Allow drafts to be created without options (for auto-save)
         is_draft = attrs.get("is_draft", False)
         options_data = attrs.get("options", [])
-        
+
         if not is_draft and len(options_data) < MIN_OPTIONS:
             raise serializers.ValidationError(
                 {
@@ -255,16 +266,16 @@ class PollCreateSerializer(serializers.ModelSerializer):
         """Create poll with nested options, translations, category, and tags."""
         options_data = validated_data.pop("options", [])
         tags_data = validated_data.pop("tags", [])
-        
+
         # Handle default language: if 'title' is provided but 'title_en' is not,
         # modeltranslation will handle it, but we ensure consistency
         if "title" in validated_data and "title_en" not in validated_data:
             validated_data["title_en"] = validated_data["title"]
         if "description" in validated_data and "description_en" not in validated_data:
             validated_data["description_en"] = validated_data["description"]
-        
+
         poll = Poll.objects.create(**validated_data)
-        
+
         # Add tags (ManyToManyField must be set after creation)
         if tags_data:
             poll.tags.set(tags_data)
@@ -272,7 +283,7 @@ class PollCreateSerializer(serializers.ModelSerializer):
         # Create options in order
         for order, option_data in enumerate(options_data, start=0):
             # Remove 'order' from option_data if present, since we're setting it explicitly
-            option_data_clean = {k: v for k, v in option_data.items() if k != 'order'}
+            option_data_clean = {k: v for k, v in option_data.items() if k != "order"}
             # Handle default language for option text
             if "text" in option_data_clean and "text_en" not in option_data_clean:
                 option_data_clean["text_en"] = option_data_clean["text"]
@@ -302,9 +313,7 @@ class PollUpdateSerializer(serializers.ModelSerializer):
         if value:
             now = timezone.now()
             if value <= now:
-                raise serializers.ValidationError(
-                    "Expiry date must be in the future."
-                )
+                raise serializers.ValidationError("Expiry date must be in the future.")
         return value
 
     def validate(self, attrs):
@@ -314,7 +323,9 @@ class PollUpdateSerializer(serializers.ModelSerializer):
 
         # Check if poll has votes
         has_votes = poll.votes.exists()
-        allow_option_modification = poll.settings.get("allow_option_modification_after_votes", False)
+        allow_option_modification = poll.settings.get(
+            "allow_option_modification_after_votes", False
+        )
 
         if has_votes and not allow_option_modification:
             # Only allow limited modifications
@@ -394,7 +405,9 @@ class BulkPollOptionCreateSerializer(serializers.Serializer):
 
         # Check if poll has votes and option modification is not allowed
         has_votes = poll.votes.exists()
-        allow_option_modification = poll.settings.get("allow_option_modification_after_votes", False)
+        allow_option_modification = poll.settings.get(
+            "allow_option_modification_after_votes", False
+        )
 
         if has_votes and not allow_option_modification:
             raise serializers.ValidationError(
@@ -412,14 +425,18 @@ class BulkPollOptionCreateSerializer(serializers.Serializer):
         options_data = validated_data["options"]
 
         # Get current max order
-        max_order = poll.options.aggregate(max_order=models.Max("order"))["max_order"] or -1
+        max_order = (
+            poll.options.aggregate(max_order=models.Max("order"))["max_order"] or -1
+        )
 
         # Create options
         created_options = []
         for order, option_data in enumerate(options_data, start=max_order + 1):
             # Remove 'order' from option_data if present, since we're setting it explicitly
-            option_data_clean = {k: v for k, v in option_data.items() if k != 'order'}
-            option = PollOption.objects.create(poll=poll, order=order, **option_data_clean)
+            option_data_clean = {k: v for k, v in option_data.items() if k != "order"}
+            option = PollOption.objects.create(
+                poll=poll, order=order, **option_data_clean
+            )
             created_options.append(option)
 
         return {"options": created_options}
@@ -428,10 +445,14 @@ class BulkPollOptionCreateSerializer(serializers.Serializer):
 class PollTemplateCreateSerializer(serializers.Serializer):
     """Serializer for creating a poll from a template."""
 
-    template_id = serializers.CharField(required=True, help_text="Template ID (yes_no, multiple_choice, etc.)")
+    template_id = serializers.CharField(
+        required=True, help_text="Template ID (yes_no, multiple_choice, etc.)"
+    )
     title = serializers.CharField(required=True, max_length=200)
     description = serializers.CharField(required=False, allow_blank=True)
-    custom_options = PollOptionCreateSerializer(many=True, required=False, allow_null=True)
+    custom_options = PollOptionCreateSerializer(
+        many=True, required=False, allow_null=True
+    )
     custom_settings = serializers.DictField(required=False, allow_null=True)
     starts_at = serializers.DateTimeField(required=False, allow_null=True)
     ends_at = serializers.DateTimeField(required=False, allow_null=True)

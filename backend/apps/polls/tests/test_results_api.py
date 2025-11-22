@@ -16,7 +16,9 @@ from apps.votes.models import Vote
 class TestResultsEndpoint:
     """Test GET /api/polls/{id}/results/ endpoint."""
 
-    def test_results_endpoint_returns_correct_data(self, authenticated_client, poll, choices):
+    def test_results_endpoint_returns_correct_data(
+        self, authenticated_client, poll, choices
+    ):
         """Test that results endpoint returns correct data structure."""
         from django.contrib.auth.models import User
 
@@ -79,7 +81,9 @@ class TestResultsEndpoint:
         assert "max_votes" in data["statistics"]
         assert "min_votes" in data["statistics"]
 
-    def test_private_poll_results_hidden_from_non_owners(self, authenticated_client, poll, choices):
+    def test_private_poll_results_hidden_from_non_owners(
+        self, authenticated_client, poll, choices
+    ):
         """Test that private poll results are hidden from non-owners."""
         from django.contrib.auth.models import User
 
@@ -99,7 +103,9 @@ class TestResultsEndpoint:
         assert response.status_code == 403
         assert "not authorized" in response.data["error"].lower()
 
-    def test_private_poll_results_visible_to_owner(self, authenticated_client, poll, choices):
+    def test_private_poll_results_visible_to_owner(
+        self, authenticated_client, poll, choices
+    ):
         """Test that private poll results are visible to owner."""
         # Make poll private
         poll.settings["is_private"] = True
@@ -126,7 +132,9 @@ class TestResultsEndpoint:
         assert response.status_code == 200
         assert response.data["poll_id"] == poll.id
 
-    def test_results_during_voting_when_enabled(self, authenticated_client, poll, choices):
+    def test_results_during_voting_when_enabled(
+        self, authenticated_client, poll, choices
+    ):
         """Test that results are shown during voting when enabled."""
         from django.contrib.auth.models import User
 
@@ -157,7 +165,9 @@ class TestResultsEndpoint:
         assert response.status_code == 200
         assert response.data["total_votes"] == 1
 
-    def test_results_during_voting_when_disabled(self, authenticated_client, poll, choices):
+    def test_results_during_voting_when_disabled(
+        self, authenticated_client, poll, choices
+    ):
         """Test that results are hidden during voting when disabled."""
         # Disable showing results during voting
         poll.settings["show_results_during_voting"] = False
@@ -310,7 +320,9 @@ class TestResultsLiveEndpoint:
         # Note: has_updates might still be True if cache was invalidated
         # This is expected behavior for live updates
 
-    def test_live_endpoint_respects_visibility_rules(self, authenticated_client, poll, choices):
+    def test_live_endpoint_respects_visibility_rules(
+        self, authenticated_client, poll, choices
+    ):
         """Test that live endpoint respects visibility rules."""
         # Make poll private
         poll.settings["is_private"] = True
@@ -339,7 +351,9 @@ class TestResultsExportEndpoint:
         import time
 
         # Create some votes
-        user = User.objects.create_user(username=f"user_json_{int(time.time())}", password="pass")
+        user = User.objects.create_user(
+            username=f"user_json_{int(time.time())}", password="pass"
+        )
         Vote.objects.create(
             user=user,
             poll=poll,
@@ -356,7 +370,9 @@ class TestResultsExportEndpoint:
         poll.settings["show_results_during_voting"] = True
         poll.save()
 
-        response = authenticated_client.get(f"/api/v1/polls/{poll.id}/export-results/?export_format=json")
+        response = authenticated_client.get(
+            f"/api/v1/polls/{poll.id}/export-results/?export_format=json"
+        )
 
         assert response.status_code == 200
         assert "poll_id" in response.data
@@ -370,7 +386,9 @@ class TestResultsExportEndpoint:
         import time
 
         # Create some votes
-        user = User.objects.create_user(username=f"user_csv_{int(time.time())}", password="pass")
+        user = User.objects.create_user(
+            username=f"user_csv_{int(time.time())}", password="pass"
+        )
         Vote.objects.create(
             user=user,
             poll=poll,
@@ -388,7 +406,9 @@ class TestResultsExportEndpoint:
         poll.save()
 
         # Use direct URL path (same as JSON test)
-        response = authenticated_client.get(f"/api/v1/polls/{poll.id}/export-results/?export_format=csv")
+        response = authenticated_client.get(
+            f"/api/v1/polls/{poll.id}/export-results/?export_format=csv"
+        )
 
         assert response.status_code == 200
         assert response["Content-Type"] == "text/csv"
@@ -419,18 +439,22 @@ class TestResultsExportEndpoint:
     def test_results_export_invalid_format(self, authenticated_client, poll, choices):
         """Test that invalid format returns 400 error."""
         from django.urls import reverse
-        
+
         # Configure poll to show results
         poll.settings["show_results_during_voting"] = True
         poll.save()
 
         # Use direct URL path (same as JSON test)
-        response = authenticated_client.get(f"/api/v1/polls/{poll.id}/export-results/?export_format=xml")
+        response = authenticated_client.get(
+            f"/api/v1/polls/{poll.id}/export-results/?export_format=xml"
+        )
 
         assert response.status_code == 400
         assert "Invalid format" in response.data["error"]
 
-    def test_results_export_respects_visibility_rules(self, authenticated_client, poll, choices):
+    def test_results_export_respects_visibility_rules(
+        self, authenticated_client, poll, choices
+    ):
         """Test that export/results respects visibility rules."""
         # Make poll private
         poll.settings["is_private"] = True
@@ -442,24 +466,34 @@ class TestResultsExportEndpoint:
         import time
         import uuid
 
-        other_user = User.objects.create_user(username=f"other_{int(time.time())}_{uuid.uuid4().hex[:8]}", password="pass")
+        other_user = User.objects.create_user(
+            username=f"other_{int(time.time())}_{uuid.uuid4().hex[:8]}", password="pass"
+        )
         authenticated_client.force_authenticate(user=other_user)
 
         # Should not be able to export results
-        response = authenticated_client.get(f"/api/v1/polls/{poll.id}/export-results/?export_format=json")
+        response = authenticated_client.get(
+            f"/api/v1/polls/{poll.id}/export-results/?export_format=json"
+        )
 
         assert response.status_code == 403
 
-    def test_results_export_csv_content_structure(self, authenticated_client, poll, choices):
+    def test_results_export_csv_content_structure(
+        self, authenticated_client, poll, choices
+    ):
         """Test that CSV export/results has correct structure."""
         from django.contrib.auth.models import User
 
         # Create votes for multiple options
         import time
         import uuid
+
         users = []
         for i in range(3):
-            user = User.objects.create_user(username=f"user_{int(time.time())}_{uuid.uuid4().hex[:8]}_{i}", password="pass")
+            user = User.objects.create_user(
+                username=f"user_{int(time.time())}_{uuid.uuid4().hex[:8]}_{i}",
+                password="pass",
+            )
             users.append(user)
 
         # Vote for different options
@@ -499,7 +533,9 @@ class TestResultsExportEndpoint:
         poll.save()
 
         # Use direct URL path (same as JSON test)
-        response = authenticated_client.get(f"/api/v1/polls/{poll.id}/export-results/?export_format=csv")
+        response = authenticated_client.get(
+            f"/api/v1/polls/{poll.id}/export-results/?export_format=csv"
+        )
 
         assert response.status_code == 200
         content = response.content.decode("utf-8")
@@ -569,4 +605,3 @@ class TestResultsAggregateStatistics:
         assert stats["options_count"] == len(choices)
         assert stats["max_votes"] >= stats["min_votes"]
         assert stats["average_votes_per_option"] > 0
-

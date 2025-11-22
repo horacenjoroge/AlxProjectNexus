@@ -25,7 +25,10 @@ class NotificationAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
 
     fieldsets = (
-        ("Notification Details", {"fields": ("user", "notification_type", "title", "message")}),
+        (
+            "Notification Details",
+            {"fields": ("user", "notification_type", "title", "message")},
+        ),
         ("Related Objects", {"fields": ("poll", "vote")}),
         ("Metadata", {"fields": ("metadata",)}),
         ("Status", {"fields": ("is_read", "read_at")}),
@@ -116,7 +119,11 @@ class NotificationDeliveryAdmin(admin.ModelAdmin):
         "created_at",
     ]
     list_filter = ["channel", "status", "created_at"]
-    search_fields = ["notification__user__username", "notification__title", "external_id"]
+    search_fields = [
+        "notification__user__username",
+        "notification__title",
+        "external_id",
+    ]
     readonly_fields = ["created_at", "updated_at"]
 
     fieldsets = (
@@ -124,4 +131,3 @@ class NotificationDeliveryAdmin(admin.ModelAdmin):
         ("Delivery Info", {"fields": ("sent_at", "external_id", "error_message")}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
-

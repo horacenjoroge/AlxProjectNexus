@@ -274,7 +274,9 @@ class TestFollowNotificationIntegration:
         assert notification is not None
         assert user1.username in notification.title
 
-    def test_draft_poll_does_not_notify_followers(self, authenticated_client, user1, user2):
+    def test_draft_poll_does_not_notify_followers(
+        self, authenticated_client, user1, user2
+    ):
         """Test that draft polls don't notify followers."""
         from apps.notifications.models import Notification, NotificationType
 
@@ -300,4 +302,3 @@ class TestFollowNotificationIntegration:
         ).first()
 
         assert notification is None
-

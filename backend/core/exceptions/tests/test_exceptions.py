@@ -191,7 +191,7 @@ class TestExceptionHandler:
 
         assert response is not None
         # DRF Response has .data attribute, JsonResponse needs json.loads
-        if hasattr(response, 'data'):
+        if hasattr(response, "data"):
             data = response.data
         else:
             data = json.loads(response.content)
@@ -220,14 +220,16 @@ class TestExceptionHandlerIntegration:
         # Serializer validation returns 400, not 404 (validation happens before service layer)
         assert response.status_code == 400
         # APIClient returns DRF Response which has .data
-        if hasattr(response, 'data'):
+        if hasattr(response, "data"):
             data = response.data
         else:
             data = json.loads(response.content)
         assert "error" in data
         assert "error_code" in data
 
-    def test_duplicate_vote_returns_409(self, authenticated_client, user, poll, choices):
+    def test_duplicate_vote_returns_409(
+        self, authenticated_client, user, poll, choices
+    ):
         """Test that duplicate vote returns 409 status."""
         from apps.votes.services import cast_vote
 
@@ -244,7 +246,7 @@ class TestExceptionHandlerIntegration:
         # Should return 409
         assert response.status_code == 409
         # APIClient returns DRF Response which has .data
-        if hasattr(response, 'data'):
+        if hasattr(response, "data"):
             data = response.data
         else:
             data = json.loads(response.content)
@@ -260,7 +262,7 @@ class TestExceptionHandlerIntegration:
         # Should have consistent format
         if response.status_code >= 400:
             # APIClient returns DRF Response which has .data
-            if hasattr(response, 'data'):
+            if hasattr(response, "data"):
                 data = response.data
             else:
                 # Try to parse as JSON, but 404 from Django might return HTML
@@ -304,5 +306,6 @@ class TestExceptionInheritance:
         assert "not found" in error2.message.lower()
 
         error3 = FraudDetectedError()
-        assert "suspicious" in error3.message.lower() or "fraud" in error3.message.lower()
-
+        assert (
+            "suspicious" in error3.message.lower() or "fraud" in error3.message.lower()
+        )

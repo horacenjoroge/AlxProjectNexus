@@ -15,7 +15,13 @@ from core.exceptions import (
     PollClosedError,
     PollNotFoundError,
 )
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiResponse,
+)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -58,7 +64,9 @@ logger = logging.getLogger(__name__)
         """,
         responses={
             204: OpenApiResponse(description="Vote retracted successfully"),
-            403: OpenApiResponse(description="Cannot retract vote (not owner or poll doesn't allow)"),
+            403: OpenApiResponse(
+                description="Cannot retract vote (not owner or poll doesn't allow)"
+            ),
             404: OpenApiResponse(description="Vote not found"),
         },
     ),
@@ -66,7 +74,7 @@ logger = logging.getLogger(__name__)
 class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
     """
     ViewSet for Vote model with comprehensive API endpoints.
-    
+
     Endpoints:
     - POST /api/v1/votes/cast/ - Cast a vote
     - GET /api/v1/votes/my-votes/ - Get current user's votes
@@ -76,7 +84,7 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
     queryset = Vote.objects.all()
     serializer_class = VoteSerializer
     permission_classes = [CanVotePermission]
-    
+
     def get_throttles(self):
         """Return throttles based on action."""
         if self.action == "cast":
@@ -174,15 +182,24 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
                 examples=[
                     OpenApiExample(
                         "Invalid Vote",
-                        value={"error": "Choice 5 does not belong to poll 10", "error_code": "InvalidVoteError"},
+                        value={
+                            "error": "Choice 5 does not belong to poll 10",
+                            "error_code": "InvalidVoteError",
+                        },
                     ),
                     OpenApiExample(
                         "Poll Closed",
-                        value={"error": "Poll 10 has expired", "error_code": "PollClosedError"},
+                        value={
+                            "error": "Poll 10 has expired",
+                            "error_code": "PollClosedError",
+                        },
                     ),
                     OpenApiExample(
                         "Geographic Restriction",
-                        value={"error": "Voting is not allowed from your location", "error_code": "InvalidVoteError"},
+                        value={
+                            "error": "Voting is not allowed from your location",
+                            "error_code": "InvalidVoteError",
+                        },
                     ),
                 ],
             ),
@@ -198,7 +215,10 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
                     ),
                     OpenApiExample(
                         "IP Blocked",
-                        value={"error": "Your IP address has been blocked", "error_code": "IPBlockedError"},
+                        value={
+                            "error": "Your IP address has been blocked",
+                            "error_code": "IPBlockedError",
+                        },
                     ),
                 ],
             ),
@@ -207,7 +227,10 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
                 examples=[
                     OpenApiExample(
                         "Poll Not Found",
-                        value={"error": "Poll with id 10 not found", "error_code": "PollNotFoundError"},
+                        value={
+                            "error": "Poll with id 10 not found",
+                            "error_code": "PollNotFoundError",
+                        },
                     )
                 ],
             ),
@@ -228,7 +251,10 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
                 examples=[
                     OpenApiExample(
                         "Rate Limit",
-                        value={"error": "Rate limit exceeded. Please try again later.", "error_code": "RateLimitExceededError"},
+                        value={
+                            "error": "Rate limit exceeded. Please try again later.",
+                            "error_code": "RateLimitExceededError",
+                        },
                     )
                 ],
             ),
@@ -250,16 +276,16 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
     def cast(self, request):
         """
         Cast a vote on a poll.
-        
+
         POST /api/v1/votes/cast/
-        
+
         Request Body:
         {
             "poll_id": 1,
             "choice_id": 2,
             "idempotency_key": "optional-key"
         }
-        
+
         Returns:
         - 201 Created: New vote created
         - 200 OK: Idempotent retry (same vote returned)
@@ -278,7 +304,7 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
 
         # Check if user is authenticated
         user = request.user if request.user.is_authenticated else None
-        
+
         # Attach captcha_token to request for service layer
         if captcha_token:
             request.captcha_token = captcha_token
@@ -377,7 +403,10 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"Unexpected error in cast_vote: {e}", exc_info=True)
             return Response(
-                {"error": "An internal server error occurred", "error_code": "InternalServerError"},
+                {
+                    "error": "An internal server error occurred",
+                    "error_code": "InternalServerError",
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -419,9 +448,9 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
     def my_votes(self, request):
         """
         Get current user's votes.
-        
+
         GET /api/v1/votes/my-votes/
-        
+
         Returns:
         - 200 OK: List of user's votes
         - 401 Unauthorized: User not authenticated
@@ -439,17 +468,17 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """
         Retract a vote (if allowed).
-        
+
         DELETE /api/v1/votes/{id}/
-        
+
         Returns:
         - 204 No Content: Vote retracted successfully
         - 403 Forbidden: Cannot retract vote (not owner or poll doesn't allow)
         - 404 Not Found: Vote not found
         """
         # Get vote ID from URL
-        vote_id = kwargs.get('pk')
-        
+        vote_id = kwargs.get("pk")
+
         # Try to get the vote - check if it exists first
         try:
             vote = Vote.objects.get(id=vote_id)

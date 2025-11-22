@@ -17,4 +17,3 @@ class VoteUserRateThrottle(UserRateThrottle):
 
     rate = "200/hour"  # More restrictive for voting
     scope = "vote_user"
-

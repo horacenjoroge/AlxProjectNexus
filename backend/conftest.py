@@ -34,6 +34,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
 def user(db):
     """Create a test user using factory."""
     from apps.users.factories import UserFactory
+
     return UserFactory()
 
 
@@ -41,6 +42,7 @@ def user(db):
 def poll(db, user):
     """Create a test poll using factory."""
     from apps.polls.factories import PollFactory
+
     return PollFactory(created_by=user)
 
 
@@ -48,6 +50,7 @@ def poll(db, user):
 def choices(db, poll):
     """Create test choices for a poll using factory."""
     from apps.polls.factories import PollOptionFactory
+
     choice1 = PollOptionFactory(poll=poll, text="Choice 1", order=0)
     choice2 = PollOptionFactory(poll=poll, text="Choice 2", order=1)
     return [choice1, choice2]
@@ -57,6 +60,7 @@ def choices(db, poll):
 def category(db):
     """Create a test category using factory."""
     from apps.polls.factories import CategoryFactory
+
     return CategoryFactory()
 
 
@@ -64,6 +68,7 @@ def category(db):
 def tag(db):
     """Create a test tag using factory."""
     from apps.polls.factories import TagFactory
+
     return TagFactory()
 
 
@@ -72,6 +77,7 @@ def vote(db, poll, user):
     """Create a test vote using factory."""
     from apps.votes.factories import VoteFactory
     from apps.polls.factories import PollOptionFactory
+
     option = PollOptionFactory(poll=poll)
     return VoteFactory(user=user, poll=poll, option=option)
 
@@ -80,6 +86,7 @@ def vote(db, poll, user):
 def api_client():
     """Create a DRF API client."""
     from rest_framework.test import APIClient
+
     return APIClient()
 
 
@@ -95,6 +102,7 @@ def authenticated_client(api_client, user):
 def multiple_users(db):
     """Create multiple test users."""
     from apps.users.factories import UserFactory
+
     return [UserFactory() for _ in range(5)]
 
 
@@ -102,4 +110,5 @@ def multiple_users(db):
 def multiple_polls(db, user):
     """Create multiple test polls."""
     from apps.polls.factories import PollFactory
+
     return [PollFactory(created_by=user) for _ in range(3)]

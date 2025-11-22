@@ -7,7 +7,12 @@ from django.core.cache import cache
 from django.test import RequestFactory
 
 from apps.votes.services import create_vote
-from core.exceptions import DuplicateVoteError, InvalidVoteError, PollNotFoundError, FraudDetectedError
+from core.exceptions import (
+    DuplicateVoteError,
+    InvalidVoteError,
+    PollNotFoundError,
+    FraudDetectedError,
+)
 
 
 @pytest.mark.unit
@@ -44,9 +49,7 @@ class TestVoteService:
 
     def test_create_vote_duplicate(self, user, poll, choices):
         """Test creating duplicate vote."""
-        create_vote(
-            user=user, poll_id=poll.id, choice_id=choices[0].id, request=None
-        )
+        create_vote(user=user, poll_id=poll.id, choice_id=choices[0].id, request=None)
         with pytest.raises(DuplicateVoteError):
             create_vote(
                 user=user, poll_id=poll.id, choice_id=choices[1].id, request=None
@@ -55,6 +58,7 @@ class TestVoteService:
     def test_create_vote_with_fingerprint(self, user, poll, choices):
         """Test creating vote with fingerprint from request."""
         import hashlib
+
         factory = RequestFactory()
         request = factory.post("/api/votes/")
         # Generate valid 64-character hex fingerprint
@@ -74,6 +78,7 @@ class TestVoteService:
     def test_create_vote_stores_fingerprint(self, user, poll, choices):
         """Test that fingerprint is stored in Vote model."""
         import hashlib
+
         factory = RequestFactory()
         request = factory.post("/api/votes/")
         # Generate valid 64-character hex fingerprint
@@ -103,8 +108,11 @@ class TestVoteServiceFingerprintValidation:
         option = PollOption.objects.create(poll=poll, text="Option 1")
 
         import time
+
         timestamp = int(time.time() * 1000000)
-        user2 = type(user).objects.create_user(username=f"user2_{timestamp}", password="pass")
+        user2 = type(user).objects.create_user(
+            username=f"user2_{timestamp}", password="pass"
+        )
 
         # Generate valid 64-character hex fingerprint
         fingerprint = hashlib.sha256(b"suspicious_fp").hexdigest()
@@ -122,9 +130,12 @@ class TestVoteServiceFingerprintValidation:
 
         # Create a second vote from a different user with the same fingerprint to trigger blocking
         import time
+
         timestamp2 = int(time.time() * 1000000)
-        user3 = type(user).objects.create_user(username=f"user3_{timestamp2}", password="pass")
-        
+        user3 = type(user).objects.create_user(
+            username=f"user3_{timestamp2}", password="pass"
+        )
+
         # Create second vote with same fingerprint, different user
         Vote.objects.create(
             user=user3,
@@ -135,9 +146,10 @@ class TestVoteServiceFingerprintValidation:
             voter_token="token2",
             idempotency_key="key2",
         )
-        
+
         # Update cache to reflect that 2 users have used this fingerprint
         from core.utils.fingerprint_validation import update_fingerprint_cache
+
         update_fingerprint_cache(fingerprint, poll.id, user3.id, "192.168.1.3")
 
         # Try to create vote with same fingerprint, different user
@@ -151,11 +163,15 @@ class TestVoteServiceFingerprintValidation:
                 user=user2, poll_id=poll.id, choice_id=option.id, request=request
             )
 
-        assert "suspicious" in str(exc_info.value).lower() or "blocked" in str(exc_info.value).lower()
+        assert (
+            "suspicious" in str(exc_info.value).lower()
+            or "blocked" in str(exc_info.value).lower()
+        )
 
     def test_fingerprint_validation_allows_clean_vote(self, user, poll, choices):
         """Test that clean fingerprints allow votes."""
         import hashlib
+
         cache.clear()
 
         factory = RequestFactory()
@@ -180,7 +196,7 @@ class TestVoteServiceFingerprintValidation:
         from apps.analytics.models import FingerprintBlock
 
         cache.clear()
-        
+
         # Clear any existing fingerprint blocks from previous test runs
         FingerprintBlock.objects.filter(is_active=True).update(is_active=False)
 
@@ -188,8 +204,11 @@ class TestVoteServiceFingerprintValidation:
         option = PollOption.objects.create(poll=poll, text="Option 1")
 
         import time
+
         timestamp = int(time.time() * 1000000)
-        user2 = type(user).objects.create_user(username=f"user2_{timestamp}", password="pass")
+        user2 = type(user).objects.create_user(
+            username=f"user2_{timestamp}", password="pass"
+        )
 
         # Generate valid 64-character hex fingerprint
         fingerprint = hashlib.sha256(b"blocked_fp").hexdigest()
@@ -207,9 +226,12 @@ class TestVoteServiceFingerprintValidation:
 
         # Create a second vote from a different user with the same fingerprint to trigger blocking
         import time
+
         timestamp2 = int(time.time() * 1000000)
-        user3 = type(user).objects.create_user(username=f"user3_{timestamp2}", password="pass")
-        
+        user3 = type(user).objects.create_user(
+            username=f"user3_{timestamp2}", password="pass"
+        )
+
         # Create second vote with same fingerprint, different user
         Vote.objects.create(
             user=user3,
@@ -220,9 +242,10 @@ class TestVoteServiceFingerprintValidation:
             voter_token="token2",
             idempotency_key="key2",
         )
-        
+
         # Update cache to reflect that 2 users have used this fingerprint
         from core.utils.fingerprint_validation import update_fingerprint_cache
+
         update_fingerprint_cache(fingerprint, poll.id, user3.id, "192.168.1.3")
 
         # Try to create vote (should be blocked)
@@ -234,7 +257,9 @@ class TestVoteServiceFingerprintValidation:
         initial_count = VoteAttempt.objects.count()
 
         try:
-            create_vote(user=user2, poll_id=poll.id, choice_id=option.id, request=request)
+            create_vote(
+                user=user2, poll_id=poll.id, choice_id=option.id, request=request
+            )
         except (InvalidVoteError, FraudDetectedError):
             pass
 

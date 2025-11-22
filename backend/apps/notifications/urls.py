@@ -14,11 +14,16 @@ from .views import (
 router = DefaultRouter()
 router.register(r"notifications", NotificationViewSet, basename="notification")
 router.register(
-    r"notifications/preferences", NotificationPreferenceViewSet, basename="notification-preference"
+    r"notifications/preferences",
+    NotificationPreferenceViewSet,
+    basename="notification-preference",
 )
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("notifications/unsubscribe/", UnsubscribeView.as_view(), name="notification-unsubscribe"),
+    path(
+        "notifications/unsubscribe/",
+        UnsubscribeView.as_view(),
+        name="notification-unsubscribe",
+    ),
 ]
-

@@ -30,11 +30,12 @@ class RateLimitMiddleware(MiddlewareMixin):
 
         # Bypass rate limiting for load tests
         from django.conf import settings
-        if getattr(settings, 'DISABLE_RATE_LIMITING', False):
+
+        if getattr(settings, "DISABLE_RATE_LIMITING", False):
             return self.get_response(request)
-        
+
         # Check for load test header (allows bypassing rate limits for load tests)
-        if request.META.get('HTTP_X_LOAD_TEST') == 'true':
+        if request.META.get("HTTP_X_LOAD_TEST") == "true":
             return self.get_response(request)
 
         # Get identifiers

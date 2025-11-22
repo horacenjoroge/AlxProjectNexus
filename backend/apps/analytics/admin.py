@@ -52,7 +52,13 @@ class AuditLogAdmin(admin.ModelAdmin):
 class FingerprintBlockAdmin(admin.ModelAdmin):
     """Admin for FingerprintBlock."""
 
-    list_display = ["fingerprint_short", "reason", "is_active", "blocked_at", "blocked_by"]
+    list_display = [
+        "fingerprint_short",
+        "reason",
+        "is_active",
+        "blocked_at",
+        "blocked_by",
+    ]
     list_filter = ["is_active", "blocked_at"]
     search_fields = ["fingerprint"]
     readonly_fields = ["fingerprint", "blocked_at", "unblocked_at"]
@@ -60,7 +66,11 @@ class FingerprintBlockAdmin(admin.ModelAdmin):
 
     def fingerprint_short(self, obj):
         """Display shortened fingerprint."""
-        return f"{obj.fingerprint[:16]}..." if len(obj.fingerprint) > 16 else obj.fingerprint
+        return (
+            f"{obj.fingerprint[:16]}..."
+            if len(obj.fingerprint) > 16
+            else obj.fingerprint
+        )
 
     fingerprint_short.short_description = "Fingerprint"
 
@@ -82,7 +92,15 @@ class FraudAlertAdmin(admin.ModelAdmin):
     list_display = ["vote", "poll", "user", "ip_address", "risk_score", "created_at"]
     list_filter = ["risk_score", "created_at"]
     search_fields = ["poll__title", "user__username", "ip_address"]
-    readonly_fields = ["vote", "poll", "user", "ip_address", "reasons", "risk_score", "created_at"]
+    readonly_fields = [
+        "vote",
+        "poll",
+        "user",
+        "ip_address",
+        "reasons",
+        "risk_score",
+        "created_at",
+    ]
     date_hierarchy = "created_at"
 
 
@@ -112,15 +130,15 @@ class IPReputationAdmin(admin.ModelAdmin):
     ]
     date_hierarchy = "last_seen"
     actions = ["block_selected_ips"]
-    
+
     def get_queryset(self, request):
         """Optimize queryset."""
         return super().get_queryset(request).select_related()
-    
+
     def block_selected_ips(self, request, queryset):
         """Block selected IPs based on reputation."""
         from core.utils.ip_reputation import block_ip
-        
+
         count = 0
         for reputation in queryset:
             try:
@@ -132,8 +150,12 @@ class IPReputationAdmin(admin.ModelAdmin):
                 )
                 count += 1
             except Exception as e:
-                self.message_user(request, f"Error blocking {reputation.ip_address}: {e}", level="error")
-        
+                self.message_user(
+                    request,
+                    f"Error blocking {reputation.ip_address}: {e}",
+                    level="error",
+                )
+
         self.message_user(request, f"Blocked {count} IP(s).")
 
     block_selected_ips.short_description = "Block selected IPs"
@@ -156,17 +178,17 @@ class IPBlockAdmin(admin.ModelAdmin):
     search_fields = ["ip_address", "reason"]
     readonly_fields = ["ip_address", "blocked_at", "unblocked_at"]
     actions = ["unblock_selected", "block_selected_manually"]
-    
+
     fieldsets = (
-        ("IP Information", {
-            "fields": ("ip_address", "reason", "is_manual", "is_active")
-        }),
-        ("Blocking Information", {
-            "fields": ("blocked_by", "blocked_at", "auto_unblock_at")
-        }),
-        ("Unblocking Information", {
-            "fields": ("unblocked_by", "unblocked_at")
-        }),
+        (
+            "IP Information",
+            {"fields": ("ip_address", "reason", "is_manual", "is_active")},
+        ),
+        (
+            "Blocking Information",
+            {"fields": ("blocked_by", "blocked_at", "auto_unblock_at")},
+        ),
+        ("Unblocking Information", {"fields": ("unblocked_by", "unblocked_at")}),
     )
 
     def reason_short(self, obj):
@@ -180,7 +202,7 @@ class IPBlockAdmin(admin.ModelAdmin):
     def unblock_selected(self, request, queryset):
         """Unblock selected IPs."""
         from core.utils.ip_reputation import unblock_ip
-        
+
         count = 0
         for block in queryset.filter(is_active=True):
             if unblock_ip(block.ip_address, unblocked_by=request.user):
@@ -192,7 +214,7 @@ class IPBlockAdmin(admin.ModelAdmin):
     def block_selected_manually(self, request, queryset):
         """Manually block selected IPs (if not already blocked)."""
         from core.utils.ip_reputation import block_ip
-        
+
         count = 0
         for block in queryset:
             if not block.is_active:
@@ -205,8 +227,12 @@ class IPBlockAdmin(admin.ModelAdmin):
                     )
                     count += 1
                 except Exception as e:
-                    self.message_user(request, f"Error blocking {block.ip_address}: {e}", level="error")
-        
+                    self.message_user(
+                        request,
+                        f"Error blocking {block.ip_address}: {e}",
+                        level="error",
+                    )
+
         self.message_user(request, f"Blocked {count} IP(s).")
 
     block_selected_manually.short_description = "Manually block selected IPs"
@@ -216,19 +242,21 @@ class IPBlockAdmin(admin.ModelAdmin):
 class IPWhitelistAdmin(admin.ModelAdmin):
     """Admin for IPWhitelist."""
 
-    list_display = ["ip_address", "reason_short", "is_active", "created_by", "created_at"]
+    list_display = [
+        "ip_address",
+        "reason_short",
+        "is_active",
+        "created_by",
+        "created_at",
+    ]
     list_filter = ["is_active", "created_at"]
     search_fields = ["ip_address", "reason"]
     readonly_fields = ["created_at"]
     actions = ["remove_from_whitelist"]
-    
+
     fieldsets = (
-        ("IP Information", {
-            "fields": ("ip_address", "reason", "is_active")
-        }),
-        ("Metadata", {
-            "fields": ("created_by", "created_at")
-        }),
+        ("IP Information", {"fields": ("ip_address", "reason", "is_active")}),
+        ("Metadata", {"fields": ("created_by", "created_at")}),
     )
 
     def reason_short(self, obj):
@@ -242,7 +270,7 @@ class IPWhitelistAdmin(admin.ModelAdmin):
     def remove_from_whitelist(self, request, queryset):
         """Remove selected IPs from whitelist."""
         from core.utils.ip_reputation import remove_whitelist
-        
+
         count = 0
         for whitelist in queryset.filter(is_active=True):
             if remove_whitelist(whitelist.ip_address):

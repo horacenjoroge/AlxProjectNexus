@@ -46,7 +46,9 @@ class TestTemplateDefinitions:
         assert template is not None
         assert template["name"] == "Multiple Choice Poll"
         assert len(template["default_options"]) == 4
-        assert all(opt["text"].startswith("Option ") for opt in template["default_options"])
+        assert all(
+            opt["text"].startswith("Option ") for opt in template["default_options"]
+        )
 
     def test_rating_scale_template_structure(self):
         """Test rating scale template structure."""
@@ -71,7 +73,9 @@ class TestTemplateDefinitions:
         assert template is not None
         assert template["name"] == "Ranking Poll"
         assert len(template["default_options"]) == 5
-        assert all(opt["text"].startswith("Item ") for opt in template["default_options"])
+        assert all(
+            opt["text"].startswith("Item ") for opt in template["default_options"]
+        )
 
 
 @pytest.mark.django_db
@@ -320,7 +324,10 @@ class TestInvalidTemplate:
         response = client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "invalid template" in str(response.data).lower() or "not found" in str(response.data).lower()
+        assert (
+            "invalid template" in str(response.data).lower()
+            or "not found" in str(response.data).lower()
+        )
 
     def test_template_with_invalid_custom_options(self, user):
         """Test that invalid custom options are rejected."""
@@ -348,7 +355,9 @@ class TestInvalidTemplate:
         data = {
             "template_id": "yes_no",
             "title": "Test Poll",
-            "custom_options": [{"text": f"Option {i}"} for i in range(101)],  # More than maximum
+            "custom_options": [
+                {"text": f"Option {i}"} for i in range(101)
+            ],  # More than maximum
         }
 
         response = client.post(url, data, format="json")
@@ -408,7 +417,13 @@ class TestTemplateIntegration:
         client = APIClient()
         client.force_authenticate(user=user)
 
-        templates = ["yes_no", "multiple_choice", "rating_scale", "agreement_scale", "ranking"]
+        templates = [
+            "yes_no",
+            "multiple_choice",
+            "rating_scale",
+            "agreement_scale",
+            "ranking",
+        ]
 
         for template_id in templates:
             url = reverse("poll-create-from-template")
@@ -444,4 +459,3 @@ class TestTemplateIntegration:
         poll = Poll.objects.get(id=response.data["id"])
         assert poll.settings["rating_scale"] is True
         assert poll.settings["show_results"] is True
-

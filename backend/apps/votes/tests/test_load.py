@@ -25,12 +25,12 @@ class TestVoteAPILoad:
 
     @pytest.mark.skipif(
         IS_SQLITE,
-        reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations."
+        reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations.",
     )
     def test_1000_concurrent_vote_requests(self, poll, choices):
         """
         Load test: 1000 concurrent vote requests.
-        
+
         This test simulates 1000 users trying to vote simultaneously
         to verify the system handles concurrency correctly.
         """
@@ -134,7 +134,7 @@ class TestVoteAPILoad:
 
     @pytest.mark.skipif(
         IS_SQLITE,
-        reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations."
+        reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations.",
     )
     def test_concurrent_votes_same_user_prevented(self, user, poll, choices):
         """
@@ -181,7 +181,9 @@ class TestVoteAPILoad:
 
         # Only one should succeed, rest should be duplicates
         assert results["success"] == 1, f"Expected 1 success, got {results['success']}"
-        assert results["duplicates"] == 9, f"Expected 9 duplicates, got {results['duplicates']}"
+        assert (
+            results["duplicates"] == 9
+        ), f"Expected 9 duplicates, got {results['duplicates']}"
 
         # Verify only one vote in database
         vote_count = Vote.objects.filter(user=user, poll=poll).count()
@@ -189,7 +191,7 @@ class TestVoteAPILoad:
 
     @pytest.mark.skipif(
         IS_SQLITE,
-        reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations."
+        reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations.",
     )
     def test_concurrent_votes_different_users_succeed(self, poll, choices):
         """
@@ -221,7 +223,10 @@ class TestVoteAPILoad:
             try:
                 response = client.post(url, data, format="json")
                 with lock:
-                    if response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]:
+                    if response.status_code in [
+                        status.HTTP_201_CREATED,
+                        status.HTTP_200_OK,
+                    ]:
                         results["success"] += 1
                     else:
                         results["errors"] += 1
@@ -241,10 +246,11 @@ class TestVoteAPILoad:
             thread.join()
 
         # All should succeed
-        assert results["success"] == 100, f"Expected 100 successes, got {results['success']}"
+        assert (
+            results["success"] == 100
+        ), f"Expected 100 successes, got {results['success']}"
         assert results["errors"] == 0, f"Expected 0 errors, got {results['errors']}"
 
         # Verify all votes in database
         vote_count = Vote.objects.filter(poll=poll).count()
         assert vote_count == 100, f"Expected 100 votes, got {vote_count}"
-

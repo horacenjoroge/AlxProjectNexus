@@ -70,7 +70,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         user_to_unfollow = self.get_object()
 
         try:
-            follow = Follow.objects.get(follower=request.user, following=user_to_unfollow)
+            follow = Follow.objects.get(
+                follower=request.user, following=user_to_unfollow
+            )
             follow.delete()
             return Response(
                 {"message": "Successfully unfollowed user."},
@@ -99,13 +101,17 @@ class FollowViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=["get"])
     def my_followers(self, request):
         """Get list of users following the current user."""
-        follows = Follow.objects.filter(following=request.user).select_related("follower")
+        follows = Follow.objects.filter(following=request.user).select_related(
+            "follower"
+        )
         serializer = self.get_serializer(follows, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def my_following(self, request):
         """Get list of users the current user is following."""
-        follows = Follow.objects.filter(follower=request.user).select_related("following")
+        follows = Follow.objects.filter(follower=request.user).select_related(
+            "following"
+        )
         serializer = self.get_serializer(follows, many=True)
         return Response(serializer.data)

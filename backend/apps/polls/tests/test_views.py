@@ -43,7 +43,7 @@ class TestPollViewSet:
         poll.settings["show_results_during_voting"] = True
         poll.settings["is_private"] = False
         poll.save()
-        
+
         response = authenticated_client.get(f"/api/v1/polls/{poll.id}/results/")
         assert response.status_code == 200
         # Response contains poll results directly (not nested under "results")

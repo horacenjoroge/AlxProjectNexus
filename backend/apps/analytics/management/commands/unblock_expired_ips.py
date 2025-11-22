@@ -18,11 +18,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Execute the command."""
         count = auto_unblock_expired_ips()
-        
+
         if count > 0:
             self.stdout.write(
                 self.style.SUCCESS(f"Successfully unblocked {count} IP(s)")
             )
         else:
             self.stdout.write("No expired IPs to unblock")
-

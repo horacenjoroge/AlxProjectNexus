@@ -178,7 +178,9 @@ class TestVoteModelUniqueConstraints:
 class TestVoteModelIndexes:
     """Test that indexes exist on Vote model."""
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_idempotency_key_index(self, poll, user):
         """Test that idempotency_key has an index."""
         from django.db import connection
@@ -192,13 +194,17 @@ class TestVoteModelIndexes:
             idempotency_key="key1",
         )
 
-        indexes = connection.introspection.get_indexes(connection.cursor(), "votes_vote")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "votes_vote"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
 
         # Check for idempotency_key index
         assert any("idempotency_key" in fields for fields in index_fields)
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_poll_voter_token_index(self, poll, user):
         """Test that poll and voter_token have a composite index."""
         from django.db import connection
@@ -212,13 +218,19 @@ class TestVoteModelIndexes:
             idempotency_key="key1",
         )
 
-        indexes = connection.introspection.get_indexes(connection.cursor(), "votes_vote")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "votes_vote"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
 
         # Check for poll, voter_token composite index
-        assert any("poll_id" in fields and "voter_token" in fields for fields in index_fields)
+        assert any(
+            "poll_id" in fields and "voter_token" in fields for fields in index_fields
+        )
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_ip_address_created_at_index(self, poll, user):
         """Test that ip_address and created_at have a composite index."""
         from django.db import connection
@@ -233,11 +245,15 @@ class TestVoteModelIndexes:
             ip_address="192.168.1.1",
         )
 
-        indexes = connection.introspection.get_indexes(connection.cursor(), "votes_vote")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "votes_vote"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
 
         # Check for ip_address, created_at composite index
-        assert any("ip_address" in fields and "created_at" in fields for fields in index_fields)
+        assert any(
+            "ip_address" in fields and "created_at" in fields for fields in index_fields
+        )
 
 
 @pytest.mark.django_db
@@ -408,8 +424,12 @@ class TestVoteAttemptModelDatabase:
         )
         assert attempt.option is None
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_vote_attempt_indexes_exist(self, poll, user):
         """Test that vote attempt indexes exist."""
         from django.db import connection
@@ -424,7 +444,9 @@ class TestVoteAttemptModelDatabase:
             success=True,
         )
 
-        indexes = connection.introspection.get_indexes(connection.cursor(), "votes_voteattempt")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "votes_voteattempt"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
 
         # Check for various indexes
@@ -449,11 +471,13 @@ class TestVoteAttemptModelDatabase:
 
         assert not VoteAttempt.objects.filter(id=attempt_id).exists()
 
-    @pytest.mark.skip(reason="VoteAttempt SET_NULL on user delete not working - may be database constraint issue")
+    @pytest.mark.skip(
+        reason="VoteAttempt SET_NULL on user delete not working - may be database constraint issue"
+    )
     def test_vote_attempt_set_null_on_user_delete(self, poll, user):
         """Test that vote attempt user is set to null when user is deleted."""
         from django.db import transaction
-        
+
         option = PollOption.objects.create(poll=poll, text="Option 1")
         attempt = VoteAttempt.objects.create(
             user=user,
@@ -467,13 +491,17 @@ class TestVoteAttemptModelDatabase:
 
         # Delete user - this should set user to NULL, not delete the VoteAttempt
         user.delete()
-        
+
         # Verify the VoteAttempt still exists
-        assert VoteAttempt.objects.filter(id=attempt_id).exists(), "VoteAttempt should still exist after user deletion"
-        
+        assert VoteAttempt.objects.filter(
+            id=attempt_id
+        ).exists(), "VoteAttempt should still exist after user deletion"
+
         # Re-fetch the attempt from database after user deletion
         attempt = VoteAttempt.objects.get(id=attempt_id)
-        assert attempt.user is None, f"VoteAttempt.user should be None after user deletion, got {attempt.user}"
+        assert (
+            attempt.user is None
+        ), f"VoteAttempt.user should be None after user deletion, got {attempt.user}"
 
     def test_vote_attempt_set_null_on_option_delete(self, poll, user):
         """Test that vote attempt option is set to null when option is deleted."""
@@ -493,4 +521,3 @@ class TestVoteAttemptModelDatabase:
 
         assert VoteAttempt.objects.filter(id=attempt_id).exists()
         assert attempt.option is None
-

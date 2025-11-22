@@ -86,7 +86,10 @@ class TestDraftCreation:
             assert response.data["is_draft"] is True
         else:
             # If validation fails, that's okay - we can update serializer later
-            assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_201_CREATED]
+            assert response.status_code in [
+                status.HTTP_400_BAD_REQUEST,
+                status.HTTP_201_CREATED,
+            ]
 
 
 @pytest.mark.django_db
@@ -224,7 +227,9 @@ class TestPublishingDraft:
         # Verify poll is published
         draft_poll.refresh_from_db()
         assert draft_poll.is_draft is False
-        assert draft_poll.is_active is True  # Should be activated if start time has passed
+        assert (
+            draft_poll.is_active is True
+        )  # Should be activated if start time has passed
 
     def test_publish_draft_requires_ownership(self, user):
         """Test that only poll owner can publish draft."""
@@ -402,9 +407,10 @@ class TestDeletingDrafts:
             is_draft=True,
         )
         option = PollOption.objects.create(poll=draft_poll, text="Option 1", order=0)
-        
+
         # Create a vote (unusual for a draft, but test it)
         from apps.votes.models import Vote
+
         Vote.objects.create(
             poll=draft_poll,
             option=option,
@@ -422,4 +428,3 @@ class TestDeletingDrafts:
         # Should fail because poll has votes
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "votes" in response.data["error"].lower()
-

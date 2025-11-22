@@ -166,7 +166,10 @@ class TestFingerprintValidationInVoteCasting:
                 request=request3,
             )
 
-        assert "different ip" in str(exc_info.value).lower() or "shared" in str(exc_info.value).lower()
+        assert (
+            "different ip" in str(exc_info.value).lower()
+            or "shared" in str(exc_info.value).lower()
+        )
 
     def test_fingerprint_used_in_idempotency_key(self, poll, choices):
         """Test that fingerprint is used in idempotency key generation."""
@@ -257,4 +260,3 @@ class TestFingerprintValidationInVoteCasting:
         assert vote is not None
         assert is_new is True
         assert vote.fingerprint == fingerprint
-

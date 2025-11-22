@@ -63,20 +63,30 @@ class TestMultiLanguagePollCreation:
             "description_fr": "Ceci est un sondage de test",
             "description_de": "Dies ist eine Testumfrage",
             "options": [
-                {"text": "Option 1", "text_es": "Opción 1", "text_fr": "Option 1", "text_de": "Option 1"},
-                {"text": "Option 2", "text_es": "Opción 2", "text_fr": "Option 2", "text_de": "Option 2"},
+                {
+                    "text": "Option 1",
+                    "text_es": "Opción 1",
+                    "text_fr": "Option 1",
+                    "text_de": "Option 1",
+                },
+                {
+                    "text": "Option 2",
+                    "text_es": "Opción 2",
+                    "text_fr": "Option 2",
+                    "text_de": "Option 2",
+                },
             ],
         }
         response = authenticated_client.post(url, data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        
+
         # Check that poll was created
         poll = Poll.objects.get(id=response.data["id"])
         assert poll.title == "Test Poll"
         assert poll.title_es == "Encuesta de Prueba"
         assert poll.title_fr == "Sondage de Test"
         assert poll.title_de == "Test-Umfrage"
-        
+
         # Check options translations
         options = poll.options.all()
         assert options[0].text == "Option 1"
@@ -99,13 +109,13 @@ class TestMultiLanguagePollCreation:
         }
         response = authenticated_client.post(url, data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        
+
         # Check that poll was created with Swahili translation
         poll = Poll.objects.get(id=response.data["id"])
         assert poll.title == "Test Poll"
         assert poll.title_sw == "Uchaguzi wa Jaribio"
         assert poll.description_sw == "Hii ni uchaguzi wa jaribio"
-        
+
         # Check options translations
         options = poll.options.all()
         assert options[0].text_sw == "Chaguo 1"
@@ -126,10 +136,10 @@ class TestAPILanguageParameter:
             created_by=user,
         )
         PollOption.objects.create(poll=poll, text="Option 1", text_es="Opción 1")
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url)
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Test Poll"
         assert response.data["options"][0]["text"] == "Option 1"
@@ -143,10 +153,10 @@ class TestAPILanguageParameter:
             created_by=user,
         )
         PollOption.objects.create(poll=poll, text="Option 1", text_es="Opción 1")
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url, {"lang": "es"})
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Encuesta de Prueba"
         assert response.data["options"][0]["text"] == "Opción 1"
@@ -160,10 +170,10 @@ class TestAPILanguageParameter:
             created_by=user,
         )
         PollOption.objects.create(poll=poll, text="Option 1", text_fr="Option 1 (FR)")
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url, {"lang": "fr"})
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Sondage de Test"
         assert response.data["options"][0]["text"] == "Option 1 (FR)"
@@ -177,10 +187,10 @@ class TestAPILanguageParameter:
             created_by=user,
         )
         PollOption.objects.create(poll=poll, text="Option 1", text_de="Option 1 (DE)")
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url, {"lang": "de"})
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Test-Umfrage"
         assert response.data["options"][0]["text"] == "Option 1 (DE)"
@@ -194,15 +204,17 @@ class TestAPILanguageParameter:
             created_by=user,
         )
         PollOption.objects.create(poll=poll, text="Option 1", text_sw="Chaguo 1")
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url, {"lang": "sw"})
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Uchaguzi wa Jaribio"
         assert response.data["options"][0]["text"] == "Chaguo 1"
 
-    def test_api_falls_back_to_english_when_translation_missing(self, authenticated_client, user):
+    def test_api_falls_back_to_english_when_translation_missing(
+        self, authenticated_client, user
+    ):
         """Test that API falls back to English when requested translation is missing."""
         # Create poll with only English
         poll = Poll.objects.create(
@@ -210,26 +222,28 @@ class TestAPILanguageParameter:
             created_by=user,
         )
         PollOption.objects.create(poll=poll, text="Option 1")
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url, {"lang": "es"})
-        
+
         assert response.status_code == status.HTTP_200_OK
         # Should fallback to English
         assert response.data["title"] == "Test Poll"
         assert response.data["options"][0]["text"] == "Option 1"
 
-    def test_api_falls_back_to_english_for_invalid_language(self, authenticated_client, user):
+    def test_api_falls_back_to_english_for_invalid_language(
+        self, authenticated_client, user
+    ):
         """Test that API falls back to English for invalid language code."""
         poll = Poll.objects.create(
             title="Test Poll",
             created_by=user,
         )
         PollOption.objects.create(poll=poll, text="Option 1")
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url, {"lang": "invalid"})
-        
+
         assert response.status_code == status.HTTP_200_OK
         # Should fallback to English
         assert response.data["title"] == "Test Poll"
@@ -252,12 +266,14 @@ class TestLanguageSwitching:
             title_es="Encuesta 2",
             created_by=user,
         )
-        
+
         url = reverse("poll-list")
         response = authenticated_client.get(url, {"lang": "es"})
-        
+
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         assert len(results) >= 2
         # Check that both polls return Spanish titles
         poll_titles = [p["title"] for p in results if p["id"] in [poll1.id, poll2.id]]
@@ -281,23 +297,23 @@ class TestLanguageSwitching:
             text_es="Opción 1",
             text_fr="Option 1 (FR)",
         )
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
-        
+
         # Test English
         response = authenticated_client.get(url, {"lang": "en"})
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Test Poll"
         assert response.data["description"] == "English description"
         assert response.data["options"][0]["text"] == "Option 1"
-        
+
         # Test Spanish
         response = authenticated_client.get(url, {"lang": "es"})
         assert response.status_code == status.HTTP_200_OK
         assert response.data["title"] == "Encuesta de Prueba"
         assert response.data["description"] == "Descripción en español"
         assert response.data["options"][0]["text"] == "Opción 1"
-        
+
         # Test French
         response = authenticated_client.get(url, {"lang": "fr"})
         assert response.status_code == status.HTTP_200_OK
@@ -310,7 +326,9 @@ class TestLanguageSwitching:
 class TestPartialTranslations:
     """Test handling of partial translations."""
 
-    def test_partial_translation_falls_back_to_english(self, authenticated_client, user):
+    def test_partial_translation_falls_back_to_english(
+        self, authenticated_client, user
+    ):
         """Test that partial translations fall back to English for missing fields."""
         # Create poll with only Spanish title, but English description
         poll = Poll.objects.create(
@@ -325,10 +343,10 @@ class TestPartialTranslations:
             text="Option 1",
             text_es="Opción 1",
         )
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url, {"lang": "es"})
-        
+
         assert response.status_code == status.HTTP_200_OK
         # Title should be Spanish
         assert response.data["title"] == "Encuesta de Prueba"
@@ -355,14 +373,13 @@ class TestPartialTranslations:
             poll=poll,
             text="Option 2",
         )
-        
+
         url = reverse("poll-detail", kwargs={"pk": poll.id})
         response = authenticated_client.get(url, {"lang": "es"})
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["options"]) == 2
         # Option 1 should be Spanish
         assert response.data["options"][0]["text"] == "Opción 1"
         # Option 2 should fallback to English
         assert response.data["options"][1]["text"] == "Option 2"
-

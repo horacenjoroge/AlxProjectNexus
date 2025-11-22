@@ -21,4 +21,3 @@ class PollOptionTranslationOptions(TranslationOptions):
 
     fields = ("text",)
     required_languages = ("en",)  # English is always required
-

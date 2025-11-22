@@ -73,7 +73,7 @@ class TestAuditLogModel:
             method="POST",
             path="/api/votes/cast/",
             status_code=201,
-            response_time=0.123
+            response_time=0.123,
         )
         assert log.user == user
         assert log.method == "POST"
@@ -89,25 +89,34 @@ class TestAuditLogModel:
 
     def test_audit_log_str_representation(self, user):
         """Test audit log string representation."""
-        log = AuditLogFactory(user=user, method="GET", path="/api/polls/", status_code=200)
+        log = AuditLogFactory(
+            user=user, method="GET", path="/api/polls/", status_code=200
+        )
         assert "GET" in str(log)
         assert "/api/polls/" in str(log)
         assert "200" in str(log)
 
     def test_audit_log_ordering(self, user):
         """Test that audit logs are ordered by created_at descending."""
-        log1 = AuditLogFactory(user=user, created_at=timezone.now() - timedelta(hours=1))
+        log1 = AuditLogFactory(
+            user=user, created_at=timezone.now() - timedelta(hours=1)
+        )
         log2 = AuditLogFactory(user=user, created_at=timezone.now())
         logs = list(AuditLog.objects.all())
         assert logs[0] == log2  # Most recent first
         assert logs[1] == log1
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_audit_log_indexes(self, user):
         """Test that audit log has proper indexes."""
         from django.db import connection
+
         AuditLogFactory(user=user)
-        indexes = connection.introspection.get_indexes(connection.cursor(), "analytics_auditlog")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "analytics_auditlog"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
         assert any("user_id" in fields for fields in index_fields)
         assert any("request_id" in fields for fields in index_fields)
@@ -121,9 +130,7 @@ class TestIPReputationModel:
     def test_ip_reputation_creation(self):
         """Test creating IP reputation."""
         reputation = IPReputationFactory(
-            ip_address="192.168.1.1",
-            reputation_score=75,
-            violation_count=2
+            ip_address="192.168.1.1", reputation_score=75, violation_count=2
         )
         assert reputation.ip_address == "192.168.1.1"
         assert reputation.reputation_score == 75
@@ -161,19 +168,21 @@ class TestIPReputationModel:
         """Test that violation severity affects reputation score."""
         reputation1 = IPReputationFactory(reputation_score=100)
         reputation2 = IPReputationFactory(reputation_score=100)
-        
+
         reputation1.record_violation(severity=1)
         reputation2.record_violation(severity=5)
-        
+
         reputation1.refresh_from_db()
         reputation2.refresh_from_db()
-        
+
         # Higher severity should decrease score more
         assert reputation2.reputation_score < reputation1.reputation_score
 
     def test_ip_reputation_str_representation(self):
         """Test IP reputation string representation."""
-        reputation = IPReputationFactory(ip_address="192.168.1.1", reputation_score=75, violation_count=2)
+        reputation = IPReputationFactory(
+            ip_address="192.168.1.1", reputation_score=75, violation_count=2
+        )
         assert "192.168.1.1" in str(reputation)
         assert "75" in str(reputation)
         assert "2" in str(reputation)
@@ -190,7 +199,7 @@ class TestIPBlockModel:
             ip_address="192.168.1.1",
             reason="Multiple fraud attempts",
             is_manual=True,
-            blocked_by=user
+            blocked_by=user,
         )
         assert block.ip_address == "192.168.1.1"
         assert block.reason == "Multiple fraud attempts"
@@ -239,9 +248,7 @@ class TestIPWhitelistModel:
     def test_ip_whitelist_creation(self, user):
         """Test creating an IP whitelist entry."""
         whitelist = IPWhitelistFactory(
-            ip_address="192.168.1.1",
-            reason="Trusted internal network",
-            created_by=user
+            ip_address="192.168.1.1", reason="Trusted internal network", created_by=user
         )
         assert whitelist.ip_address == "192.168.1.1"
         assert whitelist.reason == "Trusted internal network"
@@ -273,7 +280,7 @@ class TestFingerprintBlockModel:
             fingerprint=fingerprint,
             reason="Used by multiple users",
             blocked_by=user,
-            is_active=True
+            is_active=True,
         )
         assert block.fingerprint == fingerprint
         assert block.reason == "Used by multiple users"
@@ -313,9 +320,7 @@ class TestFraudAlertModel:
     def test_fraud_alert_creation(self, vote):
         """Test creating a fraud alert."""
         alert = FraudAlertFactory(
-            vote=vote,
-            reasons="Suspicious pattern detected",
-            risk_score=85
+            vote=vote, reasons="Suspicious pattern detected", risk_score=85
         )
         assert alert.vote == vote
         assert alert.poll == vote.poll
@@ -332,19 +337,25 @@ class TestFraudAlertModel:
 
     def test_fraud_alert_ordering(self, vote):
         """Test that fraud alerts are ordered by created_at descending."""
-        alert1 = FraudAlertFactory(vote=vote, created_at=timezone.now() - timedelta(hours=1))
+        alert1 = FraudAlertFactory(
+            vote=vote, created_at=timezone.now() - timedelta(hours=1)
+        )
         alert2 = FraudAlertFactory(vote=vote, created_at=timezone.now())
         alerts = list(FraudAlert.objects.all())
         assert alerts[0] == alert2  # Most recent first
         assert alerts[1] == alert1
 
-    @pytest.mark.skip(reason="get_indexes method not available in Django 5.x - use database-specific introspection")
+    @pytest.mark.skip(
+        reason="get_indexes method not available in Django 5.x - use database-specific introspection"
+    )
     def test_fraud_alert_indexes(self, vote):
         """Test that fraud alert has proper indexes."""
         from django.db import connection
+
         FraudAlertFactory(vote=vote)
-        indexes = connection.introspection.get_indexes(connection.cursor(), "analytics_fraudalert")
+        indexes = connection.introspection.get_indexes(
+            connection.cursor(), "analytics_fraudalert"
+        )
         index_fields = [idx["columns"] for idx in indexes.values()]
         assert any("poll_id" in fields for fields in index_fields)
         assert any("risk_score" in fields for fields in index_fields)
-

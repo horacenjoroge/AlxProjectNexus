@@ -103,7 +103,9 @@ class TestFingerprintValidationPerformance:
 
         # First check - should query database
         connection.queries_log.clear()
-        result1 = check_fingerprint_suspicious("cache_test_fp", poll.id, user.id, "192.168.1.1")
+        result1 = check_fingerprint_suspicious(
+            "cache_test_fp", poll.id, user.id, "192.168.1.1"
+        )
         db_queries_first = len(connection.queries)
 
         # Update cache
@@ -111,7 +113,9 @@ class TestFingerprintValidationPerformance:
 
         # Second check - should use cache (fewer or no DB queries)
         connection.queries_log.clear()
-        result2 = check_fingerprint_suspicious("cache_test_fp", poll.id, user.id, "192.168.1.1")
+        result2 = check_fingerprint_suspicious(
+            "cache_test_fp", poll.id, user.id, "192.168.1.1"
+        )
         db_queries_second = len(connection.queries)
 
         # Cache should reduce database queries
@@ -173,4 +177,3 @@ class TestFingerprintValidationPerformance:
         # Should be fast because time window limits query scope
         assert elapsed < 0.2, f"Query too slow with historical data: {elapsed}s"
         assert result["suspicious"] is False
-

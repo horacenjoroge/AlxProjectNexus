@@ -94,6 +94,7 @@ class NotificationPreferenceViewSet(viewsets.ModelViewSet):
     def get_object(self):
         """Get or create preferences for the authenticated user."""
         from .services import get_or_create_preferences
+
         return get_or_create_preferences(self.request.user)
 
     @action(detail=False, methods=["post"])
@@ -149,4 +150,3 @@ class UnsubscribeView(APIView):
             return Response(
                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
-

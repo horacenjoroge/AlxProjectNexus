@@ -18,11 +18,15 @@ class Command(BaseCommand):
 
         if created:
             self.stdout.write(
-                self.style.SUCCESS(f"Created interval schedule: every {schedule.every} {schedule.period}")
+                self.style.SUCCESS(
+                    f"Created interval schedule: every {schedule.every} {schedule.period}"
+                )
             )
         else:
             self.stdout.write(
-                self.style.SUCCESS(f"Using existing interval schedule: every {schedule.every} {schedule.period}")
+                self.style.SUCCESS(
+                    f"Using existing interval schedule: every {schedule.every} {schedule.period}"
+                )
             )
 
         # Create or update periodic task
@@ -33,22 +37,18 @@ class Command(BaseCommand):
                 "interval": schedule,
                 "enabled": True,
                 "description": "Periodically analyze vote patterns for suspicious activity",
-            }
+            },
         )
 
         if created:
-            self.stdout.write(
-                self.style.SUCCESS(f"Created periodic task: {task.name}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"Created periodic task: {task.name}"))
         else:
             # Update existing task
             task.task = "apps.votes.tasks.periodic_pattern_analysis"
             task.interval = schedule
             task.enabled = True
             task.save()
-            self.stdout.write(
-                self.style.SUCCESS(f"Updated periodic task: {task.name}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"Updated periodic task: {task.name}"))
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -60,4 +60,3 @@ class Command(BaseCommand):
                 f"Task will run every {schedule.every} {schedule.period}"
             )
         )
-

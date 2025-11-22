@@ -55,10 +55,26 @@ class UserSerializer(serializers.ModelSerializer):
 class FollowSerializer(serializers.ModelSerializer):
     """Serializer for Follow model."""
 
-    follower_username = serializers.CharField(source="follower.username", read_only=True)
-    following_username = serializers.CharField(source="following.username", read_only=True)
+    follower_username = serializers.CharField(
+        source="follower.username", read_only=True
+    )
+    following_username = serializers.CharField(
+        source="following.username", read_only=True
+    )
 
     class Meta:
         model = Follow
-        fields = ["id", "follower", "follower_username", "following", "following_username", "created_at"]
-        read_only_fields = ["id", "follower_username", "following_username", "created_at"]
+        fields = [
+            "id",
+            "follower",
+            "follower_username",
+            "following",
+            "following_username",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "follower_username",
+            "following_username",
+            "created_at",
+        ]

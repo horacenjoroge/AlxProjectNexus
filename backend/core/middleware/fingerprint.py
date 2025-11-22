@@ -69,4 +69,3 @@ class FingerprintMiddleware(MiddlewareMixin):
         """
         current_fingerprint = self.extract_fingerprint(request)
         return current_fingerprint == stored_fingerprint
-

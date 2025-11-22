@@ -92,7 +92,7 @@ def cast_vote(
     if request:
         ip_address = extract_ip_address(request)
         user_agent = request.META.get("HTTP_USER_AGENT", "")
-    
+
     # Step 2.0: Early fingerprint validation (before transaction to allow VoteAttempt logging)
     # This allows us to log failed attempts even if the transaction is rolled back
     fingerprint_validation_blocked = False
@@ -101,6 +101,7 @@ def cast_vote(
     if fingerprint:
         try:
             from core.utils.fingerprint_validation import check_fingerprint_suspicious
+
             fingerprint_validation_result = check_fingerprint_suspicious(
                 fingerprint=fingerprint,
                 poll_id=poll_id,
@@ -115,24 +116,28 @@ def cast_vote(
                 )
         except Exception as e:
             logger.error(f"Error in early fingerprint validation: {e}")
-    
+
     # Step 2.1: Require fingerprint for anonymous votes
     try:
         is_valid, error_message = require_fingerprint_for_anonymous(user, fingerprint)
         if not is_valid:
-            raise FingerprintValidationError(error_message or "Fingerprint validation failed")
+            raise FingerprintValidationError(
+                error_message or "Fingerprint validation failed"
+            )
     except FingerprintValidationError:
         raise
     except Exception as e:
         logger.error(f"Error checking fingerprint requirement: {e}")
         # Fail open for system errors
-    
+
     # Step 2.2: Validate fingerprint format if provided
     if fingerprint:
         is_valid, error_message = validate_fingerprint_format(fingerprint)
         if not is_valid:
-            raise FingerprintValidationError(error_message or "Invalid fingerprint format")
-    
+            raise FingerprintValidationError(
+                error_message or "Invalid fingerprint format"
+            )
+
     # Generate idempotency key if not provided (now includes fingerprint+IP for anonymous)
     if not idempotency_key:
         user_id = user.id if user and user.is_authenticated else None
@@ -156,7 +161,9 @@ def cast_vote(
             pass
 
     # Also check database for duplicate idempotency key
-    is_db_duplicate, existing_vote_id = check_duplicate_vote_by_idempotency(idempotency_key)
+    is_db_duplicate, existing_vote_id = check_duplicate_vote_by_idempotency(
+        idempotency_key
+    )
     if is_db_duplicate:
         try:
             existing_vote = Vote.objects.get(id=existing_vote_id)
@@ -165,7 +172,9 @@ def cast_vote(
                 idempotency_key,
                 {"vote_id": existing_vote.id, "status": "existing"},
             )
-            logger.info(f"Idempotent retry: returning existing vote {existing_vote.id} from database")
+            logger.info(
+                f"Idempotent retry: returning existing vote {existing_vote.id} from database"
+            )
             return existing_vote, False  # Not a new vote
         except Vote.DoesNotExist:
             pass
@@ -174,35 +183,42 @@ def cast_vote(
     if ip_address:
         try:
             from core.utils.ip_reputation import check_ip_reputation
-            
+
             is_allowed, error_message = check_ip_reputation(ip_address)
             if not is_allowed:
-                raise IPBlockedError(error_message or "Your IP address has been blocked")
+                raise IPBlockedError(
+                    error_message or "Your IP address has been blocked"
+                )
         except IPBlockedError:
             raise
         except Exception as e:
             logger.error(f"Error checking IP reputation: {e}")
             # Fail open - don't block legitimate users if reputation check fails
-    
+
     # Step 2.6: Check geographic restrictions (before transaction to allow VoteAttempt logging)
     # Fetch poll early to check geographic restrictions
     try:
         poll = Poll.objects.get(id=poll_id)
     except Poll.DoesNotExist:
         raise PollNotFoundError(f"Poll with id {poll_id} not found")
-    
+
     if ip_address:
         try:
             from core.utils.geolocation import validate_geographic_restriction
-            
+
             security_rules = poll.security_rules or {}
             allowed_countries = security_rules.get("allowed_countries")
             blocked_countries = security_rules.get("blocked_countries")
             allowed_regions = security_rules.get("allowed_regions")
             blocked_regions = security_rules.get("blocked_regions")
-            
+
             # Only check if restrictions are configured
-            if allowed_countries or blocked_countries or allowed_regions or blocked_regions:
+            if (
+                allowed_countries
+                or blocked_countries
+                or allowed_regions
+                or blocked_regions
+            ):
                 is_allowed, error_message = validate_geographic_restriction(
                     ip_address=ip_address,
                     allowed_countries=allowed_countries,
@@ -210,7 +226,7 @@ def cast_vote(
                     allowed_regions=allowed_regions,
                     blocked_regions=blocked_regions,
                 )
-                
+
                 if not is_allowed:
                     # Create VoteAttempt outside transaction
                     try:
@@ -231,12 +247,17 @@ def cast_vote(
                             user_agent=user_agent,
                             fingerprint=fingerprint or "",
                             success=False,
-                            error_message=error_message or "Geographic restriction violation",
+                            error_message=error_message
+                            or "Geographic restriction violation",
                         )
                     except Exception as e:
-                        logger.error(f"Error creating VoteAttempt for geographic restriction: {e}")
-                    
-                    raise InvalidVoteError(error_message or "Voting is not allowed from your location")
+                        logger.error(
+                            f"Error creating VoteAttempt for geographic restriction: {e}"
+                        )
+
+                    raise InvalidVoteError(
+                        error_message or "Voting is not allowed from your location"
+                    )
         except InvalidVoteError:
             raise
         except Exception as e:
@@ -257,7 +278,7 @@ def cast_vote(
         try:
             poll = Poll.objects.get(id=poll_id)
             option = PollOption.objects.get(id=choice_id, poll=poll)
-            
+
             # Create VoteAttempt outside transaction so it persists even if transaction fails
             VoteAttempt.objects.create(
                 user=user,
@@ -273,7 +294,7 @@ def cast_vote(
             )
         except Exception as e:
             logger.error(f"Error creating VoteAttempt for blocked vote: {e}")
-        
+
         raise fingerprint_validation_error
 
     # Step 3: Poll validation with select-for-update lock
@@ -293,11 +314,15 @@ def cast_vote(
         # Validate poll has started
         now = timezone.now()
         if poll.starts_at > now:
-            raise InvalidPollError(f"Poll {poll_id} has not started yet (starts at {poll.starts_at})")
+            raise InvalidPollError(
+                f"Poll {poll_id} has not started yet (starts at {poll.starts_at})"
+            )
 
         # Validate poll has not expired
         if poll.ends_at and poll.ends_at < now:
-            raise PollClosedError(f"Poll {poll_id} has expired (ended at {poll.ends_at})")
+            raise PollClosedError(
+                f"Poll {poll_id} has expired (ended at {poll.ends_at})"
+            )
 
         # Validate poll is open (combines all checks)
         if not poll.is_open:
@@ -308,19 +333,21 @@ def cast_vote(
         if captcha_token is None and request and hasattr(request, "data"):
             # Try to get from request data
             captcha_token = request.data.get("captcha_token")
-        
+
         try:
             from core.utils.captcha import verify_captcha_for_vote
-            
+
             is_valid, error_message = verify_captcha_for_vote(
                 token=captcha_token,
                 poll_settings=poll.settings,
                 user=user,
                 remote_ip=ip_address,
             )
-            
+
             if not is_valid:
-                raise CaptchaVerificationError(error_message or "CAPTCHA verification failed")
+                raise CaptchaVerificationError(
+                    error_message or "CAPTCHA verification failed"
+                )
         except CaptchaVerificationError:
             raise
         except Exception as e:
@@ -331,20 +358,28 @@ def cast_vote(
 
         # Step 4: Voter validation
         # First check by idempotency_key (for idempotent retries)
-        existing_vote = Vote.objects.select_for_update().filter(
-            idempotency_key=idempotency_key, poll=poll
-        ).first()
-        
+        existing_vote = (
+            Vote.objects.select_for_update()
+            .filter(idempotency_key=idempotency_key, poll=poll)
+            .first()
+        )
+
         # If not found by idempotency_key, check by user+poll (for duplicate vote attempts)
         if not existing_vote:
             if user and user.is_authenticated:
-                existing_vote = Vote.objects.select_for_update().filter(user=user, poll=poll).first()
+                existing_vote = (
+                    Vote.objects.select_for_update()
+                    .filter(user=user, poll=poll)
+                    .first()
+                )
             else:
                 # For anonymous users, check by voter_token
-                existing_vote = Vote.objects.select_for_update().filter(
-                    voter_token=voter_token, poll=poll
-                ).first()
-        
+                existing_vote = (
+                    Vote.objects.select_for_update()
+                    .filter(voter_token=voter_token, poll=poll)
+                    .first()
+                )
+
         if existing_vote:
             # If the existing vote has the same idempotency_key, it's an idempotent retry
             if existing_vote.idempotency_key == idempotency_key:
@@ -353,14 +388,17 @@ def cast_vote(
                     idempotency_key,
                     {"vote_id": existing_vote.id, "status": "existing"},
                 )
-                logger.info(f"Idempotent retry: returning existing vote {existing_vote.id}")
+                logger.info(
+                    f"Idempotent retry: returning existing vote {existing_vote.id}"
+                )
                 return existing_vote, False  # Not a new vote
-            
+
             # Otherwise, it's a duplicate vote attempt (different idempotency_key but same user/poll)
             # Record IP violation for duplicate vote attempt
             if ip_address:
                 try:
                     from core.utils.ip_reputation import record_ip_violation
+
                     record_ip_violation(
                         ip_address=ip_address,
                         reason="Duplicate vote attempt",
@@ -368,7 +406,7 @@ def cast_vote(
                     )
                 except Exception as e:
                     logger.error(f"Error recording IP violation: {e}")
-            
+
             # Store result for idempotency (even though it's a duplicate)
             store_idempotency_result(
                 idempotency_key,
@@ -381,7 +419,9 @@ def cast_vote(
         # Check IP limits if configured in security_rules
         if ip_address and poll.security_rules.get("max_votes_per_ip"):
             max_votes = poll.security_rules.get("max_votes_per_ip")
-            ip_vote_count = Vote.objects.filter(poll=poll, ip_address=ip_address).count()
+            ip_vote_count = Vote.objects.filter(
+                poll=poll, ip_address=ip_address
+            ).count()
             if ip_vote_count >= max_votes:
                 raise InvalidVoteError(
                     f"IP address {ip_address} has reached the maximum vote limit ({max_votes}) for this poll"
@@ -396,12 +436,14 @@ def cast_vote(
         try:
             option = PollOption.objects.select_for_update().get(id=choice_id, poll=poll)
         except PollOption.DoesNotExist:
-            raise InvalidVoteError(f"Choice {choice_id} does not belong to poll {poll_id}")
+            raise InvalidVoteError(
+                f"Choice {choice_id} does not belong to poll {poll_id}"
+            )
 
         # Step 6: Fingerprint validation and suspicious change detection
         fingerprint_missing = False
         fraud_reasons_list = []
-        
+
         if fingerprint:
             try:
                 # Check for suspicious fingerprint patterns
@@ -429,10 +471,11 @@ def cast_vote(
                     ip_address=ip_address,
                     poll_id=poll_id,
                 )
-                
+
                 if change_result.get("block_vote", False):
                     # Create VoteAttempt outside transaction by using connection directly
                     from django.db import connection
+
                     try:
                         # Use raw SQL or create outside transaction
                         # For now, create it and hope transaction doesn't rollback
@@ -452,12 +495,14 @@ def cast_vote(
                         # Force commit before raising exception
                         connection.commit()
                     except Exception as e:
-                        logger.error(f"Error creating VoteAttempt for blocked vote: {e}")
-                    
+                        logger.error(
+                            f"Error creating VoteAttempt for blocked vote: {e}"
+                        )
+
                     raise FraudDetectedError(
                         f"Vote blocked due to suspicious fingerprint changes: {', '.join(change_result.get('reasons', []))}"
                     )
-                
+
                 if change_result.get("suspicious", False):
                     fraud_reasons_list.extend(change_result.get("reasons", []))
 
@@ -467,10 +512,11 @@ def cast_vote(
                     ip_address=ip_address,
                     poll_id=poll_id,
                 )
-                
+
                 if ip_combo_result.get("block_vote", False):
                     # Create VoteAttempt outside transaction
                     from django.db import connection
+
                     try:
                         VoteAttempt.objects.create(
                             user=user,
@@ -487,12 +533,14 @@ def cast_vote(
                         # Force commit before raising exception
                         connection.commit()
                     except Exception as e:
-                        logger.error(f"Error creating VoteAttempt for blocked vote: {e}")
-                    
+                        logger.error(
+                            f"Error creating VoteAttempt for blocked vote: {e}"
+                        )
+
                     raise FraudDetectedError(
                         f"Vote blocked: {', '.join(ip_combo_result.get('reasons', []))}"
                     )
-                
+
                 if ip_combo_result.get("suspicious", False):
                     fraud_reasons_list.extend(ip_combo_result.get("reasons", []))
 
@@ -509,7 +557,9 @@ def cast_vote(
 
                         analyze_fingerprint_patterns.delay(fingerprint, poll_id)
                     except Exception as e:
-                        logger.error(f"Failed to trigger async fingerprint analysis: {e}")
+                        logger.error(
+                            f"Failed to trigger async fingerprint analysis: {e}"
+                        )
 
             except (InvalidVoteError, FraudDetectedError, FingerprintValidationError):
                 raise
@@ -534,14 +584,13 @@ def cast_vote(
             fingerprint=fingerprint,
             request=request,
         )
-        
+
         # Combine fraud reasons from fingerprint validation and fraud detection
         all_fraud_reasons = fraud_reasons_list + fraud_result.get("reasons", [])
-        
+
         # Mark vote as invalid if fingerprint is missing (for anonymous votes) or fraud detected
-        should_mark_invalid = (
-            fraud_result.get("should_mark_invalid", False) or
-            (fingerprint_missing and (not user or not user.is_authenticated))
+        should_mark_invalid = fraud_result.get("should_mark_invalid", False) or (
+            fingerprint_missing and (not user or not user.is_authenticated)
         )
 
         # Step 8: Create vote atomically
@@ -572,11 +621,12 @@ def cast_vote(
                     user_id=user.id if user and user.is_authenticated else None,
                     ip_address=ip_address,
                 )
-                
+
                 # Notify user that their vote was flagged
                 if user and vote.is_valid is False:
                     try:
                         from apps.notifications.services import notify_vote_flagged
+
                         notify_vote_flagged(vote, fraud_result["reasons"])
                     except Exception as e:
                         logger.error(f"Error sending vote flagged notification: {e}")
@@ -646,10 +696,11 @@ def cast_vote(
             publish_vote_event(poll.id, vote.id)
         except Exception as e:
             logger.error(f"Error publishing vote event to Redis: {e}")
-        
+
         # Also broadcast directly to local WebSocket clients (for single-server or when Redis is unavailable)
         try:
             from apps.polls.services import broadcast_poll_results_update
+
             broadcast_poll_results_update(poll.id)
         except Exception as e:
             logger.error(f"Error broadcasting poll results update: {e}")
@@ -667,12 +718,15 @@ def cast_vote(
             success=True,
         )
 
-        logger.info(f"Vote created successfully: vote_id={vote.id}, poll_id={poll_id}, user_id={user.id if user and user.is_authenticated else None}")
-        
+        logger.info(
+            f"Vote created successfully: vote_id={vote.id}, poll_id={poll_id}, user_id={user.id if user and user.is_authenticated else None}"
+        )
+
         # Record successful IP activity
         if ip_address:
             try:
                 from core.utils.ip_reputation import record_ip_success
+
                 record_ip_success(ip_address)
             except Exception as e:
                 logger.error(f"Error recording IP success: {e}")

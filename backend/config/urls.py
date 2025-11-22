@@ -20,7 +20,9 @@ from rest_framework.response import Response
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-@renderer_classes([JSONRenderer])  # Only use JSONRenderer to avoid BrowsableAPIRenderer template issues
+@renderer_classes(
+    [JSONRenderer]
+)  # Only use JSONRenderer to avoid BrowsableAPIRenderer template issues
 def api_root(request):
     """API root endpoint that lists available endpoints."""
     data = {
@@ -43,7 +45,7 @@ def api_root(request):
         },
         "info": "For detailed API documentation, visit /api/docs/ or /api/redoc/",
     }
-    
+
     return Response(data)
 
 
@@ -115,8 +117,14 @@ urlpatterns = [
     path("api/v1/", include("apps.notifications.urls")),
     # API Documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/schema/view/", schema_viewer, name="schema-viewer"),  # Browser-friendly schema page
-    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path(
+        "api/schema/view/", schema_viewer, name="schema-viewer"
+    ),  # Browser-friendly schema page
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
 

@@ -28,6 +28,7 @@ User = get_user_model()
 def client():
     """Create a Django test client."""
     from django.test import Client
+
     return Client()
 
 
@@ -35,6 +36,7 @@ def client():
 def poll_option(db, poll):
     """Create a poll option for testing."""
     from apps.polls.factories import PollOptionFactory
+
     return PollOptionFactory(poll=poll)
 
 
@@ -104,14 +106,16 @@ class TestParameterPollution:
     def test_parameter_pollution_in_vote(self, client, poll, poll_option, user):
         """Test parameter pollution in vote casting."""
         client.force_login(user)
-        
+
         # Try to send multiple values
         response = client.post(
             "/api/v1/votes/cast/",
-            data=json.dumps({
-                "poll_id": [poll.id, 999],
-                "choice_id": poll_option.id,
-            }),
+            data=json.dumps(
+                {
+                    "poll_id": [poll.id, 999],
+                    "choice_id": poll_option.id,
+                }
+            ),
             content_type="application/json",
         )
         # Should reject or use first value
@@ -128,12 +132,14 @@ class TestMassAssignment:
         # Try to set is_staff or is_superuser via API
         response = admin_client.post(
             "/api/v1/polls/",
-            data=json.dumps({
-                "title": "Test",
-                "description": "Test",
-                "is_staff": True,  # Should be ignored
-                "is_superuser": True,  # Should be ignored
-            }),
+            data=json.dumps(
+                {
+                    "title": "Test",
+                    "description": "Test",
+                    "is_staff": True,  # Should be ignored
+                    "is_superuser": True,  # Should be ignored
+                }
+            ),
             content_type="application/json",
         )
         # Should succeed but ignore sensitive fields
@@ -172,7 +178,9 @@ class TestTimingAttacks:
         time_diff = abs(time_invalid - time_nonexistent)
         # Allow 0.3 second difference for network/processing variance in test environment
         # In production, this should be much tighter, but test environment has more variance
-        assert time_diff < 0.3, f"Timing attack vulnerability detected: {time_diff:.3f}s difference"
+        assert (
+            time_diff < 0.3
+        ), f"Timing attack vulnerability detected: {time_diff:.3f}s difference"
 
 
 @pytest.mark.django_db
@@ -197,7 +205,7 @@ class TestSessionSecurity:
     def test_session_timeout(self, client, user):
         """Test that sessions timeout appropriately."""
         client.force_login(user)
-        
+
         # Session should be valid
         response = client.get("/api/v1/votes/my-votes/")
         assert response.status_code in [200, 401, 403]  # May require additional setup
@@ -205,7 +213,7 @@ class TestSessionSecurity:
     def test_session_cookie_secure_flag(self, client, user):
         """Test that session cookies have secure flag in production."""
         from django.conf import settings
-        
+
         # In production, session cookies should be secure
         if not settings.DEBUG:
             client.force_login(user)
@@ -224,17 +232,19 @@ class TestInputValidation:
     def test_oversized_input_rejected(self, client, poll, poll_option, user):
         """Test that oversized inputs are rejected."""
         client.force_login(user)
-        
+
         # Try to send very large payload
         large_payload = "x" * 100000  # 100KB
-        
+
         response = client.post(
             "/api/v1/votes/cast/",
-            data=json.dumps({
-                "poll_id": poll.id,
-                "choice_id": poll_option.id,
-                "idempotency_key": large_payload,
-            }),
+            data=json.dumps(
+                {
+                    "poll_id": poll.id,
+                    "choice_id": poll_option.id,
+                    "idempotency_key": large_payload,
+                }
+            ),
             content_type="application/json",
         )
         # Should reject or truncate
@@ -243,7 +253,7 @@ class TestInputValidation:
     def test_null_byte_injection(self, client, poll, poll_option, user):
         """Test null byte injection protection."""
         client.force_login(user)
-        
+
         null_byte_payloads = [
             "test\x00",
             "\x00test",
@@ -253,11 +263,13 @@ class TestInputValidation:
         for payload in null_byte_payloads:
             response = client.post(
                 "/api/v1/votes/cast/",
-                data=json.dumps({
-                    "poll_id": poll.id,
-                    "choice_id": poll_option.id,
-                    "idempotency_key": payload,
-                }),
+                data=json.dumps(
+                    {
+                        "poll_id": poll.id,
+                        "choice_id": poll_option.id,
+                        "idempotency_key": payload,
+                    }
+                ),
                 content_type="application/json",
             )
             # Should handle safely
@@ -266,7 +278,7 @@ class TestInputValidation:
     def test_unicode_attacks(self, client, poll, poll_option, user):
         """Test unicode-based attacks."""
         client.force_login(user)
-        
+
         unicode_payloads = [
             "\u0000",  # Null character
             "\u202e",  # Right-to-left override
@@ -276,11 +288,13 @@ class TestInputValidation:
         for payload in unicode_payloads:
             response = client.post(
                 "/api/v1/votes/cast/",
-                data=json.dumps({
-                    "poll_id": poll.id,
-                    "choice_id": poll_option.id,
-                    "idempotency_key": payload,
-                }),
+                data=json.dumps(
+                    {
+                        "poll_id": poll.id,
+                        "choice_id": poll_option.id,
+                        "idempotency_key": payload,
+                    }
+                ),
                 content_type="application/json",
             )
             # Should handle safely
@@ -295,30 +309,34 @@ class TestAPIAbuse:
     def test_concurrent_duplicate_requests(self, client, poll, poll_option, user):
         """Test handling of concurrent duplicate requests."""
         client.force_login(user)
-        
+
         idempotency_key = "concurrent_test_key"
-        
+
         # Simulate concurrent requests (in real scenario, would use threading)
         response1 = client.post(
             "/api/v1/votes/cast/",
-            data=json.dumps({
-                "poll_id": poll.id,
-                "choice_id": poll_option.id,
-                "idempotency_key": idempotency_key,
-            }),
+            data=json.dumps(
+                {
+                    "poll_id": poll.id,
+                    "choice_id": poll_option.id,
+                    "idempotency_key": idempotency_key,
+                }
+            ),
             content_type="application/json",
         )
-        
+
         response2 = client.post(
             "/api/v1/votes/cast/",
-            data=json.dumps({
-                "poll_id": poll.id,
-                "choice_id": poll_option.id,
-                "idempotency_key": idempotency_key,
-            }),
+            data=json.dumps(
+                {
+                    "poll_id": poll.id,
+                    "choice_id": poll_option.id,
+                    "idempotency_key": idempotency_key,
+                }
+            ),
             content_type="application/json",
         )
-        
+
         # With same idempotency_key, first should create (201), second should return existing (200)
         # OR both could be 200 if idempotency check happens before creation
         status_codes = [response1.status_code, response2.status_code]
@@ -335,15 +353,16 @@ class TestAPIAbuse:
         for i in range(20):
             response = admin_client.post(
                 "/api/v1/polls/",
-                data=json.dumps({
-                    "title": f"Spam Poll {i}",
-                    "description": "Spam",
-                }),
+                data=json.dumps(
+                    {
+                        "title": f"Spam Poll {i}",
+                        "description": "Spam",
+                    }
+                ),
                 content_type="application/json",
             )
             responses.append(response.status_code)
-        
+
         # Should either succeed, rate limit, or reject invalid data
         # 400 may occur if validation fails (e.g., missing required fields, duplicate titles)
         assert all(status in [200, 201, 400, 429] for status in responses)
-

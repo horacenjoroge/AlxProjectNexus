@@ -63,8 +63,12 @@ class TestVoteCounts:
         results = calculate_poll_results(poll.id, use_cache=False)
 
         # Verify counts
-        option_0_result = next(opt for opt in results["options"] if opt["option_id"] == choices[0].id)
-        option_1_result = next(opt for opt in results["options"] if opt["option_id"] == choices[1].id)
+        option_0_result = next(
+            opt for opt in results["options"] if opt["option_id"] == choices[0].id
+        )
+        option_1_result = next(
+            opt for opt in results["options"] if opt["option_id"] == choices[1].id
+        )
 
         assert option_0_result["votes"] == 3
         assert option_1_result["votes"] == 2
@@ -105,7 +109,9 @@ class TestVoteCounts:
         results = calculate_poll_results(poll.id, use_cache=False)
 
         # Only valid vote should be counted
-        option_0_result = next(opt for opt in results["options"] if opt["option_id"] == choices[0].id)
+        option_0_result = next(
+            opt for opt in results["options"] if opt["option_id"] == choices[0].id
+        )
         assert option_0_result["votes"] == 1
         assert results["total_votes"] == 1
 
@@ -121,6 +127,7 @@ class TestPercentages:
         # Ensure we have at least 3 choices for this test
         if len(choices) < 3:
             from apps.polls.factories import PollOptionFactory
+
             choices.append(PollOptionFactory(poll=poll, text="Choice 3", order=2))
 
         # Create votes distributed across options
@@ -249,7 +256,9 @@ class TestWinnerDetection:
         assert results["is_tie"] is False
 
         # Winner should be marked
-        option_0_result = next(opt for opt in results["options"] if opt["option_id"] == choices[0].id)
+        option_0_result = next(
+            opt for opt in results["options"] if opt["option_id"] == choices[0].id
+        )
         assert option_0_result["votes"] == 3
         assert option_0_result["is_winner"] is True
 
@@ -297,8 +306,12 @@ class TestWinnerDetection:
         assert results["is_tie"] is True
 
         # Both winners should be marked
-        option_0_result = next(opt for opt in results["options"] if opt["option_id"] == choices[0].id)
-        option_1_result = next(opt for opt in results["options"] if opt["option_id"] == choices[1].id)
+        option_0_result = next(
+            opt for opt in results["options"] if opt["option_id"] == choices[0].id
+        )
+        option_1_result = next(
+            opt for opt in results["options"] if opt["option_id"] == choices[1].id
+        )
         assert option_0_result["votes"] == 2
         assert option_1_result["votes"] == 2
         assert option_0_result["is_winner"] is True
@@ -421,7 +434,7 @@ class TestResultsCaching:
 
         # Second call - should return cached (if cache is available)
         results2 = get_cached_results(poll.id)
-        
+
         # Cache might not be available in test environment (Redis not running)
         # If cache is available, verify it works
         if results2 is not None:
@@ -442,7 +455,7 @@ class TestResultsCaching:
         # Calculate and cache results
         results1 = calculate_poll_results(poll.id, use_cache=True)
         cached_before = get_cached_results(poll.id)
-        
+
         # Cache might not be available in test environment
         # If cache is available, test invalidation
         if cached_before is not None:
@@ -484,7 +497,7 @@ class TestResultsCaching:
         # Cache results
         calculate_poll_results(poll.id, use_cache=True)
         cached_before = get_cached_results(poll.id)
-        
+
         # Cache might not be available in test environment
         if cached_before is not None:
             # Invalidate cache
@@ -558,9 +571,14 @@ class TestResultsServiceIntegration:
         # Update cached counts manually (since vote was created directly, not through service)
         vote_count = Vote.objects.filter(option=choices[0], is_valid=True).count()
         PollOption.objects.filter(id=choices[0].id).update(cached_vote_count=vote_count)
-        
+
         total_votes = Vote.objects.filter(poll=poll, is_valid=True).count()
-        unique_voters = Vote.objects.filter(poll=poll, is_valid=True).values("user").distinct().count()
+        unique_voters = (
+            Vote.objects.filter(poll=poll, is_valid=True)
+            .values("user")
+            .distinct()
+            .count()
+        )
         poll.cached_total_votes = total_votes
         poll.cached_unique_voters = unique_voters
         poll.save()
@@ -572,7 +590,9 @@ class TestResultsServiceIntegration:
         # Results should use cached_vote_count (denormalized)
         results = calculate_poll_results(poll.id, use_cache=False)
 
-        option_result = next(opt for opt in results["options"] if opt["option_id"] == choices[0].id)
+        option_result = next(
+            opt for opt in results["options"] if opt["option_id"] == choices[0].id
+        )
         assert option_result["votes"] == choices[0].cached_vote_count
         assert results["total_votes"] == poll.cached_total_votes
 
@@ -591,9 +611,13 @@ class TestResultsPerformance:
         # Create many users and votes
         import time
         import uuid
+
         users = []
         for i in range(1000):  # 1000 users
-            user = User.objects.create_user(username=f"user_{int(time.time())}_{uuid.uuid4().hex[:8]}_{i}", password="pass")
+            user = User.objects.create_user(
+                username=f"user_{int(time.time())}_{uuid.uuid4().hex[:8]}_{i}",
+                password="pass",
+            )
             users.append(user)
 
         # Create votes (distributed across options) - use bulk_create for performance
@@ -624,7 +648,12 @@ class TestResultsPerformance:
 
         # Update poll counts
         total_votes = Vote.objects.filter(poll=poll, is_valid=True).count()
-        unique_voters = Vote.objects.filter(poll=poll, is_valid=True).values("user").distinct().count()
+        unique_voters = (
+            Vote.objects.filter(poll=poll, is_valid=True)
+            .values("user")
+            .distinct()
+            .count()
+        )
         Poll.objects.filter(id=poll.id).update(
             cached_total_votes=total_votes,
             cached_unique_voters=unique_voters,
@@ -642,7 +671,9 @@ class TestResultsPerformance:
         elapsed_time = end_time - start_time
 
         # Should complete in reasonable time (< 1 second for 1000 votes)
-        assert elapsed_time < 1.0, f"Results calculation took {elapsed_time:.2f} seconds"
+        assert (
+            elapsed_time < 1.0
+        ), f"Results calculation took {elapsed_time:.2f} seconds"
 
         # Verify results are correct
         assert results["total_votes"] == 1000
@@ -694,7 +725,9 @@ class TestResultsPerformance:
         elapsed_time = end_time - start_time
 
         # Should complete very quickly (< 0.1 seconds) since we're using cached counts
-        assert elapsed_time < 0.1, f"Results calculation took {elapsed_time:.2f} seconds for 1M votes"
+        assert (
+            elapsed_time < 0.1
+        ), f"Results calculation took {elapsed_time:.2f} seconds for 1M votes"
 
         # Verify results are correct
         assert results["total_votes"] == total_votes
@@ -742,4 +775,3 @@ class TestResultsPerformance:
         # Cached should be faster (or at least not slower)
         assert time2 <= time1 * 2  # Allow some variance
         assert results1["poll_id"] == results2["poll_id"]
-

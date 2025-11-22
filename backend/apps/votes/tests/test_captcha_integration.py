@@ -21,17 +21,17 @@ class TestCaptchaIntegration:
         # Enable CAPTCHA for poll
         poll.settings = {"enable_captcha": True}
         poll.save()
-        
+
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         with patch("core.utils.captcha.verify_recaptcha_token") as mock_verify:
             mock_verify.return_value = {
                 "success": True,
                 "score": 0.9,
                 "action": "vote",
             }
-            
+
             response = client.post(
                 "/api/v1/votes/cast/",
                 {
@@ -39,9 +39,9 @@ class TestCaptchaIntegration:
                     "choice_id": choices[0].id,
                     "captcha_token": "valid_token",
                 },
-                format="json"
+                format="json",
             )
-            
+
             # Should succeed (may be 201, 200, or 409 depending on vote status)
             assert response.status_code in [201, 200, 409]
             mock_verify.assert_called_once()
@@ -51,16 +51,16 @@ class TestCaptchaIntegration:
         # Enable CAPTCHA for poll
         poll.settings = {"enable_captcha": True}
         poll.save()
-        
+
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         with patch("core.utils.captcha.verify_recaptcha_token") as mock_verify:
             mock_verify.return_value = {
                 "success": False,
                 "error_codes": ["invalid-input-response"],
             }
-            
+
             response = client.post(
                 "/api/v1/votes/cast/",
                 {
@@ -68,9 +68,9 @@ class TestCaptchaIntegration:
                     "choice_id": choices[0].id,
                     "captcha_token": "invalid_token",
                 },
-                format="json"
+                format="json",
             )
-            
+
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.data["error_code"] == "CaptchaVerificationError"
             assert "CAPTCHA" in response.data["error"]
@@ -80,10 +80,10 @@ class TestCaptchaIntegration:
         # Enable CAPTCHA for poll
         poll.settings = {"enable_captcha": True}
         poll.save()
-        
+
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         response = client.post(
             "/api/v1/votes/cast/",
             {
@@ -91,9 +91,9 @@ class TestCaptchaIntegration:
                 "choice_id": choices[0].id,
                 # No captcha_token
             },
-            format="json"
+            format="json",
         )
-        
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error_code"] == "CaptchaVerificationError"
         assert "required" in response.data["error"].lower()
@@ -106,14 +106,14 @@ class TestCaptchaIntegration:
             password="staffpass",
             is_staff=True,
         )
-        
+
         # Enable CAPTCHA for poll
         poll.settings = {"enable_captcha": True}
         poll.save()
-        
+
         client = APIClient()
         client.force_authenticate(user=staff_user)
-        
+
         with patch("core.utils.captcha.verify_recaptcha_token") as mock_verify:
             response = client.post(
                 "/api/v1/votes/cast/",
@@ -122,9 +122,9 @@ class TestCaptchaIntegration:
                     "choice_id": choices[0].id,
                     # No captcha_token - should be bypassed
                 },
-                format="json"
+                format="json",
             )
-            
+
             # Should succeed without CAPTCHA
             assert response.status_code in [201, 200, 409]
             # Should not call verify_recaptcha_token
@@ -135,10 +135,10 @@ class TestCaptchaIntegration:
         # Disable CAPTCHA for poll
         poll.settings = {"enable_captcha": False}
         poll.save()
-        
+
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         with patch("core.utils.captcha.verify_recaptcha_token") as mock_verify:
             response = client.post(
                 "/api/v1/votes/cast/",
@@ -147,9 +147,9 @@ class TestCaptchaIntegration:
                     "choice_id": choices[0].id,
                     # No captcha_token
                 },
-                format="json"
+                format="json",
             )
-            
+
             # Should succeed without CAPTCHA
             assert response.status_code in [201, 200, 409]
             # Should not call verify_recaptcha_token
@@ -160,16 +160,16 @@ class TestCaptchaIntegration:
         # Enable CAPTCHA for poll
         poll.settings = {"enable_captcha": True}
         poll.save()
-        
+
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         with patch("core.utils.captcha.verify_recaptcha_token") as mock_verify:
             mock_verify.return_value = {
                 "success": True,
                 "score": 0.2,  # Below default threshold of 0.5
             }
-            
+
             response = client.post(
                 "/api/v1/votes/cast/",
                 {
@@ -177,9 +177,9 @@ class TestCaptchaIntegration:
                     "choice_id": choices[0].id,
                     "captcha_token": "low_score_token",
                 },
-                format="json"
+                format="json",
             )
-            
+
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.data["error_code"] == "CaptchaVerificationError"
             assert "score" in response.data["error"].lower()
@@ -189,10 +189,10 @@ class TestCaptchaIntegration:
         # Poll settings don't have enable_captcha (defaults to False)
         poll.settings = {}
         poll.save()
-        
+
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         with patch("core.utils.captcha.verify_recaptcha_token") as mock_verify:
             response = client.post(
                 "/api/v1/votes/cast/",
@@ -200,10 +200,9 @@ class TestCaptchaIntegration:
                     "poll_id": poll.id,
                     "choice_id": choices[0].id,
                 },
-                format="json"
+                format="json",
             )
-            
+
             # Should succeed without CAPTCHA
             assert response.status_code in [201, 200, 409]
             mock_verify.assert_not_called()
-

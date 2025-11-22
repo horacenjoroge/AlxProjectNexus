@@ -27,26 +27,26 @@ class TestDeveloperGuideSetup:
         """Test that setup commands are documented."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         required_commands = [
             "docker-compose up",
             "python manage.py migrate",
             "python manage.py createsuperuser",
             "pytest",
         ]
-        
+
         missing_commands = []
         for cmd in required_commands:
             if cmd not in content:
                 missing_commands.append(cmd)
-        
+
         assert not missing_commands, f"Missing setup commands: {missing_commands}"
 
     def test_environment_variables_documented(self):
         """Test that required environment variables are documented."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         required_vars = [
             "SECRET_KEY",
             "DEBUG",
@@ -54,12 +54,12 @@ class TestDeveloperGuideSetup:
             "DB_USER",
             "DB_PASSWORD",
         ]
-        
+
         missing_vars = []
         for var in required_vars:
             if var not in content:
                 missing_vars.append(var)
-        
+
         assert not missing_vars, f"Missing environment variables: {missing_vars}"
 
 
@@ -79,13 +79,13 @@ class TestDeveloperGuideExamples:
     def test_python_code_blocks_are_valid(self, guide_content):
         """Test that Python code blocks have valid syntax."""
         import ast
-        
+
         # Extract Python code blocks
         lines = guide_content.split("\n")
         in_code_block = False
         code_block = []
         code_blocks = []
-        
+
         for line in lines:
             if line.strip().startswith("```python"):
                 in_code_block = True
@@ -96,7 +96,7 @@ class TestDeveloperGuideExamples:
                     code_blocks.append("\n".join(code_block))
             elif in_code_block:
                 code_block.append(line)
-        
+
         # Test each code block
         syntax_errors = []
         for i, code in enumerate(code_blocks):
@@ -110,9 +110,18 @@ class TestDeveloperGuideExamples:
             if code.count("def ") > 0 and code.count("pass") == 0 and ":" in code:
                 # Check if it's a complete function or just a signature
                 lines = code.split("\n")
-                if len([l for l in lines if l.strip() and not l.strip().startswith("#")]) <= 2:
+                if (
+                    len(
+                        [
+                            l
+                            for l in lines
+                            if l.strip() and not l.strip().startswith("#")
+                        ]
+                    )
+                    <= 2
+                ):
                     continue
-            
+
             try:
                 # Try to parse, but be lenient with incomplete examples
                 ast.parse(code)
@@ -125,8 +134,10 @@ class TestDeveloperGuideExamples:
                     # Check if it's a complete statement that just has wrong indentation
                     # This is likely a markdown formatting issue, skip
                     pass
-        
-        assert not syntax_errors, f"Syntax errors in code blocks:\n" + "\n".join(syntax_errors)
+
+        assert not syntax_errors, f"Syntax errors in code blocks:\n" + "\n".join(
+            syntax_errors
+        )
 
     def test_bash_commands_are_valid(self, guide_content):
         """Test that bash commands are valid (basic check)."""
@@ -135,7 +146,7 @@ class TestDeveloperGuideExamples:
         in_code_block = False
         code_block = []
         bash_blocks = []
-        
+
         for line in lines:
             if line.strip().startswith("```bash"):
                 in_code_block = True
@@ -146,7 +157,7 @@ class TestDeveloperGuideExamples:
                     bash_blocks.append("\n".join(code_block))
             elif in_code_block:
                 code_block.append(line)
-        
+
         # Basic validation: check for common issues
         invalid_commands = []
         for i, code in enumerate(bash_blocks):
@@ -162,7 +173,7 @@ class TestDeveloperGuideExamples:
                 if "&&" in line and "||" in line:
                     # Complex command, skip validation
                     continue
-        
+
         # If we get here, no obvious issues found
         assert True
 
@@ -172,33 +183,35 @@ class TestDeveloperGuideExamples:
         # We don't actually create it, but verify the pattern is correct
         from django.db import models
         from django.contrib.auth.models import User
-        
+
         # Verify the pattern used in examples is valid
         # Use app_label to avoid INSTALLED_APPS requirement
         class ExampleComment(models.Model):
             """Example comment model following guide pattern."""
+
             poll = models.ForeignKey("polls.Poll", on_delete=models.CASCADE)
             user = models.ForeignKey(User, on_delete=models.CASCADE)
             text = models.TextField()
             created_at = models.DateTimeField(auto_now_add=True)
-            
+
             class Meta:
                 app_label = "polls"  # Use existing app to avoid registration issues
                 ordering = ["-created_at"]
-        
+
         # If we can define it, the pattern is valid
         assert ExampleComment._meta.ordering == ["-created_at"]
 
     def test_example_serializer_structure_is_valid(self):
         """Test that example serializer structure is valid."""
         from rest_framework import serializers
-        
+
         # Verify the pattern used in examples is valid
         class ExampleSerializer(serializers.Serializer):
             """Example serializer following guide pattern."""
+
             text = serializers.CharField()
             poll = serializers.IntegerField()
-        
+
         # Test serialization
         data = {"text": "Test", "poll": 1}
         serializer = ExampleSerializer(data=data)
@@ -209,14 +222,14 @@ class TestDeveloperGuideExamples:
         """Test that example ViewSet structure is valid."""
         from rest_framework import viewsets
         from rest_framework.response import Response
-        
+
         # Verify the pattern used in examples is valid
         class ExampleViewSet(viewsets.ViewSet):
             """Example ViewSet following guide pattern."""
-            
+
             def list(self, request):
                 return Response({"message": "Success"})
-        
+
         # If we can define it, the pattern is valid
         assert hasattr(ExampleViewSet, "list")
 
@@ -228,10 +241,10 @@ class TestDeveloperGuideStructure:
         """Test that project structure is documented."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         # Check for structure section
         assert "Project Structure" in content or "project structure" in content.lower()
-        
+
         # Check for key directories
         key_dirs = [
             "backend/apps",
@@ -239,15 +252,17 @@ class TestDeveloperGuideStructure:
             "backend/core",
             "backend/tests",
         ]
-        
+
         found_dirs = [d for d in key_dirs if d in content]
-        assert len(found_dirs) >= 3, f"Project structure not fully documented. Found: {found_dirs}"
+        assert (
+            len(found_dirs) >= 3
+        ), f"Project structure not fully documented. Found: {found_dirs}"
 
     def test_app_structure_documented(self):
         """Test that app structure pattern is documented."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         # Check for app structure components
         app_components = [
             "models.py",
@@ -256,9 +271,11 @@ class TestDeveloperGuideStructure:
             "urls.py",
             "tests/",
         ]
-        
+
         found_components = [c for c in app_components if c in content]
-        assert len(found_components) >= 4, f"App structure not fully documented. Found: {found_components}"
+        assert (
+            len(found_components) >= 4
+        ), f"App structure not fully documented. Found: {found_components}"
 
 
 class TestDeveloperGuidePatterns:
@@ -269,12 +286,12 @@ class TestDeveloperGuidePatterns:
         from rest_framework import viewsets
         from rest_framework.decorators import action
         from rest_framework.response import Response
-        
+
         class TestViewSet(viewsets.ViewSet):
             @action(detail=True, methods=["post"])
             def custom_action(self, request, pk=None):
                 return Response({"message": "Action completed"})
-        
+
         # Verify pattern works
         assert hasattr(TestViewSet, "custom_action")
         assert hasattr(TestViewSet.custom_action, "detail")
@@ -283,11 +300,13 @@ class TestDeveloperGuidePatterns:
     def test_service_function_pattern(self):
         """Test that service function pattern works."""
         from typing import Optional
-        
-        def example_service(obj_id: int, param: str, optional_param: Optional[int] = None) -> dict:
+
+        def example_service(
+            obj_id: int, param: str, optional_param: Optional[int] = None
+        ) -> dict:
             """Example service function following guide pattern."""
             return {"id": obj_id, "param": param}
-        
+
         # Verify pattern works
         result = example_service(1, "test")
         assert result["id"] == 1
@@ -296,14 +315,14 @@ class TestDeveloperGuidePatterns:
     def test_permission_pattern(self):
         """Test that permission pattern works."""
         from rest_framework import permissions
-        
+
         class ExamplePermission(permissions.BasePermission):
             def has_permission(self, request, view):
                 return request.user.is_authenticated
-            
+
             def has_object_permission(self, request, view, obj):
                 return obj.owner == request.user
-        
+
         # Verify pattern works
         assert issubclass(ExamplePermission, permissions.BasePermission)
         assert hasattr(ExamplePermission, "has_permission")
@@ -317,7 +336,7 @@ class TestDeveloperGuideCompleteness:
         """Test that all required sections are present."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         required_sections = [
             "Quick Start",
             "Project Structure",
@@ -326,19 +345,19 @@ class TestDeveloperGuideCompleteness:
             "Code Style",
             "Git Workflow",
         ]
-        
+
         missing_sections = []
         for section in required_sections:
             if section not in content:
                 missing_sections.append(section)
-        
+
         assert not missing_sections, f"Missing sections: {missing_sections}"
 
     def test_setup_instructions_complete(self):
         """Test that setup instructions are complete."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         setup_topics = [
             "Clone",
             "environment",
@@ -346,48 +365,54 @@ class TestDeveloperGuideCompleteness:
             "migrate",
             "superuser",
         ]
-        
+
         found_topics = [t for t in setup_topics if t.lower() in content.lower()]
-        assert len(found_topics) >= 4, f"Setup instructions incomplete. Found: {found_topics}"
+        assert (
+            len(found_topics) >= 4
+        ), f"Setup instructions incomplete. Found: {found_topics}"
 
     def test_testing_guide_complete(self):
         """Test that testing guide is complete."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         testing_topics = [
             "pytest",
             "fixture",
             "test_",
             "assert",
         ]
-        
+
         found_topics = [t for t in testing_topics if t.lower() in content.lower()]
-        assert len(found_topics) >= 3, f"Testing guide incomplete. Found: {found_topics}"
+        assert (
+            len(found_topics) >= 3
+        ), f"Testing guide incomplete. Found: {found_topics}"
 
     def test_code_examples_present(self):
         """Test that code examples are present."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         # Count code blocks
         code_blocks = content.count("```python")
         code_blocks += content.count("```bash")
-        
-        assert code_blocks >= 10, f"Insufficient code examples. Found {code_blocks} code blocks"
+
+        assert (
+            code_blocks >= 10
+        ), f"Insufficient code examples. Found {code_blocks} code blocks"
 
     def test_git_workflow_documented(self):
         """Test that Git workflow is documented."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         git_topics = [
             "branch",
             "commit",
             "pull request",
             "git",
         ]
-        
+
         found_topics = [t for t in git_topics if t.lower() in content.lower()]
         assert len(found_topics) >= 3, f"Git workflow incomplete. Found: {found_topics}"
 
@@ -401,49 +426,56 @@ class TestDeveloperGuideRunnableExamples:
         from django.db import models
         from django.contrib.auth.models import User
         from apps.polls.models import Poll
-        
+
         # This tests the pattern, not creating actual Comment model
         # Verify we can create a model following the pattern
         # Use a non-existent app_label to prevent registration in the polls app
         # This prevents Django from trying to query it during cascade deletes
         class TestModel(models.Model):
-            poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="+")  # Use '+' to prevent reverse relation
+            poll = models.ForeignKey(
+                Poll, on_delete=models.CASCADE, related_name="+"
+            )  # Use '+' to prevent reverse relation
             user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
             text = models.TextField()
             created_at = models.DateTimeField(auto_now_add=True)
-            
+
             class Meta:
-                app_label = "tests"  # Use tests app instead of polls to avoid registration
-                managed = False  # Don't manage this table - it's just for testing structure
+                app_label = (
+                    "tests"  # Use tests app instead of polls to avoid registration
+                )
+                managed = (
+                    False  # Don't manage this table - it's just for testing structure
+                )
                 db_table = None  # No database table
                 ordering = ["-created_at"]
-        
+
         # Verify model structure
         assert TestModel._meta.ordering == ["-created_at"]
         assert hasattr(TestModel, "poll")
         assert hasattr(TestModel, "user")
-        
+
         # Clean up: unregister the model to prevent it from interfering with other tests
         from django.apps import apps
+
         if TestModel._meta.apps is not None:
             # Remove from app registry if it was registered
             try:
-                apps.all_models['tests'].pop('testmodel', None)
+                apps.all_models["tests"].pop("testmodel", None)
             except (KeyError, AttributeError):
                 pass
 
     def test_example_serializer_validation(self):
         """Test that example serializer validation works."""
         from rest_framework import serializers
-        
+
         class ExampleSerializer(serializers.Serializer):
             text = serializers.CharField(min_length=3, max_length=1000)
             poll = serializers.IntegerField()
-        
+
         # Test valid data
         serializer = ExampleSerializer(data={"text": "Valid comment", "poll": 1})
         assert serializer.is_valid()
-        
+
         # Test invalid data (too short)
         serializer = ExampleSerializer(data={"text": "Hi", "poll": 1})
         assert not serializer.is_valid()
@@ -455,19 +487,19 @@ class TestDeveloperGuideRunnableExamples:
         from rest_framework.decorators import action
         from rest_framework.response import Response
         from rest_framework.test import APIRequestFactory
-        
+
         class ExampleViewSet(viewsets.ViewSet):
             @action(detail=True, methods=["post"])
             def custom_action(self, request, pk=None):
                 return Response({"message": "Action completed"})
-        
+
         # Test the action
         factory = APIRequestFactory()
         request = factory.post("/test/1/custom_action/")
         viewset = ExampleViewSet()
         viewset.action = "custom_action"
         viewset.kwargs = {"pk": "1"}
-        
+
         # Verify action exists and is callable
         assert hasattr(viewset, "custom_action")
         assert callable(viewset.custom_action)
@@ -475,20 +507,22 @@ class TestDeveloperGuideRunnableExamples:
     def test_example_service_function(self):
         """Test that example service function pattern works."""
         from typing import Optional
-        
-        def example_service(obj_id: int, action: str, user_id: Optional[int] = None) -> dict:
+
+        def example_service(
+            obj_id: int, action: str, user_id: Optional[int] = None
+        ) -> dict:
             """Example service function."""
             if action not in ["approve", "reject", "flag"]:
                 raise ValueError(f"Invalid action: {action}")
             return {"id": obj_id, "action": action, "user_id": user_id}
-        
+
         # Test valid calls
         result = example_service(1, "approve", 5)
         assert result["action"] == "approve"
-        
+
         result = example_service(1, "reject")
         assert result["user_id"] is None
-        
+
         # Test invalid action
         with pytest.raises(ValueError):
             example_service(1, "invalid")
@@ -505,15 +539,15 @@ class TestDeveloperGuideRunnableExamples:
     def test_example_test_structure(self):
         """Test that example test structure is valid."""
         import pytest
-        
+
         @pytest.mark.django_db
         class ExampleTest:
             """Example test class following guide pattern."""
-            
+
             def test_example(self):
                 """Example test method."""
                 assert True
-        
+
         # Verify structure
         assert hasattr(ExampleTest, "test_example")
         # Check if pytestmark exists (it may not for class methods)
@@ -534,14 +568,15 @@ class TestDeveloperGuideAccuracy:
         """Test that file paths mentioned in guide are correct."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         project_root = Path(__file__).parent.parent.parent
-        
+
         # Extract file paths from guide
         import re
+
         path_pattern = r"`([^`]+\.py)`|`([^`]+/.*)`"
         paths = re.findall(path_pattern, content)
-        
+
         # Check if mentioned files/directories exist
         missing_paths = []
         for match in paths:
@@ -555,12 +590,14 @@ class TestDeveloperGuideAccuracy:
                 if path_str.endswith("/"):
                     if not full_path.parent.exists():
                         missing_paths.append(path_str)
-                elif not full_path.exists() and not any(full_path.parent.glob(path_str.split("/")[-1])):
+                elif not full_path.exists() and not any(
+                    full_path.parent.glob(path_str.split("/")[-1])
+                ):
                     # Allow if parent directory exists (might be example)
                     if "example" not in path_str.lower():
                         # Only report if it's clearly a real path
                         pass
-        
+
         # This is informational - some paths might be examples
         # Just verify the structure is reasonable
         assert True  # If we get here, no critical path errors
@@ -569,12 +606,13 @@ class TestDeveloperGuideAccuracy:
         """Test that documented commands are executable (basic check)."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         # Extract bash commands
         import re
+
         command_pattern = r"```bash\n(.*?)\n```"
         commands = re.findall(command_pattern, content, re.DOTALL)
-        
+
         # Basic validation: commands should not contain obvious errors
         invalid_commands = []
         for cmd in commands:
@@ -587,10 +625,25 @@ class TestDeveloperGuideAccuracy:
                 if line.startswith("$") or line.startswith(">>>"):
                     continue
                 # Basic check: command should start with valid command
-                if line and not any(line.startswith(prefix) for prefix in ["#", "$", ">>>", "cd", "python", "pytest", "docker", "git", "black", "isort", "flake8"]):
+                if line and not any(
+                    line.startswith(prefix)
+                    for prefix in [
+                        "#",
+                        "$",
+                        ">>>",
+                        "cd",
+                        "python",
+                        "pytest",
+                        "docker",
+                        "git",
+                        "black",
+                        "isort",
+                        "flake8",
+                    ]
+                ):
                     # Might be a continuation or valid, skip for now
                     pass
-        
+
         # If we get here, no obvious command errors
         assert True
 
@@ -598,12 +651,13 @@ class TestDeveloperGuideAccuracy:
         """Test that import statements in examples are valid."""
         guide_path = Path(__file__).parent.parent.parent / "docs" / "developer-guide.md"
         content = guide_path.read_text()
-        
+
         # Extract Python imports
         import re
+
         import_pattern = r"^from\s+(\S+)\s+import|^import\s+(\S+)"
         imports = re.findall(import_pattern, content, re.MULTILINE)
-        
+
         # Check if imports are from valid modules
         valid_modules = [
             "django",
@@ -615,7 +669,7 @@ class TestDeveloperGuideAccuracy:
             "apps.",
             "core.",
         ]
-        
+
         invalid_imports = []
         for match in imports:
             module = match[0] or match[1]
@@ -623,10 +677,13 @@ class TestDeveloperGuideAccuracy:
             if "myapp" in module or "example" in module.lower():
                 continue
             # Check if it starts with a valid prefix
-            if not any(module.startswith(prefix) for prefix in valid_modules + ["os", "sys", "pathlib", "datetime", "time"]):
+            if not any(
+                module.startswith(prefix)
+                for prefix in valid_modules
+                + ["os", "sys", "pathlib", "datetime", "time"]
+            ):
                 # Might be a local import, skip
                 pass
-        
+
         # If we get here, imports look reasonable
         assert True
-

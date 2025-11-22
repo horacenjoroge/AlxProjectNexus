@@ -178,7 +178,10 @@ class TestCastVotePollValidation:
                 request=None,
             )
 
-        assert "not active" in str(exc_info.value).lower() or "closed" in str(exc_info.value).lower()
+        assert (
+            "not active" in str(exc_info.value).lower()
+            or "closed" in str(exc_info.value).lower()
+        )
 
     def test_voting_on_expired_poll_is_rejected(self, user, poll, choices):
         """Test that voting on expired poll is rejected."""
@@ -194,7 +197,10 @@ class TestCastVotePollValidation:
                 request=None,
             )
 
-        assert "expired" in str(exc_info.value).lower() or "closed" in str(exc_info.value).lower()
+        assert (
+            "expired" in str(exc_info.value).lower()
+            or "closed" in str(exc_info.value).lower()
+        )
 
     def test_voting_on_not_started_poll_is_rejected(self, user, poll, choices):
         """Test that voting on not-yet-started poll is rejected."""
@@ -260,8 +266,11 @@ class TestCastVoteVoterValidation:
 
         # Create first vote from IP
         import time
+
         timestamp = int(time.time() * 1000000)
-        user1 = type(user).objects.create_user(username=f"user1_{timestamp}", password="pass")
+        user1 = type(user).objects.create_user(
+            username=f"user1_{timestamp}", password="pass"
+        )
         vote1, _ = cast_vote(
             user=user1,
             poll_id=poll.id,
@@ -270,7 +279,9 @@ class TestCastVoteVoterValidation:
         )
 
         # Create second vote from same IP
-        user2 = type(user).objects.create_user(username=f"user2_{timestamp}", password="pass")
+        user2 = type(user).objects.create_user(
+            username=f"user2_{timestamp}", password="pass"
+        )
         vote2, _ = cast_vote(
             user=user2,
             poll_id=poll.id,
@@ -279,7 +290,9 @@ class TestCastVoteVoterValidation:
         )
 
         # Third vote from same IP should be rejected
-        user3 = type(user).objects.create_user(username=f"user3_{timestamp}", password="pass")
+        user3 = type(user).objects.create_user(
+            username=f"user3_{timestamp}", password="pass"
+        )
         with pytest.raises(InvalidVoteError) as exc_info:
             cast_vote(
                 user=user3,
@@ -288,7 +301,10 @@ class TestCastVoteVoterValidation:
                 request=request1,
             )
 
-        assert "ip" in str(exc_info.value).lower() and "limit" in str(exc_info.value).lower()
+        assert (
+            "ip" in str(exc_info.value).lower()
+            and "limit" in str(exc_info.value).lower()
+        )
 
     def test_authentication_requirement_enforcement(self, poll, choices):
         """Test authentication requirement enforcement."""
@@ -300,8 +316,11 @@ class TestCastVoteVoterValidation:
         # Since cast_vote requires a user, we'll test with an unauthenticated-like scenario
         # by checking the security rule
         import time
+
         timestamp = int(time.time() * 1000000)
-        user = type(poll.created_by).objects.create_user(username=f"testuser_{timestamp}", password="pass")
+        user = type(poll.created_by).objects.create_user(
+            username=f"testuser_{timestamp}", password="pass"
+        )
         # The function requires a user, so we test the rule check instead
         # In real scenario, middleware would handle unauthenticated users
 
@@ -328,8 +347,11 @@ class TestCastVoteConcurrency:
         users = []
         for i in range(3):
             import time
+
             timestamp = int(time.time() * 1000000)
-            user = User.objects.create_user(username=f"user{i}_{timestamp}", password="pass")
+            user = User.objects.create_user(
+                username=f"user{i}_{timestamp}", password="pass"
+            )
             users.append(user)
 
         # Create votes from different users (simulating concurrent requests)
@@ -358,7 +380,9 @@ class TestCastVoteConcurrency:
             cast_vote(
                 user=users[0],
                 poll_id=poll.id,
-                choice_id=choices[1].id if len(choices) > 1 else choices[0].id,  # Different choice, same poll
+                choice_id=choices[1].id
+                if len(choices) > 1
+                else choices[0].id,  # Different choice, same poll
                 request=None,
             )
 
@@ -374,14 +398,21 @@ class TestCastVoteConcurrency:
 
         # Create multiple votes sequentially (simulating concurrent requests)
         import time
+
         timestamp = int(time.time() * 1000000)
         user1 = User.objects.create_user(username=f"user1_{timestamp}", password="pass")
         user2 = User.objects.create_user(username=f"user2_{timestamp}", password="pass")
         user3 = User.objects.create_user(username=f"user3_{timestamp}", password="pass")
 
-        vote1, _ = cast_vote(user=user1, poll_id=poll.id, choice_id=option.id, request=None)
-        vote2, _ = cast_vote(user=user2, poll_id=poll.id, choice_id=option.id, request=None)
-        vote3, _ = cast_vote(user=user3, poll_id=poll.id, choice_id=option.id, request=None)
+        vote1, _ = cast_vote(
+            user=user1, poll_id=poll.id, choice_id=option.id, request=None
+        )
+        vote2, _ = cast_vote(
+            user=user2, poll_id=poll.id, choice_id=option.id, request=None
+        )
+        vote3, _ = cast_vote(
+            user=user3, poll_id=poll.id, choice_id=option.id, request=None
+        )
 
         # Refresh and check counts
         option.refresh_from_db()
@@ -594,7 +625,10 @@ class TestCastVoteRedisPubSub:
         from unittest.mock import patch
 
         # Simulate Redis failure
-        with patch("core.utils.redis_pubsub.publish_vote_event", side_effect=Exception("Redis error")):
+        with patch(
+            "core.utils.redis_pubsub.publish_vote_event",
+            side_effect=Exception("Redis error"),
+        ):
             # Vote should still succeed even if Redis fails
             vote, is_new = cast_vote(
                 user=user,
@@ -605,4 +639,3 @@ class TestCastVoteRedisPubSub:
 
             assert vote is not None
             assert is_new is True
-

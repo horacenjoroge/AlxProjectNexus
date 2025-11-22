@@ -384,7 +384,9 @@ class TestOptionManagement:
         client = APIClient()
         client.force_authenticate(user=user)
 
-        url = reverse("poll-remove-option", kwargs={"pk": poll.id, "option_id": option.id})
+        url = reverse(
+            "poll-remove-option", kwargs={"pk": poll.id, "option_id": option.id}
+        )
         response = client.delete(url)
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -396,7 +398,9 @@ class TestOptionManagement:
         client = APIClient()
         client.force_authenticate(user=user2)
 
-        url = reverse("poll-remove-option", kwargs={"pk": poll.id, "option_id": choices[0].id})
+        url = reverse(
+            "poll-remove-option", kwargs={"pk": poll.id, "option_id": choices[0].id}
+        )
         response = client.delete(url)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -419,7 +423,9 @@ class TestOptionManagement:
         client = APIClient()
         client.force_authenticate(user=user)
 
-        url = reverse("poll-remove-option", kwargs={"pk": poll.id, "option_id": option.id})
+        url = reverse(
+            "poll-remove-option", kwargs={"pk": poll.id, "option_id": option.id}
+        )
         response = client.delete(url)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -500,4 +506,3 @@ class TestPollAPIIntegration:
 
         # Verify poll is deleted
         assert not Poll.objects.filter(id=poll_id).exists()
-

@@ -6,7 +6,7 @@ Custom exceptions for voting functionality.
 class VotingError(Exception):
     """
     Base exception for voting-related errors.
-    
+
     All custom voting exceptions inherit from this.
     """
 

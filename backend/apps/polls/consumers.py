@@ -10,7 +10,11 @@ from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
 
 from apps.polls.models import Poll
-from apps.polls.services import calculate_poll_results, can_view_results, get_poll_group_name
+from apps.polls.services import (
+    calculate_poll_results,
+    can_view_results,
+    get_poll_group_name,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +22,7 @@ logger = logging.getLogger(__name__)
 class PollResultsConsumer(AsyncWebsocketConsumer):
     """
     WebSocket consumer for real-time poll results.
-    
+
     Handles:
     - Connection/disconnection
     - Subscribing to poll results
@@ -75,7 +79,9 @@ class PollResultsConsumer(AsyncWebsocketConsumer):
                 await self.send_initial_results()
             elif message_type == "unsubscribe":
                 # Leave group
-                await self.channel_layer.group_discard(self.group_name, self.channel_name)
+                await self.channel_layer.group_discard(
+                    self.group_name, self.channel_name
+                )
                 await self.send(
                     text_data=json.dumps(
                         {
@@ -151,7 +157,7 @@ class PollResultsConsumer(AsyncWebsocketConsumer):
     async def poll_results_update(self, event):
         """
         Handle poll results update broadcast.
-        
+
         This method is called when a vote is cast and results are broadcast.
         """
         try:
@@ -185,4 +191,3 @@ class PollResultsConsumer(AsyncWebsocketConsumer):
     def get_poll_results(self):
         """Get poll results from database."""
         return calculate_poll_results(self.poll_id, use_cache=False)
-

@@ -31,12 +31,12 @@ _shutdown_event = threading.Event()
 def get_redis_connection() -> redis.Redis:
     """
     Get a Redis connection from the pool.
-    
+
     Returns:
         Redis client instance
     """
     global _redis_pool
-    
+
     if _redis_pool is None:
         _redis_pool = redis.ConnectionPool(
             host=settings.REDIS_HOST,
@@ -48,21 +48,21 @@ def get_redis_connection() -> redis.Redis:
             retry_on_timeout=True,
             health_check_interval=30,
         )
-    
+
     return redis.Redis(connection_pool=_redis_pool)
 
 
 class VoteEventPublisher:
     """
     Publisher for vote events to Redis Pub/Sub.
-    
+
     Publishes vote events that can be consumed by multiple server instances.
     """
-    
+
     def __init__(self):
         self.redis_client: Optional[redis.Redis] = None
         self._connect()
-    
+
     def _connect(self):
         """Establish Redis connection."""
         try:
@@ -74,17 +74,19 @@ class VoteEventPublisher:
             logger.error(f"VoteEventPublisher: Failed to connect to Redis: {e}")
             self.redis_client = None
         except Exception as e:
-            logger.error(f"VoteEventPublisher: Unexpected error connecting to Redis: {e}")
+            logger.error(
+                f"VoteEventPublisher: Unexpected error connecting to Redis: {e}"
+            )
             self.redis_client = None
-    
+
     def publish_vote_event(self, poll_id: int, vote_id: Optional[int] = None) -> bool:
         """
         Publish a vote event to Redis Pub/Sub.
-        
+
         Args:
             poll_id: The poll ID that received a vote
             vote_id: Optional vote ID (for logging/debugging)
-            
+
         Returns:
             True if published successfully, False otherwise
         """
@@ -94,11 +96,11 @@ class VoteEventPublisher:
             except Exception as e:
                 logger.error(f"VoteEventPublisher: Failed to reconnect: {e}")
                 return False
-        
+
         if not self.redis_client:
             logger.warning("VoteEventPublisher: Redis not available, skipping publish")
             return False
-        
+
         try:
             event_data = {
                 "type": "vote_cast",
@@ -106,16 +108,16 @@ class VoteEventPublisher:
                 "vote_id": vote_id,
                 "timestamp": time.time(),
             }
-            
+
             message = json.dumps(event_data)
             subscribers = self.redis_client.publish(VOTE_EVENTS_CHANNEL, message)
-            
+
             logger.debug(
                 f"VoteEventPublisher: Published vote event for poll {poll_id} "
                 f"(vote_id={vote_id}, subscribers={subscribers})"
             )
             return True
-            
+
         except redis.ConnectionError:
             logger.warning("VoteEventPublisher: Connection lost, attempting reconnect")
             self._connect()
@@ -123,7 +125,7 @@ class VoteEventPublisher:
         except Exception as e:
             logger.error(f"VoteEventPublisher: Error publishing vote event: {e}")
             return False
-    
+
     def is_connected(self) -> bool:
         """Check if publisher is connected to Redis."""
         if not self.redis_client:
@@ -150,15 +152,17 @@ def get_publisher() -> VoteEventPublisher:
 class VoteEventSubscriber:
     """
     Subscriber for vote events from Redis Pub/Sub.
-    
+
     Listens for vote events and broadcasts them to local WebSocket clients
     via Django Channels.
     """
-    
-    def __init__(self, event_handler: Optional[Callable[[Dict[str, Any]], None]] = None):
+
+    def __init__(
+        self, event_handler: Optional[Callable[[Dict[str, Any]], None]] = None
+    ):
         """
         Initialize the subscriber.
-        
+
         Args:
             event_handler: Optional callback function to handle events.
                           If None, uses default handler that broadcasts via Channels.
@@ -171,11 +175,11 @@ class VoteEventSubscriber:
         self.reconnect_delay = 5  # seconds
         self.max_reconnect_delay = 60  # seconds
         self.current_reconnect_delay = self.reconnect_delay
-        
+
     def _default_event_handler(self, event_data: Dict[str, Any]):
         """
         Default event handler that broadcasts to local WebSocket clients.
-        
+
         Args:
             event_data: Event data dictionary
         """
@@ -184,29 +188,31 @@ class VoteEventSubscriber:
             if not poll_id:
                 logger.warning("VoteEventSubscriber: Received event without poll_id")
                 return
-            
+
             # Import here to avoid circular imports
             from apps.polls.services import broadcast_poll_results_update
-            
+
             # Broadcast to local WebSocket clients
             broadcast_poll_results_update(poll_id)
-            
+
             logger.debug(
                 f"VoteEventSubscriber: Broadcasted results update for poll {poll_id}"
             )
         except Exception as e:
             logger.error(f"VoteEventSubscriber: Error in event handler: {e}")
-    
+
     def _connect(self) -> bool:
         """Establish Redis connection and subscribe to channel."""
         try:
             self.redis_client = get_redis_connection()
             self.redis_client.ping()
-            
+
             self.pubsub = self.redis_client.pubsub()
             self.pubsub.subscribe(VOTE_EVENTS_CHANNEL)
-            
-            logger.info("VoteEventSubscriber: Connected to Redis and subscribed to channel")
+
+            logger.info(
+                "VoteEventSubscriber: Connected to Redis and subscribed to channel"
+            )
             self.current_reconnect_delay = self.reconnect_delay
             return True
         except redis.ConnectionError as e:
@@ -219,7 +225,7 @@ class VoteEventSubscriber:
             self.pubsub = None
             self.redis_client = None
             return False
-    
+
     def _disconnect(self):
         """Close Redis connection."""
         try:
@@ -233,11 +239,11 @@ class VoteEventSubscriber:
             logger.info("VoteEventSubscriber: Disconnected from Redis")
         except Exception as e:
             logger.error(f"VoteEventSubscriber: Error disconnecting: {e}")
-    
+
     def _listen_loop(self):
         """Main listening loop for Redis Pub/Sub messages."""
         logger.info("VoteEventSubscriber: Starting listen loop")
-        
+
         while self.running and not _shutdown_event.is_set():
             try:
                 if not self.pubsub:
@@ -248,73 +254,81 @@ class VoteEventSubscriber:
                         )
                         time.sleep(self.current_reconnect_delay)
                         self.current_reconnect_delay = min(
-                            self.current_reconnect_delay * 2,
-                            self.max_reconnect_delay
+                            self.current_reconnect_delay * 2, self.max_reconnect_delay
                         )
                         continue
-                
+
                 # Get message with timeout
-                message = self.pubsub.get_message(timeout=1.0, ignore_subscribe_messages=True)
-                
+                message = self.pubsub.get_message(
+                    timeout=1.0, ignore_subscribe_messages=True
+                )
+
                 if message is None:
                     # Timeout - check connection health
                     try:
                         if self.redis_client:
                             self.redis_client.ping()
                     except Exception:
-                        logger.warning("VoteEventSubscriber: Connection lost, reconnecting")
+                        logger.warning(
+                            "VoteEventSubscriber: Connection lost, reconnecting"
+                        )
                         self._disconnect()
                         continue
                     continue
-                
+
                 if message["type"] == "message":
                     try:
                         event_data = json.loads(message["data"])
                         self.event_handler(event_data)
                     except json.JSONDecodeError as e:
-                        logger.error(f"VoteEventSubscriber: Invalid JSON in message: {e}")
+                        logger.error(
+                            f"VoteEventSubscriber: Invalid JSON in message: {e}"
+                        )
                     except Exception as e:
-                        logger.error(f"VoteEventSubscriber: Error processing message: {e}")
-                
+                        logger.error(
+                            f"VoteEventSubscriber: Error processing message: {e}"
+                        )
+
             except redis.ConnectionError:
                 logger.warning("VoteEventSubscriber: Connection error, reconnecting")
                 self._disconnect()
                 self.current_reconnect_delay = min(
-                    self.current_reconnect_delay * 2,
-                    self.max_reconnect_delay
+                    self.current_reconnect_delay * 2, self.max_reconnect_delay
                 )
             except Exception as e:
-                logger.error(f"VoteEventSubscriber: Unexpected error in listen loop: {e}")
+                logger.error(
+                    f"VoteEventSubscriber: Unexpected error in listen loop: {e}"
+                )
                 time.sleep(1)
-        
+
         logger.info("VoteEventSubscriber: Listen loop stopped")
         self._disconnect()
-    
+
     def start(self):
         """Start the subscriber in a background thread."""
         if self.running:
             logger.warning("VoteEventSubscriber: Already running")
             return
-        
+
         self.running = True
         self.thread = threading.Thread(target=self._listen_loop, daemon=True)
         self.thread.start()
         logger.info("VoteEventSubscriber: Started")
-    
+
     def stop(self):
         """Stop the subscriber."""
         if not self.running:
             return
-        
+
         logger.info("VoteEventSubscriber: Stopping...")
         self.running = False
-        
+
         if self.thread:
             self.thread.join(timeout=5)
-        
+
         self._disconnect()
         logger.info("VoteEventSubscriber: Stopped")
-    
+
     def is_running(self) -> bool:
         """Check if subscriber is running."""
         return self.running
@@ -334,12 +348,13 @@ def get_subscriber() -> VoteEventSubscriber:
 
 def setup_signal_handlers():
     """Setup signal handlers for graceful shutdown."""
+
     def signal_handler(signum, frame):
         logger.info(f"Received signal {signum}, initiating graceful shutdown...")
         _shutdown_event.set()
         if _subscriber_instance:
             _subscriber_instance.stop()
-    
+
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -347,14 +362,13 @@ def setup_signal_handlers():
 def publish_vote_event(poll_id: int, vote_id: Optional[int] = None) -> bool:
     """
     Convenience function to publish a vote event.
-    
+
     Args:
         poll_id: The poll ID that received a vote
         vote_id: Optional vote ID
-        
+
     Returns:
         True if published successfully, False otherwise
     """
     publisher = get_publisher()
     return publisher.publish_vote_event(poll_id, vote_id)
-

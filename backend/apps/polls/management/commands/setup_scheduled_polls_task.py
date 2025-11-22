@@ -19,11 +19,15 @@ class Command(BaseCommand):
 
         if created:
             self.stdout.write(
-                self.style.SUCCESS(f"Created interval schedule: every {schedule.every} {schedule.period}")
+                self.style.SUCCESS(
+                    f"Created interval schedule: every {schedule.every} {schedule.period}"
+                )
             )
         else:
             self.stdout.write(
-                self.style.SUCCESS(f"Using existing interval schedule: every {schedule.every} {schedule.period}")
+                self.style.SUCCESS(
+                    f"Using existing interval schedule: every {schedule.every} {schedule.period}"
+                )
             )
 
         # Create or update periodic task
@@ -34,22 +38,18 @@ class Command(BaseCommand):
                 "interval": schedule,
                 "enabled": True,
                 "description": "Periodically check and activate/close scheduled polls",
-            }
+            },
         )
 
         if created:
-            self.stdout.write(
-                self.style.SUCCESS(f"Created periodic task: {task.name}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"Created periodic task: {task.name}"))
         else:
             # Update existing task
             task.task = "apps.polls.tasks.process_scheduled_polls"
             task.interval = schedule
             task.enabled = True
             task.save()
-            self.stdout.write(
-                self.style.SUCCESS(f"Updated periodic task: {task.name}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"Updated periodic task: {task.name}"))
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -61,24 +61,11 @@ class Command(BaseCommand):
                 f"Task will run every {schedule.every} {schedule.period}"
             )
         )
+        self.stdout.write(self.style.SUCCESS("\nThis task will:"))
         self.stdout.write(
-            self.style.SUCCESS(
-                "\nThis task will:"
-            )
+            self.style.SUCCESS("  - Activate polls when their start time is reached")
         )
         self.stdout.write(
-            self.style.SUCCESS(
-                "  - Activate polls when their start time is reached"
-            )
+            self.style.SUCCESS("  - Close polls when their end time is reached")
         )
-        self.stdout.write(
-            self.style.SUCCESS(
-                "  - Close polls when their end time is reached"
-            )
-        )
-        self.stdout.write(
-            self.style.SUCCESS(
-                "  - Send notifications to poll creators"
-            )
-        )
-
+        self.stdout.write(self.style.SUCCESS("  - Send notifications to poll creators"))

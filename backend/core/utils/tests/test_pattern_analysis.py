@@ -29,11 +29,14 @@ class TestSingleIPSingleOptionPattern:
         from django.contrib.auth.models import User
 
         import uuid
+
         ip_address = "192.168.1.1"
 
         # Create 5 votes from same IP to same option (use different users to avoid unique constraint)
         for i in range(5):
-            vote_user = User.objects.create_user(username=f"testuser_{i}_{uuid.uuid4().hex[:8]}", password="pass")
+            vote_user = User.objects.create_user(
+                username=f"testuser_{i}_{uuid.uuid4().hex[:8]}", password="pass"
+            )
             Vote.objects.create(
                 user=vote_user,
                 poll=poll,
@@ -57,11 +60,16 @@ class TestSingleIPSingleOptionPattern:
         from django.contrib.auth.models import User
 
         import uuid
+
         ip_address = "192.168.1.1"
 
         # Create votes to different options (legitimate) - use different users
-        user1 = User.objects.create_user(username=f"testuser1_{uuid.uuid4().hex[:8]}", password="pass")
-        user2 = User.objects.create_user(username=f"testuser2_{uuid.uuid4().hex[:8]}", password="pass")
+        user1 = User.objects.create_user(
+            username=f"testuser1_{uuid.uuid4().hex[:8]}", password="pass"
+        )
+        user2 = User.objects.create_user(
+            username=f"testuser2_{uuid.uuid4().hex[:8]}", password="pass"
+        )
         Vote.objects.create(
             user=user1,
             poll=poll,
@@ -90,11 +98,14 @@ class TestSingleIPSingleOptionPattern:
         from django.contrib.auth.models import User
 
         import uuid
+
         ip_address = "192.168.1.1"
 
         # Create only 2 votes (below threshold of 5) - use different users
         for i in range(2):
-            vote_user = User.objects.create_user(username=f"testuser_{i}_{uuid.uuid4().hex[:8]}", password="pass")
+            vote_user = User.objects.create_user(
+                username=f"testuser_{i}_{uuid.uuid4().hex[:8]}", password="pass"
+            )
             Vote.objects.create(
                 user=vote_user,
                 poll=poll,
@@ -120,12 +131,15 @@ class TestTimeClusteredVotes:
         from django.contrib.auth.models import User
 
         import uuid
-        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
+
+        user = User.objects.create_user(
+            username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
+        )
 
         # Ensure poll is active for pattern analysis
         poll.is_active = True
         poll.save()
-        
+
         # Create 10 votes within 30 seconds (bot attack pattern)
         # Use anonymous votes to avoid unique constraint
         with freeze_time("2024-01-01 10:00:00"):
@@ -155,14 +169,18 @@ class TestTimeClusteredVotes:
         from django.contrib.auth.models import User
 
         import uuid
-        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
+
+        user = User.objects.create_user(
+            username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
+        )
 
         # Create votes spread over 2 hours
         # Use different polls to avoid unique constraint
         from apps.polls.models import Poll, PollOption
+
         poll2 = Poll.objects.create(title="Test Poll 2", created_by=user)
         option2 = PollOption.objects.create(poll=poll2, text="Option 1")
-        
+
         with freeze_time("2024-01-01 10:00:00"):
             Vote.objects.create(
                 user=user,
@@ -195,10 +213,12 @@ class TestTimeClusteredVotes:
 class TestGeographicAnomalies:
     """Test detection of geographic anomalies."""
 
-    @pytest.mark.skip(reason="Geographic anomaly detection only analyzes votes within a single poll. "
-                             "Impossible travel detection requires votes from same user across polls, "
-                             "which violates unique constraint (one vote per user per poll). "
-                             "This test needs a different approach or the function needs to be enhanced.")
+    @pytest.mark.skip(
+        reason="Geographic anomaly detection only analyzes votes within a single poll. "
+        "Impossible travel detection requires votes from same user across polls, "
+        "which violates unique constraint (one vote per user per poll). "
+        "This test needs a different approach or the function needs to be enhanced."
+    )
     def test_detect_impossible_travel(self, poll, choices):
         """Test detection of impossible travel (rapid IP changes)."""
         # Note: This test is skipped because detect_geographic_anomalies only analyzes
@@ -216,14 +236,18 @@ class TestGeographicAnomalies:
         from django.contrib.auth.models import User
 
         import uuid
-        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
+
+        user = User.objects.create_user(
+            username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
+        )
 
         # Create votes from different IPs with reasonable time gap
         # Use different polls to avoid unique constraint
         from apps.polls.models import Poll, PollOption
+
         poll2 = Poll.objects.create(title="Test Poll 2", created_by=user)
         option2 = PollOption.objects.create(poll=poll2, text="Option 1")
-        
+
         with freeze_time("2024-01-01 10:00:00"):
             Vote.objects.create(
                 user=user,
@@ -327,12 +351,15 @@ class TestPatternAnalysisIntegration:
         from django.contrib.auth.models import User
 
         import uuid
-        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
+
+        user = User.objects.create_user(
+            username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
+        )
 
         # Ensure poll is active for pattern analysis
         poll.is_active = True
         poll.save()
-        
+
         # Create suspicious pattern: single IP, single option, clustered in time
         # Use anonymous votes to avoid unique constraint (one vote per user per poll)
         with freeze_time("2024-01-01 10:00:00"):
@@ -363,7 +390,10 @@ class TestPatternAnalysisIntegration:
         from django.contrib.auth.models import User
 
         import uuid
-        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
+
+        user = User.objects.create_user(
+            username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
+        )
         ip_address = "192.168.1.1"
 
         # Create suspicious pattern - use anonymous votes to avoid unique constraint
@@ -380,13 +410,15 @@ class TestPatternAnalysisIntegration:
             votes.append(vote)
 
         patterns = {
-            "single_ip_single_option": [{
-                "ip_address": ip_address,
-                "option_id": choices[0].id,
-                "vote_count": 10,
-                "risk_score": 80,
-                "pattern_type": "single_ip_single_option",
-            }],
+            "single_ip_single_option": [
+                {
+                    "ip_address": ip_address,
+                    "option_id": choices[0].id,
+                    "vote_count": 10,
+                    "risk_score": 80,
+                    "pattern_type": "single_ip_single_option",
+                }
+            ],
             "time_clustered": [],
             "geographic_anomalies": [],
             "user_agent_anomalies": [],
@@ -403,7 +435,10 @@ class TestPatternAnalysisIntegration:
         from django.contrib.auth.models import User
 
         import uuid
-        user = User.objects.create_user(username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass")
+
+        user = User.objects.create_user(
+            username=f"testuser_{uuid.uuid4().hex[:8]}", password="pass"
+        )
         ip_address = "192.168.1.1"
 
         # Create suspicious votes - use anonymous votes to avoid unique constraint
@@ -421,13 +456,15 @@ class TestPatternAnalysisIntegration:
             votes.append(vote)
 
         patterns = {
-            "single_ip_single_option": [{
-                "ip_address": ip_address,
-                "option_id": choices[0].id,
-                "vote_count": 10,
-                "risk_score": 85,  # High risk
-                "pattern_type": "single_ip_single_option",
-            }],
+            "single_ip_single_option": [
+                {
+                    "ip_address": ip_address,
+                    "option_id": choices[0].id,
+                    "vote_count": 10,
+                    "risk_score": 85,  # High risk
+                    "pattern_type": "single_ip_single_option",
+                }
+            ],
             "time_clustered": [],
             "geographic_anomalies": [],
             "user_agent_anomalies": [],
@@ -468,5 +505,7 @@ class TestPatternAnalysisIntegration:
         results = analyze_vote_patterns(poll_id=poll.id, time_window_hours=24)
 
         # Should have minimal or no suspicious patterns
-        assert results["total_suspicious_patterns"] == 0 or results["highest_risk_score"] < 50
-
+        assert (
+            results["total_suspicious_patterns"] == 0
+            or results["highest_risk_score"] < 50
+        )

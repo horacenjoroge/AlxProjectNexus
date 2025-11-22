@@ -78,7 +78,9 @@ class TestCompleteVotingFlow:
         assert response.data["total_votes"] == 1
         assert len(response.data["options"]) == 3
         # Find the option that was voted for
-        voted_option = next(opt for opt in response.data["options"] if opt["option_id"] == option_ids[0])
+        voted_option = next(
+            opt for opt in response.data["options"] if opt["option_id"] == option_ids[0]
+        )
         assert voted_option["votes"] == 1
 
         # 5. Verify cached totals updated
@@ -202,7 +204,7 @@ class TestIdempotencyAcrossRequests:
     def test_idempotency_cache_persistence(self, user, poll, choices):
         """
         Test that idempotency works across cache operations.
-        
+
         Note: After cache clear, the service will detect duplicate votes from the database,
         which is the correct behavior. This test verifies that duplicate detection works
         even when cache is cleared.
@@ -251,7 +253,7 @@ class TestConcurrentOperations:
     def test_concurrent_votes_different_users(self, poll, choices):
         """
         Test multiple votes from different users.
-        
+
         Note: SQLite doesn't support true concurrent writes. This test validates
         that multiple users can vote sequentially. For true concurrent testing with
         PostgreSQL, see test_concurrent_load.py which uses sequential execution
@@ -284,7 +286,7 @@ class TestConcurrentOperations:
 
         # All should succeed
         assert len(results) == num_users
-        
+
         # Verify all votes in database
         poll.refresh_from_db()
         assert poll.cached_total_votes == num_users
@@ -293,7 +295,7 @@ class TestConcurrentOperations:
     def test_concurrent_votes_same_user_prevented(self, user, poll, choices):
         """
         Test that duplicate votes from same user are prevented.
-        
+
         Note: SQLite doesn't support true concurrent writes. This test validates
         duplicate prevention sequentially.
         """
@@ -323,7 +325,7 @@ class TestConcurrentOperations:
     def test_concurrent_poll_creation_and_voting(self, user):
         """
         Test poll creation and voting in sequence.
-        
+
         Note: SQLite doesn't support true concurrent writes. This test validates
         the logic sequentially. For true concurrent testing, use PostgreSQL.
         """
@@ -402,7 +404,7 @@ class TestDatabaseTransactions:
     def test_transaction_isolation(self, user, poll, choices):
         """
         Test transaction isolation between operations.
-        
+
         Note: SQLite doesn't support true concurrent transactions. This test
         validates transaction atomicity sequentially.
         """
@@ -452,17 +454,19 @@ class TestCacheInvalidation:
         """Test that results cache is invalidated when vote is cast."""
         from django.core.cache import cache
         from django.conf import settings
-        
+
         # Skip if using DummyCache (test settings)
-        if hasattr(settings, 'CACHES') and 'dummy' in str(settings.CACHES.get('default', {}).get('BACKEND', '')):
+        if hasattr(settings, "CACHES") and "dummy" in str(
+            settings.CACHES.get("default", {}).get("BACKEND", "")
+        ):
             pytest.skip("Cache tests require a real cache backend, not DummyCache")
-        
+
         cache.clear()
 
         # Get results (will be cached if cache is enabled)
         results1 = calculate_poll_results(poll.id)
         cache_key = f"poll_results:{poll.id}"
-        
+
         # Check if cache is actually working
         cached_value = cache.get(cache_key)
         if cached_value is None:
@@ -486,11 +490,13 @@ class TestCacheInvalidation:
         """Test cache invalidation with multiple votes."""
         from django.core.cache import cache
         from django.conf import settings
-        
+
         # Skip if using DummyCache (test settings)
-        if hasattr(settings, 'CACHES') and 'dummy' in str(settings.CACHES.get('default', {}).get('BACKEND', '')):
+        if hasattr(settings, "CACHES") and "dummy" in str(
+            settings.CACHES.get("default", {}).get("BACKEND", "")
+        ):
             pytest.skip("Cache tests require a real cache backend, not DummyCache")
-        
+
         cache.clear()
 
         users = [
@@ -506,7 +512,7 @@ class TestCacheInvalidation:
         for user in users:
             # Get results (may be cached)
             results_before = calculate_poll_results(poll.id)
-            
+
             # Check if cache is working
             if cache.get(cache_key) is None:
                 # Cache not working, just verify vote counting works
@@ -537,17 +543,19 @@ class TestCacheInvalidation:
         """Test manual cache invalidation."""
         from django.core.cache import cache
         from django.conf import settings
-        
+
         # Skip if using DummyCache (test settings)
-        if hasattr(settings, 'CACHES') and 'dummy' in str(settings.CACHES.get('default', {}).get('BACKEND', '')):
+        if hasattr(settings, "CACHES") and "dummy" in str(
+            settings.CACHES.get("default", {}).get("BACKEND", "")
+        ):
             pytest.skip("Cache tests require a real cache backend, not DummyCache")
-        
+
         cache.clear()
 
         # Cache results
         results1 = calculate_poll_results(poll.id)
         cache_key = f"poll_results:{poll.id}"
-        
+
         # Check if cache is working
         if cache.get(cache_key) is None:
             pytest.skip("Cache is not working (DummyCache or cache disabled)")
@@ -584,7 +592,11 @@ class TestErrorScenarios:
             assert False, "Should have raised PollClosedError or InvalidPollError"
         except Exception as e:
             error_str = str(e).lower()
-            assert "closed" in error_str or "inactive" in error_str or "not active" in error_str
+            assert (
+                "closed" in error_str
+                or "inactive" in error_str
+                or "not active" in error_str
+            )
 
     def test_vote_on_nonexistent_poll(self, user, choices):
         """Test voting on non-existent poll."""
@@ -679,5 +691,6 @@ class TestEdgeCases:
         # At least the failed attempt should be logged
         final_attempts = VoteAttempt.objects.count()
         # The service may log failed attempts, but successful votes might not always log attempts
-        assert final_attempts >= initial_attempts + 1, f"Expected at least 1 new attempt, got {final_attempts - initial_attempts}"
-
+        assert (
+            final_attempts >= initial_attempts + 1
+        ), f"Expected at least 1 new attempt, got {final_attempts - initial_attempts}"

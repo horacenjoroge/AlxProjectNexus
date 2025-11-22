@@ -56,8 +56,12 @@ class VoteSerializer(serializers.ModelSerializer):
 class VoteCastSerializer(serializers.Serializer):
     """Serializer for casting a vote."""
 
-    poll_id = serializers.IntegerField(required=True, help_text="ID of the poll to vote on")
-    choice_id = serializers.IntegerField(required=True, help_text="ID of the choice/option to vote for")
+    poll_id = serializers.IntegerField(
+        required=True, help_text="ID of the poll to vote on"
+    )
+    choice_id = serializers.IntegerField(
+        required=True, help_text="ID of the choice/option to vote for"
+    )
     idempotency_key = serializers.CharField(
         required=False,
         allow_blank=True,
@@ -104,7 +108,9 @@ class VoteCastSerializer(serializers.Serializer):
             choice = PollOption.objects.get(id=choice_id)
             if choice.poll != poll:
                 raise serializers.ValidationError(
-                    {"choice_id": f"Choice {choice_id} does not belong to poll {poll_id}"}
+                    {
+                        "choice_id": f"Choice {choice_id} does not belong to poll {poll_id}"
+                    }
                 )
         except (Poll.DoesNotExist, PollOption.DoesNotExist):
             # Individual validation errors will be raised by field validators

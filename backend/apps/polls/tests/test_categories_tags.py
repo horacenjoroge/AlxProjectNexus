@@ -33,7 +33,9 @@ def authenticated_client(api_client, user):
 @pytest.fixture
 def category():
     """Create a test category."""
-    return Category.objects.create(name="Politics", slug="politics", description="Political polls")
+    return Category.objects.create(
+        name="Politics", slug="politics", description="Political polls"
+    )
 
 
 @pytest.fixture
@@ -115,7 +117,9 @@ class TestPollFilteringByCategory:
         response = authenticated_client.get(url, {"category": "politics"})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         poll_ids = [p["id"] for p in results]
         assert poll1.id in poll_ids
         assert poll2.id not in poll_ids
@@ -129,7 +133,9 @@ class TestPollFilteringByCategory:
         response = authenticated_client.get(url, {"category": str(category.id)})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         poll_ids = [p["id"] for p in results]
         assert poll1.id in poll_ids
         assert poll2.id not in poll_ids
@@ -142,7 +148,9 @@ class TestPollFilteringByCategory:
         response = authenticated_client.get(url, {"category": "nonexistent"})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         assert len(results) == 0
 
 
@@ -160,7 +168,9 @@ class TestPollFilteringByTags:
         response = authenticated_client.get(url, {"tags": "election"})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         poll_ids = [p["id"] for p in results]
         assert poll1.id in poll_ids
         assert poll2.id not in poll_ids
@@ -178,7 +188,9 @@ class TestPollFilteringByTags:
         response = authenticated_client.get(url, {"tags": "election,presidential"})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         poll_ids = [p["id"] for p in results]
         assert poll1.id in poll_ids
         # poll2 should also appear since it has "election" tag
@@ -194,7 +206,9 @@ class TestPollFilteringByTags:
         response = authenticated_client.get(url, {"tags": str(tag.id)})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         poll_ids = [p["id"] for p in results]
         assert poll1.id in poll_ids
         assert poll2.id not in poll_ids
@@ -217,7 +231,9 @@ class TestPollSearchByTags:
         response = authenticated_client.get(url, {"search": "election"})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         poll_ids = [p["id"] for p in results]
         assert poll1.id in poll_ids
         assert poll2.id in poll_ids
@@ -232,7 +248,9 @@ class TestPollSearchByTags:
         response = authenticated_client.get(url, {"search": "election"})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         assert len(results) >= 1
 
     def test_tag_search_partial_match(self, authenticated_client, user):
@@ -245,7 +263,9 @@ class TestPollSearchByTags:
         response = authenticated_client.get(url, {"search": "presidential"})
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         assert len(results) >= 1
 
 
@@ -300,7 +320,9 @@ class TestPollCreationWithCategoryAndTags:
         assert tag in poll.tags.all()
         assert tag2 in poll.tags.all()
 
-    def test_create_poll_with_category_and_tags(self, authenticated_client, user, category, tag):
+    def test_create_poll_with_category_and_tags(
+        self, authenticated_client, user, category, tag
+    ):
         """Test creating a poll with both category and tags."""
         url = reverse("poll-list")
         data = {
@@ -385,4 +407,3 @@ class TestTagViewSet:
         poll_ids = [p["id"] for p in response.data]
         assert poll1.id in poll_ids
         assert poll2.id not in poll_ids
-
