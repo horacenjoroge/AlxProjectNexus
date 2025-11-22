@@ -404,20 +404,33 @@ class TestDeveloperGuideRunnableExamples:
         
         # This tests the pattern, not creating actual Comment model
         # Verify we can create a model following the pattern
+        # Use a non-existent app_label to prevent registration in the polls app
+        # This prevents Django from trying to query it during cascade deletes
         class TestModel(models.Model):
-            poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
-            user = models.ForeignKey(User, on_delete=models.CASCADE)
+            poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="+")  # Use '+' to prevent reverse relation
+            user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
             text = models.TextField()
             created_at = models.DateTimeField(auto_now_add=True)
             
             class Meta:
-                app_label = "polls"  # Use existing app to avoid registration issues
+                app_label = "tests"  # Use tests app instead of polls to avoid registration
+                managed = False  # Don't manage this table - it's just for testing structure
+                db_table = None  # No database table
                 ordering = ["-created_at"]
         
         # Verify model structure
         assert TestModel._meta.ordering == ["-created_at"]
         assert hasattr(TestModel, "poll")
         assert hasattr(TestModel, "user")
+        
+        # Clean up: unregister the model to prevent it from interfering with other tests
+        from django.apps import apps
+        if TestModel._meta.apps is not None:
+            # Remove from app registry if it was registered
+            try:
+                apps.all_models['tests'].pop('testmodel', None)
+            except (KeyError, AttributeError):
+                pass
 
     def test_example_serializer_validation(self):
         """Test that example serializer validation works."""
