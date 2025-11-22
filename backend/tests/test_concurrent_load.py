@@ -13,14 +13,23 @@ from apps.polls.models import Poll
 from apps.users.factories import UserFactory
 from apps.votes.models import Vote
 from apps.votes.services import cast_vote
+from django.db import connection
 from django.test import RequestFactory
+
+
+def _is_sqlite():
+    """Check if using SQLite database."""
+    try:
+        return connection.vendor == "sqlite"
+    except Exception:
+        return True
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.slow
 @pytest.mark.skipif(
-    "connection.vendor == 'sqlite'",
+    _is_sqlite(),
     reason="SQLite doesn't support concurrent writes. Use PostgreSQL for load tests.",
 )
 class TestConcurrentLoad:

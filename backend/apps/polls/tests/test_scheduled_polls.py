@@ -37,7 +37,7 @@ class TestActivateScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_opened_notification"
         ) as mock_notify:
-            result = activate_scheduled_poll.apply(args=(poll.id,))
+            result = activate_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 
@@ -60,7 +60,7 @@ class TestActivateScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_opened_notification"
         ) as mock_notify:
-            result = activate_scheduled_poll.apply(args=(poll.id,))
+            result = activate_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 
@@ -83,7 +83,7 @@ class TestActivateScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_opened_notification"
         ) as mock_notify:
-            result = activate_scheduled_poll.apply(args=(poll.id,))
+            result = activate_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 
@@ -94,7 +94,7 @@ class TestActivateScheduledPoll:
 
     def test_activate_nonexistent_poll(self):
         """Test that activating nonexistent poll returns error."""
-        result = activate_scheduled_poll.apply(args=(99999,))
+        result = activate_scheduledpoll.apply(args=(99999,))
 
         assert result.result["success"] is False
         assert result.result["error"] == "Poll not found"
@@ -120,7 +120,7 @@ class TestCloseScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_closed_notification"
         ) as mock_notify:
-            result = close_scheduled_poll.apply(args=(poll.id,))
+            result = close_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 
@@ -144,7 +144,7 @@ class TestCloseScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_closed_notification"
         ) as mock_notify:
-            result = close_scheduled_poll.apply(args=(poll.id,))
+            result = close_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 
@@ -168,7 +168,7 @@ class TestCloseScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_closed_notification"
         ) as mock_notify:
-            result = close_scheduled_poll.apply(args=(poll.id,))
+            result = close_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 
@@ -191,7 +191,7 @@ class TestCloseScheduledPoll:
         with patch(
             "core.services.poll_notifications.send_poll_closed_notification"
         ) as mock_notify:
-            result = close_scheduled_poll.apply(args=(poll.id,))
+            result = close_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 
@@ -201,7 +201,7 @@ class TestCloseScheduledPoll:
 
     def test_close_nonexistent_poll(self):
         """Test that closing nonexistent poll returns error."""
-        result = close_scheduled_poll.apply(args=(99999,))
+        result = close_scheduledpoll.apply(args=(99999,))
 
         assert result.result["success"] is False
         assert result.result["error"] == "Poll not found"
@@ -328,7 +328,7 @@ class TestProcessScheduledPolls:
 
         # Mock activate_scheduled_poll to raise an exception
         with patch(
-            "apps.polls.tasks.activate_scheduled_poll.apply",
+            "apps.polls.tasks.activate_scheduledpoll.apply",
             side_effect=Exception("Test error"),
         ):
             result = process_scheduled_polls.apply()
@@ -360,7 +360,7 @@ class TestScheduledPollsTimezoneHandling:
         )
 
         with patch("core.services.poll_notifications.send_poll_opened_notification"):
-            result = activate_scheduled_poll.apply(args=(poll.id,))
+            result = activate_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 
@@ -382,7 +382,7 @@ class TestScheduledPollsTimezoneHandling:
         )
 
         with patch("core.services.poll_notifications.send_poll_closed_notification"):
-            result = close_scheduled_poll.apply(args=(poll.id,))
+            result = close_scheduledpoll.apply(args=(poll.id,))
 
             poll.refresh_from_db()
 

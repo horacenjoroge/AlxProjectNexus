@@ -118,7 +118,7 @@ class TestPollCloning:
         assert cloned_poll.cached_unique_voters == 0
 
         clonedoption1 = cloned_poll.options.get(text="Option 1")
-        assert cloned_option1.cached_vote_count == 0
+        assert clonedoption1.cached_vote_count == 0
 
         # Verify original poll is unchanged
         original_poll.refresh_from_db()
