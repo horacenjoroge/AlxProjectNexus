@@ -19,6 +19,7 @@ def _is_sqlite():
     """Check if using SQLite database."""
     try:
         from django.conf import settings
+
         return settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3"
     except Exception:
         return True

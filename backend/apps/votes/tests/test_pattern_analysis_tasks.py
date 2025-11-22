@@ -105,7 +105,7 @@ class TestPeriodicPatternAnalysis:
         self, mock_flag, mock_alerts, mock_analyze, mock_poll
     ):
         """Test successful periodic pattern analysis."""
-        
+
         # Create mock polls
         poll1 = MagicMock()
         poll1.id = 1
@@ -149,7 +149,7 @@ class TestPeriodicPatternAnalysis:
     @patch("apps.votes.tasks.analyze_vote_patterns")
     def test_periodic_pattern_analysis_error_handling(self, mock_analyze, mock_poll):
         """Test periodic analysis error handling."""
-        
+
         poll = MagicMock()
         poll.id = 1
         poll.title = "Poll 1"
@@ -174,7 +174,7 @@ class TestPeriodicPatternAnalysis:
         self, mock_flag, mock_alerts, mock_analyze, mock_poll
     ):
         """Test that periodic analysis detects and reports patterns."""
-        
+
         poll = MagicMock()
         poll.id = 1
         poll.title = "Poll 1"

@@ -12,9 +12,6 @@ import time
 from typing import Dict, Tuple
 
 
-
-
-
 class SlidingWindowRateLimiter:
     """
     Sliding window rate limiter using Redis sorted sets.

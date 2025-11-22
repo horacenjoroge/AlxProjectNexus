@@ -240,7 +240,7 @@ class TestCSRFProtection:
         """Test that CSRF protection is enabled."""
         # Django's CSRF middleware should be in place
         from django.conf import settings
-        
+
         assert "django.middleware.csrf.CsrfViewMiddleware" in settings.MIDDLEWARE
 
     def test_csrf_token_required_for_post(self, client, poll, poll_option):
