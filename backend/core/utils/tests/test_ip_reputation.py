@@ -3,10 +3,10 @@ Tests for IP reputation system.
 """
 
 from datetime import timedelta
-from unittest.mock import Mock, patch
+from unittest.mock importpatch
 
 import pytest
-from apps.analytics.models import IPBlock, IPReputation, IPWhitelist
+from apps.analytics.models importIPWhitelist
 from core.exceptions import IPBlockedError
 from core.utils.ip_reputation import (
     auto_unblock_expired_ips,

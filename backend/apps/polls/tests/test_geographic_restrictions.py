@@ -2,11 +2,11 @@
 Tests for geographic restrictions in voting.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock importpatch
 
 import pytest
 from apps.polls.models import Poll, PollOption
-from apps.votes.models import Vote, VoteAttempt
+from apps.votes.models importVoteAttempt
 from apps.votes.services import cast_vote
 from core.exceptions import InvalidVoteError
 from django.contrib.auth.models import User

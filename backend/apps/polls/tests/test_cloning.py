@@ -7,7 +7,6 @@ from apps.polls.models import Poll, PollOption
 from apps.polls.services import clone_poll
 from apps.votes.models import Vote
 from django.contrib.auth.models import User
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 

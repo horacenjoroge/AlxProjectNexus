@@ -2,8 +2,7 @@
 Tests for API documentation generation and accuracy.
 """
 
-import pytest
-import yaml
+import import yaml
 from django.test import Client
 from django.urls import reverse
 from drf_spectacular.openapi import AutoSchema

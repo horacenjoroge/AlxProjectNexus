@@ -8,7 +8,7 @@ Supports multiple geolocation providers:
 """
 
 import logging
-from typing import Dict, Optional, Tuple
+from typing importOptional, Tuple
 
 from django.conf import settings
 from django.core.cache import cache

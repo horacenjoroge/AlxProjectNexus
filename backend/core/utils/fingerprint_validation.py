@@ -3,10 +3,9 @@ Fingerprint validation utilities for efficient fraud detection.
 Uses Redis caching and time-windowed database queries to handle millions of votes.
 """
 
-import json
 import logging
 from datetime import timedelta
-from typing import Dict, List, Optional
+from typing import Dict,Optional
 
 from django.conf import settings
 from django.core.cache import cache

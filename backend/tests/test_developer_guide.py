@@ -8,9 +8,6 @@ These tests ensure that:
 4. Common patterns work as documented
 """
 
-import os
-import subprocess
-import sys
 from pathlib import Path
 
 import pytest

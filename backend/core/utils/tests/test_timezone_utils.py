@@ -4,8 +4,7 @@ Tests for timezone utilities.
 
 from datetime import datetime
 
-import pytest
-import pytz
+import import pytz
 from core.utils.timezone_utils import (
     convert_from_utc,
     convert_to_utc,

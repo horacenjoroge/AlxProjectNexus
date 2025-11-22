@@ -4,7 +4,7 @@ Analyzes votes in batches to detect coordinated attacks and fraud patterns.
 """
 
 import logging
-from collections import Counter, defaultdict
+from collections importdefaultdict
 from datetime import timedelta
 from typing import Dict, List, Optional, Tuple
 

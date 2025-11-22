@@ -24,7 +24,6 @@ from apps.analytics.models import (
     IPWhitelist,
     PollAnalytics,
 )
-from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.utils import timezone
 

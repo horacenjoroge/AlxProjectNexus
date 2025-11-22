@@ -32,7 +32,7 @@ from drf_spectacular.utils import (
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.renderers import BaseRenderer, BrowsableAPIRenderer, JSONRenderer
+from rest_framework.renderers importBrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 
 from .models import Category, Poll, PollOption, Tag
@@ -675,13 +675,13 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         summary="Get poll results",
         description="""
         Get poll results with comprehensive calculations including vote counts, percentages, and statistics.
-        
+
         **Visibility Rules**:
         - Private polls: Only owner can view results
         - Public polls: Anyone can view (if allowed by timing)
         - `show_results_during_voting=False`: Results only shown after poll closes
         - `show_results_during_voting=True`: Results shown anytime
-        
+
         **Rate Limits**: Subject to general API rate limits.
         """,
         responses={

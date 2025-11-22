@@ -26,9 +26,9 @@ User = get_user_model()
 @pytest.fixture
 def client():
     """Create a Django test client."""
-    from django.test import Client
+    from django.test import Client as DjangoClient
 
-    return Client()
+    return DjangoClient()
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ Tests for poll notification service.
 """
 
 from datetime import timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock importpatch
 
 import pytest
 from apps.polls.models import Poll

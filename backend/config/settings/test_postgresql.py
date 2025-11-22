@@ -6,7 +6,6 @@ Usage: pytest --ds=config.settings.test_postgresql
 """
 
 import os
-from pathlib import Path
 
 from .base import *  # noqa: F403, F401
 

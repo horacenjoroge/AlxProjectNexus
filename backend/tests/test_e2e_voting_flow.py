@@ -13,7 +13,7 @@ Tests:
 import threading
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures importas_completed
 
 import pytest
 from apps.polls.factories import PollFactory, PollOptionFactory

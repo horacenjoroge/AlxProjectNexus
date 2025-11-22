@@ -20,7 +20,7 @@ import concurrent.futures
 import hashlib
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Tuple
+from typing importTuple
 
 import pytest
 from apps.polls.models import Poll, PollOption

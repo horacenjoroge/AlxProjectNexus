@@ -472,7 +472,6 @@ class TestResultsCaching:
                 invalidate_results_cache(poll.id)
 
             # Cache should be invalidated (or at least verify new calculation works)
-            _cached_after = get_cached_results(poll.id)
             # Note: cast_vote might not automatically invalidate cache, so we test manually
             invalidate_results_cache(poll.id)
             assert get_cached_results(poll.id) is None

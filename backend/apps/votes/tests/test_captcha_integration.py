@@ -2,10 +2,10 @@
 Integration tests for CAPTCHA verification in vote casting.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock importpatch
 
 import pytest
-from apps.polls.models import Poll, PollOption
+from apps.polls.models importPollOption
 from core.exceptions import CaptchaVerificationError
 from django.contrib.auth.models import User
 from rest_framework import status

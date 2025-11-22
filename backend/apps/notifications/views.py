@@ -130,7 +130,8 @@ class UnsubscribeView(APIView):
     def post(self, request):
         """Unsubscribe user by email or token."""
         email = request.data.get("email")
-        _token = request.data.get("token")  # Could implement token-based unsubscribe
+        # Token-based unsubscribe could be implemented in the future
+        request.data.get("token")  # Placeholder for future implementation
 
         if not email:
             return Response(

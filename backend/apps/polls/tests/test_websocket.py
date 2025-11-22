@@ -2,12 +2,11 @@
 Comprehensive tests for WebSocket poll results consumer.
 """
 
-import json
 import time
 
 import pytest
 from apps.polls.consumers import PollResultsConsumer
-from apps.polls.models import Poll, PollOption
+from apps.polls.models importPollOption
 from apps.votes.models import Vote
 from apps.votes.services import cast_vote
 from channels.db import database_sync_to_async

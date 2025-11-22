@@ -5,7 +5,7 @@ Detects suspicious voting patterns and marks votes as invalid.
 
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime importtimedelta
 from typing import Dict, List, Optional
 
 from django.conf import settings

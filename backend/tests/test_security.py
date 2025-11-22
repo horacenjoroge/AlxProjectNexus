@@ -15,7 +15,6 @@ Tests all security measures including:
 """
 
 import json
-import re
 from unittest.mock import patch
 
 import pytest

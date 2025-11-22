@@ -8,7 +8,6 @@ These tests ensure that:
 4. API flows match implementation
 """
 
-import os
 import re
 from pathlib import Path
 
@@ -111,9 +110,9 @@ class TestArchitectureDocumentation:
             NotificationDelivery,
             NotificationPreference,
         )
-        from apps.polls.models import Category, Poll, PollOption, Tag
-        from apps.users.models import Follow, UserProfile
-        from apps.votes.models import Vote, VoteAttempt
+        from apps.polls.models importTag
+        from apps.users.models importUserProfile
+        from apps.votes.models importVoteAttempt
 
         # Check that all documented models exist
         documented_models = [

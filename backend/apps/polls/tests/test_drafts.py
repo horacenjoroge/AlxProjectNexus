@@ -5,7 +5,6 @@ Tests for poll drafts functionality.
 import pytest
 from apps.polls.models import Poll, PollOption
 from django.contrib.auth.models import User
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
