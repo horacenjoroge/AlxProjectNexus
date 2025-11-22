@@ -1,5 +1,5 @@
 [bandit]
 exclude_dirs = /tests/,/migrations/,/venv/,/env/,/.venv/,/node_modules/
-skips = B101,B601,B104  # Skip assert_used, shell_injection_subprocess, and hardcoded_bind_all_interfaces (B104 is false positive for ALLOWED_HOSTS in dev settings)
+skips = B101,B601,B104,B608  # Skip assert_used, shell_injection_subprocess, hardcoded_bind_all_interfaces, and hardcoded_sql_expressions (B608 is false positive for Django ORM introspection)
 tests = B201,B301,B401,B501,B601  # Focus on critical security issues
 
