@@ -2,7 +2,7 @@
 Tests for IP geolocation utilities.
 """
 
-from unittest.mock importpatch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from core.utils.geolocation import (
