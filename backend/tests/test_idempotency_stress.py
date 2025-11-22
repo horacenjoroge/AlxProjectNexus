@@ -259,7 +259,7 @@ class TestIdempotencyStress:
         # Database should have only 1 vote
         assert Vote.objects.filter(poll=poll, user=user).count() == 1
 
-        print(f"\n✓ Network retry simulation: 50 retries, all idempotent")
+        print("\n✓ Network retry simulation: 50 retries, all idempotent")
 
     def test_concurrent_votes_same_voter_different_choices(
         self, poll_with_choices, user
@@ -302,7 +302,7 @@ class TestIdempotencyStress:
         # Database should have only 1 vote
         assert Vote.objects.filter(poll=poll, user=user).count() == 1
 
-        print(f"\n✓ Concurrent votes same voter: correctly rejected duplicate")
+        print("\n✓ Concurrent votes same voter: correctly rejected duplicate")
 
     def test_race_condition_same_idempotency_key(self, poll_with_choices, user):
         """
@@ -383,7 +383,7 @@ class TestIdempotencyStress:
         assert new_votes == 1, f"Expected 1 new vote, got {new_votes}"
         assert Vote.objects.filter(poll=poll, user=user).count() == 1
 
-        print(f"\n✓ Race condition test: 10 simultaneous, 1 created")
+        print("\n✓ Race condition test: 10 simultaneous, 1 created")
 
     def test_database_deadlock_handling(self, poll_with_choices, user, request_factory):
         """
@@ -570,7 +570,7 @@ class TestIdempotencyStress:
         # Should still have only 1 vote
         assert Vote.objects.filter(poll=poll, user=user).count() == 1
 
-        print(f"\n✓ Idempotency key manipulation: correctly prevented")
+        print("\n✓ Idempotency key manipulation: correctly prevented")
 
     def test_http_status_codes_under_retry_storm(self, poll_with_choices, user):
         """
@@ -791,14 +791,14 @@ class TestIdempotencyStress:
             from core.utils.idempotency import check_idempotency
 
             is_duplicate, cached_result = check_idempotency(idempotency_key)
-            assert is_duplicate is True, f"Cache should have idempotency key after vote"
-            assert cached_result is not None, f"Cache should have result"
-            assert cached_result.get("vote_id") == vote.id, f"Cache vote_id mismatch"
+            assert is_duplicate is True, "Cache should have idempotency key after vote"
+            assert cached_result is not None, "Cache should have result"
+            assert cached_result.get("vote_id") == vote.id, "Cache vote_id mismatch"
 
             # Verify database
             db_vote = Vote.objects.filter(idempotency_key=idempotency_key).first()
-            assert db_vote is not None, f"Database should have vote"
-            assert db_vote.id == vote.id, f"Database vote_id mismatch"
+            assert db_vote is not None, "Database should have vote"
+            assert db_vote.id == vote.id, "Database vote_id mismatch"
 
             return {"attempt": attempt_num, "vote_id": vote.id, "success": True}
 
@@ -816,4 +816,4 @@ class TestIdempotencyStress:
             len(unique_vote_ids) == 1
         ), f"Expected 1 unique vote, got {len(unique_vote_ids)}"
 
-        print(f"\n✓ Cache consistency: 100 checks, all consistent")
+        print("\n✓ Cache consistency: 100 checks, all consistent")

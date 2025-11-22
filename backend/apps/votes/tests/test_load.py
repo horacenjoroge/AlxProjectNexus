@@ -119,7 +119,7 @@ class TestVoteAPILoad:
         assert elapsed_time < 30, f"Load test took too long: {elapsed_time:.2f} seconds"
 
         # Log results
-        print(f"\nLoad Test Results:")
+        print("\nLoad Test Results:")
         print(f"  Total requests: {total_processed}")
         print(f"  Successful: {results['success']}")
         print(f"  Duplicates: {results['duplicates']}")

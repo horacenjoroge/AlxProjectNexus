@@ -2,10 +2,14 @@
 Views for notifications app.
 """
 
+from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Notification, NotificationPreference
 from .serializers import (
@@ -112,14 +116,6 @@ class NotificationPreferenceViewSet(viewsets.ModelViewSet):
         preferences.resubscribe()
         serializer = self.get_serializer(preferences)
         return Response(serializer.data)
-
-
-from django.contrib.auth import get_user_model
-from django.utils.decorators import method_decorator
-
-# Standalone unsubscribe view (for email links)
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.views import APIView
 
 User = get_user_model()
 

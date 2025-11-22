@@ -114,9 +114,9 @@ class TestDeveloperGuideExamples:
                 if (
                     len(
                         [
-                            l
-                            for l in lines
-                            if l.strip() and not l.strip().startswith("#")
+                            line
+                            for line in lines
+                            if line.strip() and not line.strip().startswith("#")
                         ]
                     )
                     <= 2
@@ -136,7 +136,7 @@ class TestDeveloperGuideExamples:
                     # This is likely a markdown formatting issue, skip
                     pass
 
-        assert not syntax_errors, f"Syntax errors in code blocks:\n" + "\n".join(
+        assert not syntax_errors, "Syntax errors in code blocks:\n" + "\n".join(
             syntax_errors
         )
 
