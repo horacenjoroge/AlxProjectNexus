@@ -347,7 +347,7 @@ class TestScheduledPollsTimezoneHandling:
         # Create poll with start time in a specific timezone
         ny_tz = pytz.timezone("America/New_York")
         ny_time = ny_tz.localize(datetime(2024, 1, 1, 12, 0, 0))
-        utc_time = convert_to_utc(ny_time)
+        _utc_time = convert_to_utc(ny_time)  # Converted but not used in this test
 
         # Set poll start time to past (in UTC)
         past_utc = timezone.now() - timedelta(minutes=5)
