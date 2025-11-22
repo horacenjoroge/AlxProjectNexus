@@ -37,19 +37,10 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 
-def _is_sqlite():
-    """Check if using SQLite database."""
-    try:
-        return connection.vendor == "sqlite"
-    except Exception:
-        # If connection not available yet, assume SQLite (safer default)
-        return True
-
-
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.stress
 @pytest.mark.skipif(
-    _is_sqlite(),
+    "connection.vendor == 'sqlite'",
     reason="Idempotency stress tests require PostgreSQL. SQLite doesn't support concurrent writes.",
 )
 class TestIdempotencyStress:

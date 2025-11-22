@@ -17,20 +17,11 @@ from django.db import connection
 from django.test import RequestFactory
 
 
-def _is_sqlite():
-    """Check if using SQLite database."""
-    try:
-        return connection.vendor == "sqlite"
-    except Exception:
-        # If connection not available yet, assume SQLite (safer default)
-        return True
-
-
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.slow
 @pytest.mark.skipif(
-    _is_sqlite(),
+    "connection.vendor == 'sqlite'",
     reason="SQLite doesn't support concurrent writes. Use PostgreSQL for load tests.",
 )
 class TestConcurrentLoad:
