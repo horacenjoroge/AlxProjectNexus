@@ -30,7 +30,7 @@ class TestRapidVotesFromIP:
         ip_address = "192.168.1.100"
         users = []
         for i in range(5):
-            _user = User.objects.create_user(
+            user = User.objects.create_user(
                 username=f"user_{timestamp}_{i}", password="pass"
             )
             users.append(user)
@@ -137,7 +137,7 @@ class TestSuspiciousVotingPattern:
         ip_address = "192.168.1.100"
         users = []
         for i in range(10):
-            _user = User.objects.create_user(
+            user = User.objects.create_user(
                 username=f"user_{timestamp}_{i}", password="pass"
             )
             users.append(user)
@@ -309,7 +309,7 @@ class TestDetectFraud:
         ip_address = "192.168.1.100"
         users = []
         for i in range(5):
-            _user = User.objects.create_user(
+            user = User.objects.create_user(
                 username=f"user_{timestamp}_{i}", password="pass"
             )
             users.append(user)
