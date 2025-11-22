@@ -15,11 +15,7 @@ from apps.analytics.factories import (
     IPWhitelistFactory,
     PollAnalyticsFactory,
 )
-from apps.analytics.models import (
-    AuditLog,
-    FraudAlert,
-    PollAnalytics,
-)
+from apps.analytics.models import AuditLog, FraudAlert, PollAnalytics
 from django.db import IntegrityError
 from django.utils import timezone
 

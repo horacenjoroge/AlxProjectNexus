@@ -16,7 +16,6 @@ from apps.analytics.models import (
 from apps.polls.models import Poll
 from apps.votes.models import Vote
 from django.contrib.auth.models import User
-
 from django.db.models import Avg, Count, Max
 from django.utils import timezone
 

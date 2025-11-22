@@ -15,8 +15,6 @@ from apps.analytics.models import AuditLog
 from apps.polls.models import Poll
 from apps.votes.models import Vote
 from core.services.poll_analytics import get_comprehensive_analytics
-
-
 from django.db.models import Q
 from django.utils import timezone
 

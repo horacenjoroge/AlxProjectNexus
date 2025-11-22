@@ -8,7 +8,6 @@ import re
 from datetime import timedelta
 from typing import Dict, List, Optional
 
-
 from django.db.models import Count
 from django.utils import timezone
 

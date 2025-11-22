@@ -22,11 +22,7 @@ from core.services.poll_analytics import (
 from core.throttles import PollCreateRateThrottle, PollReadRateThrottle
 from django.conf import settings
 from django.db import models
-from drf_spectacular.utils import (
-    OpenApiExample,
-    OpenApiResponse,
-    extend_schema,
-)
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -45,11 +41,7 @@ from .serializers import (
     PollUpdateSerializer,
     TagSerializer,
 )
-from .services import (
-    calculate_poll_results,
-    can_view_results,
-    clone_poll,
-)
+from .services import calculate_poll_results, can_view_results, clone_poll
 from .templates import get_template, list_templates
 
 logger = logging.getLogger(__name__)
