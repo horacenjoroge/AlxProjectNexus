@@ -14,8 +14,14 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-# Check if using SQLite (which doesn't handle concurrent writes well)
-IS_SQLITE = settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3"
+
+def _is_sqlite():
+    """Check if using SQLite database."""
+    try:
+        return settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3"
+    except Exception:
+        # If settings not available yet, assume SQLite (safer default)
+        return True
 
 
 @pytest.mark.django_db
@@ -24,7 +30,7 @@ class TestVoteAPILoad:
     """Load tests for voting API."""
 
     @pytest.mark.skipif(
-        IS_SQLITE,
+        _is_sqlite(),
         reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations.",
     )
     def test_1000_concurrent_vote_requests(self, poll, choices):
@@ -133,7 +139,7 @@ class TestVoteAPILoad:
                 print(f"  {error}")
 
     @pytest.mark.skipif(
-        IS_SQLITE,
+        _is_sqlite(),
         reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations.",
     )
     def test_concurrent_votes_same_user_prevented(self, user, poll, choices):
@@ -190,7 +196,7 @@ class TestVoteAPILoad:
         assert vote_count == 1, f"Expected 1 vote, got {vote_count}"
 
     @pytest.mark.skipif(
-        IS_SQLITE,
+        _is_sqlite(),
         reason="Concurrent load tests require PostgreSQL, skipped on SQLite due to write lock limitations.",
     )
     def test_concurrent_votes_different_users_succeed(self, poll, choices):
