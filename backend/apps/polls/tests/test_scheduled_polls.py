@@ -94,7 +94,7 @@ class TestActivateScheduledPoll:
 
     def test_activate_nonexistent_poll(self):
         """Test that activating nonexistent poll returns error."""
-        result = activate_scheduledpoll.apply(args=(99999,))
+        result = activate_scheduled_poll(99999)
 
         assert result.result["success"] is False
         assert result.result["error"] == "Poll not found"
@@ -201,7 +201,7 @@ class TestCloseScheduledPoll:
 
     def test_close_nonexistent_poll(self):
         """Test that closing nonexistent poll returns error."""
-        result = close_scheduledpoll.apply(args=(99999,))
+        result = close_scheduled_poll(99999)
 
         assert result.result["success"] is False
         assert result.result["error"] == "Poll not found"
