@@ -153,11 +153,12 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: config.settings.test
           PYTHONPATH: ${{ github.workspace }}/backend
+        continue-on-error: true
         run: |
           # Run tests with coverage reporting
           # pytest.ini has --cov-fail-under=90 which causes exit code 1 when coverage < 90%
-          # We'll run pytest and always exit 0 since coverage threshold is informational
-          pytest --cov=backend --cov-report=xml --cov-report=html --cov-report=term --junitxml=junit.xml -v || true
+          # continue-on-error: true ensures this step doesn't fail the workflow
+          pytest --cov=backend --cov-report=xml --cov-report=html --cov-report=term --junitxml=junit.xml -v
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
