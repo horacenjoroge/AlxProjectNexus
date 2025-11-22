@@ -26,7 +26,8 @@ from apps.votes.services import cast_vote
 from core.utils.idempotency import generate_idempotency_key
 from django.conf import settings
 from django.core.cache import cache
-from django.db import connectionfrom django.test import RequestFactory
+from django.db import connection
+from django.test import RequestFactory
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient

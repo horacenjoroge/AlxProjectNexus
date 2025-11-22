@@ -96,19 +96,6 @@ class TestArchitectureDocumentation:
 
     def test_database_models_match_documentation(self, doc_content):
         """Test that documented models match actual models."""
-                    AuditLog,
-            FingerprintBlock,
-            FraudAlert,
-            IPBlock,
-            IPReputation,
-            IPWhitelist,
-            PollAnalytics,
-        )
-                    Notification,
-            NotificationDelivery,
-            NotificationPreference,
-        )
-                        
         # Check that all documented models exist
         documented_models = [
             "Poll",
