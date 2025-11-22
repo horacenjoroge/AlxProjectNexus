@@ -7,6 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from apps.analytics.models import AuditLog
+from apps.polls.models import Poll, PollOption
+from apps.votes.models import Vote
 from django.contrib.auth.models import User
 from django.core import mail
 from django.urls import reverse

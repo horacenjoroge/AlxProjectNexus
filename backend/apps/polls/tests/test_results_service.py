@@ -13,7 +13,9 @@ from apps.polls.services import (
     invalidate_results_cache,
 )
 from apps.votes.models import Vote
+from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.db import transaction
 
 
 @pytest.mark.django_db

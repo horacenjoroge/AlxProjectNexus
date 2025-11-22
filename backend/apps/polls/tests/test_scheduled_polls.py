@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
+import pytz
 from apps.polls.models import Poll, PollOption
 from apps.polls.tasks import (
     activate_scheduled_poll,

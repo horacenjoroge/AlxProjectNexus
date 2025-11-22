@@ -15,6 +15,7 @@ from core.exceptions import (
     PollClosedError,
     PollNotFoundError,
 )
+from django.core.cache import cache
 from django.test import RequestFactory
 from django.utils import timezone
 

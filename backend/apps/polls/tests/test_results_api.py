@@ -6,6 +6,7 @@ from datetime import timedelta
 
 import pytest
 from apps.votes.models import Vote
+from django.contrib.auth.models import User
 from django.utils import timezone
 
 
