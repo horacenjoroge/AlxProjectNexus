@@ -13,6 +13,7 @@ from apps.polls.tasks import (
     close_scheduled_poll,
     process_scheduled_polls,
 )
+from core.utils.timezone_utils import convert_to_utc
 from django.contrib.auth.models import User
 from django.utils import timezone
 
