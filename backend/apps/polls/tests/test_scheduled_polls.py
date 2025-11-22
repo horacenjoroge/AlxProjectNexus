@@ -224,7 +224,7 @@ class TestProcessScheduledPolls:
         )
 
         with patch("core.services.poll_notifications.send_poll_opened_notification"):
-            result = process_scheduled_polls.apply()
+            result = process_scheduled_polls()
 
             poll.refresh_from_db()
 
@@ -247,7 +247,7 @@ class TestProcessScheduledPolls:
         )
 
         with patch("core.services.poll_notifications.send_poll_closed_notification"):
-            result = process_scheduled_polls.apply()
+            result = process_scheduled_polls()
 
             poll.refresh_from_db()
 
@@ -282,7 +282,7 @@ class TestProcessScheduledPolls:
         with patch(
             "core.services.poll_notifications.send_poll_opened_notification"
         ), patch("core.services.poll_notifications.send_poll_closed_notification"):
-            result = process_scheduled_polls.apply()
+            result = process_scheduled_polls()
 
             poll1.refresh_from_db()
             poll2.refresh_from_db()
@@ -331,7 +331,7 @@ class TestProcessScheduledPolls:
             "apps.polls.tasks.activate_scheduled_poll",
             side_effect=Exception("Test error"),
         ):
-            result = process_scheduled_polls.apply()
+            result = process_scheduled_polls()
 
             assert result["success"] is True
             assert len(result["errors"]) > 0
@@ -413,7 +413,7 @@ class TestScheduledPollsTimezoneHandling:
         )
 
         with patch("core.services.poll_notifications.send_poll_opened_notification"):
-            result = process_scheduled_polls.apply()
+            result = process_scheduled_polls()
 
             poll1.refresh_from_db()
             poll2.refresh_from_db()
