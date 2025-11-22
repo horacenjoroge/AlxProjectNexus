@@ -1,4 +1,14 @@
-name: Tests
+name: Tests (Legacy)
+
+# NOTE: This workflow is being replaced by ci.yml
+# The new CI pipeline includes enhanced features:
+# - Security scanning with Bandit
+# - Better error reporting
+# - Artifact uploads
+# - PR merge verification
+#
+# This workflow is kept for backward compatibility.
+# Consider migrating to ci.yml for new features.
 
 on:
   push:
