@@ -5,7 +5,6 @@ Tests for fingerprint validation utilities.
 import hashlib
 
 import pytest
-from django.conf import settings
 from core.utils.fingerprint_validation import (
     check_fingerprint_ip_combination,
     check_fingerprint_suspicious,
@@ -15,6 +14,7 @@ from core.utils.fingerprint_validation import (
     update_fingerprint_cache,
     validate_fingerprint_format,
 )
+from django.conf import settings
 from django.core.cache import cache
 from django.test import RequestFactory
 from django.utils import timezone
