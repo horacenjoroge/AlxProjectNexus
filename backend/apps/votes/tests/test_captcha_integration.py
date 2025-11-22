@@ -2,7 +2,7 @@
 Integration tests for CAPTCHA verification in vote casting.
 """
 
-from unittest.mock importpatch
+from unittest.mock import patch
 
 import pytest
 from apps.polls.models import PollOption

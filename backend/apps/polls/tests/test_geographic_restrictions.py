@@ -2,7 +2,7 @@
 Tests for geographic restrictions in voting.
 """
 
-from unittest.mock importpatch
+from unittest.mock import patch
 
 import pytest
 from apps.polls.models import Poll, PollOption
