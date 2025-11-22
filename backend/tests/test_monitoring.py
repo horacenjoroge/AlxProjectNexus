@@ -20,12 +20,22 @@ class TestPrometheusConfiguration:
 
     def test_prometheus_config_exists(self):
         """Test that Prometheus configuration exists."""
-        config_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "prometheus.yml"
+        config_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "prometheus.yml"
+        )
         assert config_path.exists(), "prometheus.yml should exist"
 
     def test_prometheus_config_valid(self):
         """Test that Prometheus configuration is valid YAML."""
-        config_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "prometheus.yml"
+        config_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "prometheus.yml"
+        )
         if config_path.exists():
             with open(config_path) as f:
                 config = yaml.safe_load(f)
@@ -34,12 +44,19 @@ class TestPrometheusConfiguration:
 
     def test_prometheus_scrapes_django(self):
         """Test that Prometheus is configured to scrape Django."""
-        config_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "prometheus.yml"
+        config_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "prometheus.yml"
+        )
         if config_path.exists():
             with open(config_path) as f:
                 config = yaml.safe_load(f)
             scrape_configs = config.get("scrape_configs", [])
-            django_jobs = [job for job in scrape_configs if job.get("job_name") == "django"]
+            django_jobs = [
+                job for job in scrape_configs if job.get("job_name") == "django"
+            ]
             assert len(django_jobs) > 0, "Should scrape Django application"
 
 
@@ -48,12 +65,24 @@ class TestAlertRules:
 
     def test_alerts_file_exists(self):
         """Test that alerts file exists."""
-        alerts_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "prometheus" / "alerts.yml"
+        alerts_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "prometheus"
+            / "alerts.yml"
+        )
         assert alerts_path.exists(), "alerts.yml should exist"
 
     def test_alerts_file_valid(self):
         """Test that alerts file is valid YAML."""
-        alerts_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "prometheus" / "alerts.yml"
+        alerts_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "prometheus"
+            / "alerts.yml"
+        )
         if alerts_path.exists():
             with open(alerts_path) as f:
                 alerts = yaml.safe_load(f)
@@ -61,7 +90,13 @@ class TestAlertRules:
 
     def test_critical_alerts_defined(self):
         """Test that critical alerts are defined."""
-        alerts_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "prometheus" / "alerts.yml"
+        alerts_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "prometheus"
+            / "alerts.yml"
+        )
         if alerts_path.exists():
             with open(alerts_path) as f:
                 alerts = yaml.safe_load(f)
@@ -69,7 +104,11 @@ class TestAlertRules:
             all_rules = []
             for group in groups:
                 all_rules.extend(group.get("rules", []))
-            critical_alerts = [rule for rule in all_rules if rule.get("labels", {}).get("severity") == "critical"]
+            critical_alerts = [
+                rule
+                for rule in all_rules
+                if rule.get("labels", {}).get("severity") == "critical"
+            ]
             assert len(critical_alerts) > 0, "Should have critical alerts"
 
 
@@ -78,12 +117,22 @@ class TestAlertmanagerConfiguration:
 
     def test_alertmanager_config_exists(self):
         """Test that Alertmanager configuration exists."""
-        config_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "alertmanager.yml"
+        config_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "alertmanager.yml"
+        )
         assert config_path.exists(), "alertmanager.yml should exist"
 
     def test_alertmanager_config_valid(self):
         """Test that Alertmanager configuration is valid YAML."""
-        config_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "alertmanager.yml"
+        config_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "alertmanager.yml"
+        )
         if config_path.exists():
             with open(config_path) as f:
                 config = yaml.safe_load(f)
@@ -92,14 +141,17 @@ class TestAlertmanagerConfiguration:
 
     def test_pagerduty_receiver_configured(self):
         """Test that PagerDuty receiver is configured."""
-        config_path = Path(__file__).parent.parent.parent / "docker" / "monitoring" / "alertmanager.yml"
+        config_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "monitoring"
+            / "alertmanager.yml"
+        )
         if config_path.exists():
             with open(config_path) as f:
                 config = yaml.safe_load(f)
             receivers = config.get("receivers", [])
-            pagerduty_receivers = [
-                r for r in receivers if "pagerduty_configs" in r
-            ]
+            pagerduty_receivers = [r for r in receivers if "pagerduty_configs" in r]
             assert len(pagerduty_receivers) > 0, "Should have PagerDuty receiver"
 
 
@@ -150,12 +202,20 @@ class TestDockerComposeMonitoring:
 
     def test_monitoring_compose_exists(self):
         """Test that monitoring compose file exists."""
-        compose_path = Path(__file__).parent.parent.parent / "docker" / "docker-compose.monitoring.yml"
+        compose_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "docker-compose.monitoring.yml"
+        )
         assert compose_path.exists(), "docker-compose.monitoring.yml should exist"
 
     def test_monitoring_services_defined(self):
         """Test that monitoring services are defined."""
-        compose_path = Path(__file__).parent.parent.parent / "docker" / "docker-compose.monitoring.yml"
+        compose_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "docker-compose.monitoring.yml"
+        )
         if compose_path.exists():
             with open(compose_path) as f:
                 config = yaml.safe_load(f)
@@ -170,13 +230,20 @@ class TestMetricsMiddleware:
 
     def test_metrics_middleware_exists(self):
         """Test that metrics middleware exists."""
-        middleware_path = Path(__file__).parent.parent.parent / "backend" / "core" / "middleware" / "metrics.py"
+        middleware_path = (
+            Path(__file__).parent.parent.parent
+            / "backend"
+            / "core"
+            / "middleware"
+            / "metrics.py"
+        )
         assert middleware_path.exists(), "metrics.py middleware should exist"
 
     def test_metrics_middleware_importable(self):
         """Test that metrics middleware can be imported."""
         try:
             from core.middleware.metrics import MetricsMiddleware
+
             assert MetricsMiddleware is not None
         except ImportError:
             pytest.skip("Metrics middleware not available")
@@ -187,7 +254,13 @@ class TestSentryIntegration:
 
     def test_sentry_configured_in_production(self):
         """Test that Sentry is configured in production settings."""
-        settings_path = Path(__file__).parent.parent.parent / "backend" / "config" / "settings" / "production.py"
+        settings_path = (
+            Path(__file__).parent.parent.parent
+            / "backend"
+            / "config"
+            / "settings"
+            / "production.py"
+        )
         if settings_path.exists():
             content = settings_path.read_text()
             assert "sentry_sdk" in content, "Should import sentry_sdk"
@@ -195,7 +268,9 @@ class TestSentryIntegration:
 
     def test_sentry_in_requirements(self):
         """Test that sentry-sdk is in requirements."""
-        requirements_path = Path(__file__).parent.parent.parent / "requirements" / "production.txt"
+        requirements_path = (
+            Path(__file__).parent.parent.parent / "requirements" / "production.txt"
+        )
         if requirements_path.exists():
             content = requirements_path.read_text()
             assert "sentry-sdk" in content, "Should include sentry-sdk in requirements"
@@ -209,7 +284,10 @@ class TestMetricsEndpoint:
         try:
             response = client.get("/metrics/")
             # Should return 200 if Prometheus is installed, 404 otherwise
-            assert response.status_code in [200, 404], "Metrics endpoint should be accessible or return 404"
+            assert response.status_code in [
+                200,
+                404,
+            ], "Metrics endpoint should be accessible or return 404"
         except Exception:
             pytest.skip("Metrics endpoint not available")
 
@@ -236,5 +314,6 @@ class TestMonitoringDocumentation:
                 "Alerts",
             ]
             for section in required_sections:
-                assert section in content, f"Documentation should include {section} section"
-
+                assert (
+                    section in content
+                ), f"Documentation should include {section} section"

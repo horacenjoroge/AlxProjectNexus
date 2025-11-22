@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 # Prometheus middleware (optional)
 try:
     import django_prometheus
+
     PROMETHEUS_MIDDLEWARE = [
         "django_prometheus.middleware.PrometheusBeforeMiddleware",
     ]
@@ -71,16 +72,16 @@ MIDDLEWARE = (
     PROMETHEUS_MIDDLEWARE
     + [
         "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # Custom middleware (order matters!)
-    "core.middleware.request_id.RequestIDMiddleware",  # First - adds request ID
-    "core.middleware.fingerprint.FingerprintMiddleware",  # Second - extracts fingerprint
+        "corsheaders.middleware.CorsMiddleware",
+        "django.contrib.sessions.middleware.SessionMiddleware",
+        "django.middleware.common.CommonMiddleware",
+        "django.middleware.csrf.CsrfViewMiddleware",
+        "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "django.contrib.messages.middleware.MessageMiddleware",
+        "django.middleware.clickjacking.XFrameOptionsMiddleware",
+        # Custom middleware (order matters!)
+        "core.middleware.request_id.RequestIDMiddleware",  # First - adds request ID
+        "core.middleware.fingerprint.FingerprintMiddleware",  # Second - extracts fingerprint
         "core.middleware.audit_log.AuditLogMiddleware",  # Third - logs requests
         "core.middleware.rate_limit.RateLimitMiddleware",  # Last - rate limiting
         "core.middleware.metrics.MetricsMiddleware",  # Custom metrics

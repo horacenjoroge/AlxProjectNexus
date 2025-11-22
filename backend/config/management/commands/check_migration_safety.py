@@ -102,21 +102,19 @@ class Command(BaseCommand):
 
             if safe_operations:
                 self.stdout.write(
-                    self.style.SUCCESS(f"✓ Safe operations: {', '.join(set(safe_operations))}")
+                    self.style.SUCCESS(
+                        f"✓ Safe operations: {', '.join(set(safe_operations))}"
+                    )
                 )
 
             if warnings:
-                self.stdout.write(
-                    self.style.WARNING(f"⚠ Warnings: {len(warnings)}")
-                )
+                self.stdout.write(self.style.WARNING(f"⚠ Warnings: {len(warnings)}"))
                 if detailed:
                     for warning in warnings:
                         self.stdout.write(f"  - {warning}")
 
             if issues:
-                self.stdout.write(
-                    self.style.ERROR(f"✗ Issues: {len(issues)}")
-                )
+                self.stdout.write(self.style.ERROR(f"✗ Issues: {len(issues)}"))
                 for issue in issues:
                     self.stdout.write(f"  - {issue}")
 
@@ -134,9 +132,7 @@ class Command(BaseCommand):
                 return 1
             elif warnings:
                 self.stdout.write(
-                    self.style.WARNING(
-                        "⚠ Migration requires careful planning"
-                    )
+                    self.style.WARNING("⚠ Migration requires careful planning")
                 )
                 self.stdout.write(
                     "   Review warnings and ensure code is deployed first if needed"
@@ -152,4 +148,3 @@ class Command(BaseCommand):
 
         except Exception as e:
             raise CommandError(f"Error checking migration safety: {e}")
-

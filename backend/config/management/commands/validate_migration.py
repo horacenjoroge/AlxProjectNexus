@@ -119,4 +119,3 @@ class Command(BaseCommand):
 
         except Exception as e:
             raise CommandError(f"Error validating migration: {e}")
-

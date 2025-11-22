@@ -19,6 +19,7 @@ try:
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
+
     # Dummy classes if Prometheus is not available
     class Counter:
         def __init__(self, *args, **kwargs):
@@ -39,6 +40,7 @@ except ImportError:
 
         def observe(self, *args, **kwargs):
             pass
+
 
 # Metrics (only create if Prometheus is available)
 if PROMETHEUS_AVAILABLE:
@@ -63,7 +65,9 @@ if PROMETHEUS_AVAILABLE:
 else:
     # Dummy metrics if Prometheus is not available
     http_requests_total = Counter("http_requests_total", "Total HTTP requests", [])
-    http_request_duration_seconds = Histogram("http_request_duration_seconds", "HTTP request duration", [])
+    http_request_duration_seconds = Histogram(
+        "http_request_duration_seconds", "HTTP request duration", []
+    )
     http_errors_total = Counter("http_errors_total", "Total HTTP errors", [])
 
 
@@ -139,4 +143,3 @@ class MetricsMiddleware:
             path = path[:100]
 
         return path or "root"
-

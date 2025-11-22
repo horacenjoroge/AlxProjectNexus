@@ -73,7 +73,9 @@ class Command(BaseCommand):
                 import os
 
                 script_path = os.path.join(
-                    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+                    os.path.dirname(
+                        os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                    ),
                     "scripts",
                     "backup-database.sh",
                 )
@@ -89,9 +91,7 @@ class Command(BaseCommand):
                         )
                     else:
                         self.stdout.write(
-                            self.style.WARNING(
-                                f"⚠ Backup failed: {result.stderr}"
-                            )
+                            self.style.WARNING(f"⚠ Backup failed: {result.stderr}")
                         )
                         if input("Continue without backup? (yes/no): ") != "yes":
                             raise CommandError("Rollback cancelled")
@@ -125,7 +125,9 @@ class Command(BaseCommand):
                     else:
                         target = "zero"  # Rollback all migrations
                 except ValueError:
-                    raise CommandError(f"Migration {migration_name} not found in applied migrations")
+                    raise CommandError(
+                        f"Migration {migration_name} not found in applied migrations"
+                    )
 
             self.stdout.write(f"\nRolling back {app_name}.{migration_name}")
             if target != "zero":
@@ -182,4 +184,3 @@ class Command(BaseCommand):
 
         except Exception as e:
             raise CommandError(f"Error rolling back migration: {e}")
-

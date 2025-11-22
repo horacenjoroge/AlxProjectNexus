@@ -77,7 +77,9 @@ LOGGING = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "json" if env("JSON_LOGGING", default="false").lower() == "true" else "verbose",
+            "formatter": "json"
+            if env("JSON_LOGGING", default="false").lower() == "true"
+            else "verbose",
         },
     },
     "root": {

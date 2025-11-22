@@ -44,7 +44,9 @@ class Command(BaseCommand):
             app_config = apps.get_app_config(app_name)
             app_label = app_config.label
 
-            self.stdout.write(self.style.SUCCESS("\n=== Migration Data Verification ==="))
+            self.stdout.write(
+                self.style.SUCCESS("\n=== Migration Data Verification ===")
+            )
             self.stdout.write(f"App: {app_name}")
 
             # Check database connection
@@ -87,9 +89,7 @@ class Command(BaseCommand):
                         cursor.execute(f'SELECT COUNT(*) FROM "{table_name}"')
                         record_count = cursor.fetchone()[0]
 
-                        self.stdout.write(
-                            f"  ✓ {model_name}: {record_count} records"
-                        )
+                        self.stdout.write(f"  ✓ {model_name}: {record_count} records")
 
                         # Check for NULL in non-nullable fields
                         for field in model._meta.get_fields():
@@ -155,4 +155,3 @@ class Command(BaseCommand):
 
         except Exception as e:
             raise CommandError(f"Error verifying migration data: {e}")
-

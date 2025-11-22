@@ -25,22 +25,32 @@ class TestDockerfileProduction:
 
     def test_dockerfile_prod_exists(self):
         """Test that Dockerfile.prod exists."""
-        dockerfile_path = Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        dockerfile_path = (
+            Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        )
         assert dockerfile_path.exists(), "Dockerfile.prod should exist"
 
     def test_dockerfile_prod_is_multi_stage(self):
         """Test that Dockerfile.prod uses multi-stage builds."""
-        dockerfile_path = Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        dockerfile_path = (
+            Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        )
         content = dockerfile_path.read_text()
 
         # Check for multi-stage build indicators
-        assert "FROM python:3.11-slim as builder" in content, "Should have builder stage"
-        assert "FROM python:3.11-slim as runtime" in content, "Should have runtime stage"
+        assert (
+            "FROM python:3.11-slim as builder" in content
+        ), "Should have builder stage"
+        assert (
+            "FROM python:3.11-slim as runtime" in content
+        ), "Should have runtime stage"
         assert "COPY --from=builder" in content, "Should copy from builder stage"
 
     def test_dockerfile_prod_has_healthcheck(self):
         """Test that Dockerfile.prod includes health check."""
-        dockerfile_path = Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        dockerfile_path = (
+            Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        )
         content = dockerfile_path.read_text()
 
         assert "HEALTHCHECK" in content, "Should have HEALTHCHECK instruction"
@@ -48,21 +58,29 @@ class TestDockerfileProduction:
 
     def test_dockerfile_prod_uses_non_root_user(self):
         """Test that Dockerfile.prod runs as non-root user."""
-        dockerfile_path = Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        dockerfile_path = (
+            Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        )
         content = dockerfile_path.read_text()
 
         assert "USER provote" in content, "Should run as non-root user"
-        assert "groupadd -r provote" in content or "useradd -r" in content, "Should create non-root user"
+        assert (
+            "groupadd -r provote" in content or "useradd -r" in content
+        ), "Should create non-root user"
 
     def test_dockerfile_prod_has_security_best_practices(self):
         """Test that Dockerfile.prod follows security best practices."""
-        dockerfile_path = Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        dockerfile_path = (
+            Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        )
         content = dockerfile_path.read_text()
 
         # Check for security practices
         assert "rm -rf /var/lib/apt/lists/*" in content, "Should clean apt cache"
         assert "--no-cache-dir" in content, "Should use --no-cache-dir for pip"
-        assert "PYTHONDONTWRITEBYTECODE=1" in content, "Should set PYTHONDONTWRITEBYTECODE"
+        assert (
+            "PYTHONDONTWRITEBYTECODE=1" in content
+        ), "Should set PYTHONDONTWRITEBYTECODE"
         assert "PYTHONUNBUFFERED=1" in content, "Should set PYTHONUNBUFFERED"
 
 
@@ -72,7 +90,9 @@ class TestDockerComposeProduction:
     @pytest.fixture
     def compose_file(self):
         """Load docker-compose.prod.yml."""
-        compose_path = Path(__file__).parent.parent.parent / "docker" / "docker-compose.prod.yml"
+        compose_path = (
+            Path(__file__).parent.parent.parent / "docker" / "docker-compose.prod.yml"
+        )
         with open(compose_path) as f:
             return yaml.safe_load(f)
 
@@ -88,12 +108,22 @@ class TestDockerComposeProduction:
         for service_name in required_services:
             assert service_name in services, f"Service {service_name} should exist"
             service = services[service_name]
-            assert "healthcheck" in service, f"Service {service_name} should have healthcheck"
+            assert (
+                "healthcheck" in service
+            ), f"Service {service_name} should have healthcheck"
             healthcheck = service["healthcheck"]
-            assert "test" in healthcheck, f"Service {service_name} healthcheck should have test"
-            assert "interval" in healthcheck, f"Service {service_name} healthcheck should have interval"
-            assert "timeout" in healthcheck, f"Service {service_name} healthcheck should have timeout"
-            assert "retries" in healthcheck, f"Service {service_name} healthcheck should have retries"
+            assert (
+                "test" in healthcheck
+            ), f"Service {service_name} healthcheck should have test"
+            assert (
+                "interval" in healthcheck
+            ), f"Service {service_name} healthcheck should have interval"
+            assert (
+                "timeout" in healthcheck
+            ), f"Service {service_name} healthcheck should have timeout"
+            assert (
+                "retries" in healthcheck
+            ), f"Service {service_name} healthcheck should have retries"
 
     def test_all_services_have_restart_policies(self, compose_file):
         """Test that all services have restart policies."""
@@ -103,10 +133,14 @@ class TestDockerComposeProduction:
         for service_name in required_services:
             assert service_name in services, f"Service {service_name} should exist"
             service = services[service_name]
-            assert "restart" in service, f"Service {service_name} should have restart policy"
-            assert service["restart"] in ["always", "unless-stopped", "on-failure"], (
-                f"Service {service_name} should have valid restart policy"
-            )
+            assert (
+                "restart" in service
+            ), f"Service {service_name} should have restart policy"
+            assert service["restart"] in [
+                "always",
+                "unless-stopped",
+                "on-failure",
+            ], f"Service {service_name} should have valid restart policy"
 
     def test_all_services_have_resource_limits(self, compose_file):
         """Test that all services have resource limits configured."""
@@ -116,14 +150,22 @@ class TestDockerComposeProduction:
         for service_name in required_services:
             assert service_name in services, f"Service {service_name} should exist"
             service = services[service_name]
-            assert "deploy" in service, f"Service {service_name} should have deploy section"
+            assert (
+                "deploy" in service
+            ), f"Service {service_name} should have deploy section"
             deploy = service["deploy"]
-            assert "resources" in deploy, f"Service {service_name} should have resources"
+            assert (
+                "resources" in deploy
+            ), f"Service {service_name} should have resources"
             resources = deploy["resources"]
-            assert "limits" in resources, f"Service {service_name} should have resource limits"
+            assert (
+                "limits" in resources
+            ), f"Service {service_name} should have resource limits"
             limits = resources["limits"]
             assert "cpus" in limits, f"Service {service_name} should have CPU limit"
-            assert "memory" in limits, f"Service {service_name} should have memory limit"
+            assert (
+                "memory" in limits
+            ), f"Service {service_name} should have memory limit"
 
     def test_all_services_have_logging_config(self, compose_file):
         """Test that all services have logging configuration."""
@@ -133,10 +175,16 @@ class TestDockerComposeProduction:
         for service_name in required_services:
             assert service_name in services, f"Service {service_name} should exist"
             service = services[service_name]
-            assert "logging" in service, f"Service {service_name} should have logging config"
+            assert (
+                "logging" in service
+            ), f"Service {service_name} should have logging config"
             logging_config = service["logging"]
-            assert "driver" in logging_config, f"Service {service_name} should have logging driver"
-            assert "options" in logging_config, f"Service {service_name} should have logging options"
+            assert (
+                "driver" in logging_config
+            ), f"Service {service_name} should have logging driver"
+            assert (
+                "options" in logging_config
+            ), f"Service {service_name} should have logging options"
             options = logging_config["options"]
             assert "max-size" in options, f"Service {service_name} should have max-size"
             assert "max-file" in options, f"Service {service_name} should have max-file"
@@ -147,7 +195,9 @@ class TestDockerComposeProduction:
         web_service = services.get("web", {})
         build = web_service.get("build", {})
         assert "dockerfile" in build, "Web service should specify dockerfile"
-        assert build["dockerfile"] == "docker/Dockerfile.prod", "Should use Dockerfile.prod"
+        assert (
+            build["dockerfile"] == "docker/Dockerfile.prod"
+        ), "Should use Dockerfile.prod"
 
     def test_services_have_dependencies(self, compose_file):
         """Test that services have proper dependency configuration."""
@@ -160,7 +210,9 @@ class TestDockerComposeProduction:
         # Check dependency conditions
         if isinstance(depends_on["db"], dict):
             assert "condition" in depends_on["db"], "Dependency should have condition"
-            assert depends_on["db"]["condition"] == "service_healthy", "Should wait for healthy service"
+            assert (
+                depends_on["db"]["condition"] == "service_healthy"
+            ), "Should wait for healthy service"
 
 
 class TestHealthCheckEndpoint:
@@ -179,7 +231,10 @@ class TestHealthCheckEndpoint:
     def test_health_endpoint_accessible(self, client):
         """Test that health endpoint is accessible without authentication."""
         response = client.get("/health/")
-        assert response.status_code in [200, 503], "Health endpoint should be accessible"
+        assert response.status_code in [
+            200,
+            503,
+        ], "Health endpoint should be accessible"
         assert "status" in response.json(), "Response should have status field"
         assert "checks" in response.json(), "Response should have checks field"
 
@@ -206,16 +261,28 @@ class TestSecretManagement:
     def test_env_example_exists(self):
         """Test that .env.example exists."""
         # Check both possible locations
-        env_example_path1 = Path(__file__).parent.parent.parent / "docker" / ".env.example"
-        env_example_path2 = Path(__file__).parent.parent.parent / "docker" / "env.example"
-        assert env_example_path1.exists() or env_example_path2.exists(), ".env.example should exist in docker/ directory"
+        env_example_path1 = (
+            Path(__file__).parent.parent.parent / "docker" / ".env.example"
+        )
+        env_example_path2 = (
+            Path(__file__).parent.parent.parent / "docker" / "env.example"
+        )
+        assert (
+            env_example_path1.exists() or env_example_path2.exists()
+        ), ".env.example should exist in docker/ directory"
 
     def test_env_example_has_required_variables(self):
         """Test that .env.example includes all required variables."""
         # Check both possible locations
-        env_example_path1 = Path(__file__).parent.parent.parent / "docker" / ".env.example"
-        env_example_path2 = Path(__file__).parent.parent.parent / "docker" / "env.example"
-        env_example_path = env_example_path1 if env_example_path1.exists() else env_example_path2
+        env_example_path1 = (
+            Path(__file__).parent.parent.parent / "docker" / ".env.example"
+        )
+        env_example_path2 = (
+            Path(__file__).parent.parent.parent / "docker" / "env.example"
+        )
+        env_example_path = (
+            env_example_path1 if env_example_path1.exists() else env_example_path2
+        )
         content = env_example_path.read_text()
 
         required_vars = [
@@ -237,13 +304,21 @@ class TestSecretManagement:
     def test_env_example_has_security_warnings(self):
         """Test that .env.example includes security warnings."""
         # Check both possible locations
-        env_example_path1 = Path(__file__).parent.parent.parent / "docker" / ".env.example"
-        env_example_path2 = Path(__file__).parent.parent.parent / "docker" / "env.example"
-        env_example_path = env_example_path1 if env_example_path1.exists() else env_example_path2
+        env_example_path1 = (
+            Path(__file__).parent.parent.parent / "docker" / ".env.example"
+        )
+        env_example_path2 = (
+            Path(__file__).parent.parent.parent / "docker" / "env.example"
+        )
+        env_example_path = (
+            env_example_path1 if env_example_path1.exists() else env_example_path2
+        )
         content = env_example_path.read_text()
 
         # Check for security warnings
-        assert "NEVER commit" in content or "never commit" in content, "Should warn about committing .env"
+        assert (
+            "NEVER commit" in content or "never commit" in content
+        ), "Should warn about committing .env"
 
 
 class TestContainerStartup:
@@ -255,11 +330,21 @@ class TestContainerStartup:
     )
     def test_dockerfile_builds_successfully(self):
         """Test that Dockerfile.prod builds without errors."""
-        dockerfile_path = Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        dockerfile_path = (
+            Path(__file__).parent.parent.parent / "docker" / "Dockerfile.prod"
+        )
         context_path = Path(__file__).parent.parent.parent
 
         result = subprocess.run(
-            ["docker", "build", "-f", str(dockerfile_path), "-t", "provote:test", str(context_path)],
+            [
+                "docker",
+                "build",
+                "-f",
+                str(dockerfile_path),
+                "-t",
+                "provote:test",
+                str(context_path),
+            ],
             capture_output=True,
             text=True,
             timeout=300,
@@ -273,7 +358,9 @@ class TestContainerStartup:
     )
     def test_containers_start_correctly(self):
         """Test that containers start correctly with docker-compose."""
-        compose_path = Path(__file__).parent.parent.parent / "docker" / "docker-compose.prod.yml"
+        compose_path = (
+            Path(__file__).parent.parent.parent / "docker" / "docker-compose.prod.yml"
+        )
 
         # This test requires a full Docker environment and .env file
         # It's marked as optional and only runs if TEST_DOCKER=true
@@ -294,14 +381,26 @@ class TestLoggingConfiguration:
     def test_production_logging_config_exists(self):
         """Test that production settings have logging configuration."""
         # Read production settings file directly to avoid import issues
-        settings_path = Path(__file__).parent.parent.parent / "backend" / "config" / "settings" / "production.py"
+        settings_path = (
+            Path(__file__).parent.parent.parent
+            / "backend"
+            / "config"
+            / "settings"
+            / "production.py"
+        )
         assert settings_path.exists(), "production.py should exist"
 
         content = settings_path.read_text()
         # Check for logging configuration
-        assert "LOGGING" in content, "Production settings should have LOGGING configuration"
-        assert "version" in content or '"version"' in content, "LOGGING should have version"
-        assert "handlers" in content or '"handlers"' in content, "LOGGING should have handlers"
+        assert (
+            "LOGGING" in content
+        ), "Production settings should have LOGGING configuration"
+        assert (
+            "version" in content or '"version"' in content
+        ), "LOGGING should have version"
+        assert (
+            "handlers" in content or '"handlers"' in content
+        ), "LOGGING should have handlers"
 
 
 class TestDocumentation:
@@ -328,4 +427,3 @@ class TestDocumentation:
 
         for section in required_sections:
             assert section in content, f"README should document {section}"
-

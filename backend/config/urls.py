@@ -11,6 +11,7 @@ from django.urls import include, path
 # Prometheus metrics (optional)
 try:
     import django_prometheus
+
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False

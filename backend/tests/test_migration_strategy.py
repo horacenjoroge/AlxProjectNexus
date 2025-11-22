@@ -28,11 +28,13 @@ class TestMigrationSafetyCheck:
         # Try to import the command directly
         try:
             from config.management.commands.check_migration_safety import Command
+
             assert Command is not None
         except ImportError:
             # If import fails, check if command can be called
             from django.core.management import call_command
             from io import StringIO
+
             output = StringIO()
             try:
                 call_command("check_migration_safety", "--help", stdout=output)
@@ -77,11 +79,13 @@ class TestMigrationValidation:
         # Try to import the command directly
         try:
             from config.management.commands.validate_migration import Command
+
             assert Command is not None
         except ImportError:
             # If import fails, check if command can be called
             from django.core.management import call_command
             from io import StringIO
+
             output = StringIO()
             try:
                 call_command("validate_migration", "--help", stdout=output)
@@ -119,11 +123,13 @@ class TestRollbackMigration:
         # Try to import the command directly
         try:
             from config.management.commands.rollback_migration import Command
+
             assert Command is not None
         except ImportError:
             # If import fails, check if command can be called
             from django.core.management import call_command
             from io import StringIO
+
             output = StringIO()
             try:
                 call_command("rollback_migration", "--help", stdout=output)
@@ -164,11 +170,13 @@ class TestVerifyMigrationData:
         # Try to import the command directly
         try:
             from config.management.commands.verify_migration_data import Command
+
             assert Command is not None
         except ImportError:
             # If import fails, check if command can be called
             from django.core.management import call_command
             from io import StringIO
+
             output = StringIO()
             try:
                 call_command("verify_migration_data", "--help", stdout=output)
@@ -182,7 +190,11 @@ class TestVerifyMigrationData:
         try:
             call_command("verify_migration_data", "polls", stdout=output)
             result = output.getvalue()
-            assert "Database connection" in result or "Models" in result or "verification" in result
+            assert (
+                "Database connection" in result
+                or "Models" in result
+                or "verification" in result
+            )
         except CommandError as e:
             if "Unknown command" in str(e):
                 pytest.skip("Command not discoverable by Django")
@@ -199,25 +211,37 @@ class TestBackupScripts:
 
     def test_backup_script_exists(self):
         """Test that backup script exists."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "backup-database.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "backup-database.sh"
+        )
         assert script_path.exists(), "backup-database.sh should exist"
 
     def test_backup_script_is_executable(self):
         """Test that backup script is executable."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "backup-database.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "backup-database.sh"
+        )
         if script_path.exists():
-            assert os.access(script_path, os.X_OK), "backup-database.sh should be executable"
+            assert os.access(
+                script_path, os.X_OK
+            ), "backup-database.sh should be executable"
 
     def test_restore_script_exists(self):
         """Test that restore script exists."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "restore-database.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "restore-database.sh"
+        )
         assert script_path.exists(), "restore-database.sh should exist"
 
     def test_restore_script_is_executable(self):
         """Test that restore script is executable."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "restore-database.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "restore-database.sh"
+        )
         if script_path.exists():
-            assert os.access(script_path, os.X_OK), "restore-database.sh should be executable"
+            assert os.access(
+                script_path, os.X_OK
+            ), "restore-database.sh should be executable"
 
 
 class TestDeploymentScripts:
@@ -225,25 +249,37 @@ class TestDeploymentScripts:
 
     def test_blue_green_deploy_script_exists(self):
         """Test that blue-green deploy script exists."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "blue-green-deploy.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "blue-green-deploy.sh"
+        )
         assert script_path.exists(), "blue-green-deploy.sh should exist"
 
     def test_blue_green_deploy_script_is_executable(self):
         """Test that blue-green deploy script is executable."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "blue-green-deploy.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "blue-green-deploy.sh"
+        )
         if script_path.exists():
-            assert os.access(script_path, os.X_OK), "blue-green-deploy.sh should be executable"
+            assert os.access(
+                script_path, os.X_OK
+            ), "blue-green-deploy.sh should be executable"
 
     def test_migrate_safe_script_exists(self):
         """Test that migrate-safe script exists."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "migrate-safe.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "migrate-safe.sh"
+        )
         assert script_path.exists(), "migrate-safe.sh should exist"
 
     def test_migrate_safe_script_is_executable(self):
         """Test that migrate-safe script is executable."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "migrate-safe.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "migrate-safe.sh"
+        )
         if script_path.exists():
-            assert os.access(script_path, os.X_OK), "migrate-safe.sh should be executable"
+            assert os.access(
+                script_path, os.X_OK
+            ), "migrate-safe.sh should be executable"
 
 
 class TestBlueGreenConfiguration:
@@ -251,14 +287,22 @@ class TestBlueGreenConfiguration:
 
     def test_green_compose_file_exists(self):
         """Test that green compose file exists."""
-        compose_path = Path(__file__).parent.parent.parent / "docker" / "docker-compose.prod-green.yml"
+        compose_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "docker-compose.prod-green.yml"
+        )
         assert compose_path.exists(), "docker-compose.prod-green.yml should exist"
 
     def test_green_compose_has_different_ports(self):
         """Test that green compose uses different ports."""
         import yaml
 
-        compose_path = Path(__file__).parent.parent.parent / "docker" / "docker-compose.prod-green.yml"
+        compose_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "docker-compose.prod-green.yml"
+        )
         if compose_path.exists():
             with open(compose_path) as f:
                 green_config = yaml.safe_load(f)
@@ -267,21 +311,31 @@ class TestBlueGreenConfiguration:
             web_service = green_config.get("services", {}).get("web", {})
             ports = web_service.get("ports", [])
             # Green should use port 8002
-            assert any("8002:8000" in str(port) for port in ports), "Green should use port 8002"
+            assert any(
+                "8002:8000" in str(port) for port in ports
+            ), "Green should use port 8002"
 
     def test_green_compose_has_different_container_names(self):
         """Test that green compose uses different container names."""
         import yaml
 
-        compose_path = Path(__file__).parent.parent.parent / "docker" / "docker-compose.prod-green.yml"
+        compose_path = (
+            Path(__file__).parent.parent.parent
+            / "docker"
+            / "docker-compose.prod-green.yml"
+        )
         if compose_path.exists():
             with open(compose_path) as f:
                 green_config = yaml.safe_load(f)
 
             # Check container names contain "green"
-            for service_name, service_config in green_config.get("services", {}).items():
+            for service_name, service_config in green_config.get(
+                "services", {}
+            ).items():
                 container_name = service_config.get("container_name", "")
-                assert "green" in container_name.lower(), f"Container {container_name} should contain 'green'"
+                assert (
+                    "green" in container_name.lower()
+                ), f"Container {container_name} should contain 'green'"
 
 
 class TestMigrationStrategyDocumentation:
@@ -289,12 +343,16 @@ class TestMigrationStrategyDocumentation:
 
     def test_migration_strategy_doc_exists(self):
         """Test that migration strategy documentation exists."""
-        doc_path = Path(__file__).parent.parent.parent / "docs" / "migration-strategy.md"
+        doc_path = (
+            Path(__file__).parent.parent.parent / "docs" / "migration-strategy.md"
+        )
         assert doc_path.exists(), "migration-strategy.md should exist"
 
     def test_migration_strategy_doc_has_required_sections(self):
         """Test that migration strategy doc has required sections."""
-        doc_path = Path(__file__).parent.parent.parent / "docs" / "migration-strategy.md"
+        doc_path = (
+            Path(__file__).parent.parent.parent / "docs" / "migration-strategy.md"
+        )
         if doc_path.exists():
             content = doc_path.read_text()
             required_sections = [
@@ -305,7 +363,9 @@ class TestMigrationStrategyDocumentation:
                 "Migration Workflow",
             ]
             for section in required_sections:
-                assert section in content, f"Documentation should include {section} section"
+                assert (
+                    section in content
+                ), f"Documentation should include {section} section"
 
 
 class TestMigrationBackwardCompatibility:
@@ -349,7 +409,10 @@ class TestZeroDowntimeDeployment:
         """Test that health endpoint remains available during migration."""
         # Health endpoint should always be accessible
         response = client.get("/health/")
-        assert response.status_code in [200, 503], "Health endpoint should be accessible"
+        assert response.status_code in [
+            200,
+            503,
+        ], "Health endpoint should be accessible"
 
     def test_migration_does_not_block_health_check(self, db):
         """Test that migrations don't block health checks."""
@@ -367,7 +430,9 @@ class TestZeroDowntimeDeployment:
     )
     def test_blue_green_deployment_script_runs(self):
         """Test that blue-green deployment script can be executed."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "blue-green-deploy.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "blue-green-deploy.sh"
+        )
         if script_path.exists():
             # Just check it's executable and has correct shebang
             content = script_path.read_text()
@@ -395,9 +460,12 @@ class TestRollbackProcedures:
 
     def test_restore_script_has_confirmation(self):
         """Test that restore script requires confirmation."""
-        script_path = Path(__file__).parent.parent.parent / "scripts" / "restore-database.sh"
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "restore-database.sh"
+        )
         if script_path.exists():
             content = script_path.read_text()
             # Should have confirmation prompt
-            assert "confirm" in content.lower() or "yes" in content.lower(), "Restore should require confirmation"
-
+            assert (
+                "confirm" in content.lower() or "yes" in content.lower()
+            ), "Restore should require confirmation"
