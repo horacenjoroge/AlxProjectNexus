@@ -242,6 +242,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, test, build]
     if: github.event_name == 'pull_request'
+    # Allow this job to succeed even if test job has warnings (coverage threshold)
+    # continue-on-error on test step should make test job succeed, but this is a safety net
 
     steps:
       - name: Check PR status
