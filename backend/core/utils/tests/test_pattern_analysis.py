@@ -33,7 +33,7 @@ class TestSingleIPSingleOptionPattern:
 
         # Create 5 votes from same IP to same option (use different users to avoid unique constraint)
         for i in range(5):
-            voteuser = User.objects.create_user(
+            vote_user = User.objects.create_user(
                 username=f"testuser_{i}_{uuid.uuid4().hex[:8]}", password="pass"
             )
             Vote.objects.create(
@@ -102,7 +102,7 @@ class TestSingleIPSingleOptionPattern:
 
         # Create only 2 votes (below threshold of 5) - use different users
         for i in range(2):
-            voteuser = User.objects.create_user(
+            vote_user = User.objects.create_user(
                 username=f"testuser_{i}_{uuid.uuid4().hex[:8]}", password="pass"
             )
             Vote.objects.create(

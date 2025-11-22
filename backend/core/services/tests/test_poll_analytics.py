@@ -589,7 +589,7 @@ class TestAnalyticsWithVariousDataVolumes:
 
         # Create votes across multiple hours (use different users to avoid unique constraint)
         for hour in range(10):
-            voteuser = User.objects.create_user(
+            vote_user = User.objects.create_user(
                 username=f"testuser_h{hour}_{uuid.uuid4().hex[:8]}", password="pass"
             )
             vote_time = poll.starts_at + timedelta(hours=hour)
@@ -687,7 +687,7 @@ class TestAnalyticsPerformance:
         # Create votes across many time buckets (use different users to avoid unique constraint)
         base_time = poll.starts_at
         for hour in range(100):
-            voteuser = User.objects.create_user(
+            vote_user = User.objects.create_user(
                 username=f"testuser_h{hour}_{uuid.uuid4().hex[:8]}", password="pass"
             )
             vote_time = base_time + timedelta(hours=hour)
