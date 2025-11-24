@@ -194,14 +194,33 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         logger.info(f"request.data: {request.data}")
         logger.info(f"request.data keys: {list(request.data.keys()) if hasattr(request.data, 'keys') else 'N/A'}")
         logger.info(f"request.body exists: {hasattr(request, 'body')}")
-        if hasattr(request, 'body') and request.body:
+        if hasattr(request, 'body'):
             try:
-                body_preview = request.body[:200] if len(request.body) > 200 else request.body
-                logger.info(f"request.body (first 200 chars): {body_preview}")
+                body_len = len(request.body) if request.body else 0
+                logger.info(f"request.body length: {body_len}")
+                if request.body and body_len > 0:
+                    body_preview = request.body[:200] if body_len > 200 else request.body
+                    logger.info(f"request.body (first 200 chars): {body_preview}")
+                    logger.info(f"request.body type: {type(request.body)}")
+                else:
+                    logger.info(f"request.body is empty or None")
             except Exception as e:
                 logger.info(f"request.body error: {e}")
+                import traceback
+                logger.info(f"traceback: {traceback.format_exc()}")
         logger.info(f"Content-Type: {request.content_type}")
-        logger.info(f"Content-Length: {request.META.get('CONTENT_LENGTH', 'N/A')}")
+        logger.info(f"Content-Length header: {request.META.get('CONTENT_LENGTH', 'N/A')}")
+        logger.info(f"HTTP_CONTENT_LENGTH: {request.META.get('HTTP_CONTENT_LENGTH', 'N/A')}")
+        # Try to manually parse the body
+        if hasattr(request, 'body') and request.body:
+            try:
+                import json as json_lib
+                body_str = request.body.decode('utf-8') if isinstance(request.body, bytes) else str(request.body)
+                logger.info(f"Body as string: {body_str[:500]}")
+                parsed = json_lib.loads(body_str)
+                logger.info(f"Manually parsed body: {parsed}")
+            except Exception as e:
+                logger.info(f"Failed to manually parse body: {e}")
         logger.info(f"========================")
         response = super().create(request, *args, **kwargs)
         # Re-serialize with PollSerializer to include nested category and tags
