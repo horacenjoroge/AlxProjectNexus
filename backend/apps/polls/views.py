@@ -188,6 +188,10 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """Create a poll and return it with full nested objects."""
+        # Debug: Log what we received
+        logger.debug(f"Create poll - request.data: {request.data}")
+        logger.debug(f"Create poll - request.body: {request.body[:200] if hasattr(request, 'body') and request.body else 'No body'}")
+        logger.debug(f"Create poll - Content-Type: {request.content_type}")
         response = super().create(request, *args, **kwargs)
         # Re-serialize with PollSerializer to include nested category and tags
         poll = Poll.objects.get(id=response.data["id"])

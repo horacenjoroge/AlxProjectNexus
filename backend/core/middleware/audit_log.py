@@ -33,17 +33,16 @@ class AuditLogMiddleware:
         # We'll read it later in log_request()
 
         # Get request body (if available)
-        # For API requests, read body after DRF processes it to avoid consuming the stream
-        # For non-API requests, read it normally
+        # TEMPORARILY DISABLED: Skip reading body for all requests to test
+        # This ensures DRF can read the body first
         request_body = None
-        if not request.path.startswith("/api/"):
-            # For non-API requests, safe to read body
-            if hasattr(request, "body") and request.body:
-                try:
-                    request_body = request.body.decode("utf-8")[:1000]  # Limit size
-                except Exception:
-                    request_body = "[Unable to decode]"
-        # For API requests, we'll read the body after DRF processes it (in log_request)
+        # TODO: Re-enable after confirming this fixes the issue
+        # if not request.path.startswith("/api/"):
+        #     if hasattr(request, "body") and request.body:
+        #         try:
+        #             request_body = request.body.decode("utf-8")[:1000]
+        #         except Exception:
+        #             request_body = "[Unable to decode]"
 
         # Get query parameters
         query_params = dict(request.GET) if hasattr(request, "GET") else {}
@@ -93,15 +92,13 @@ class AuditLogMiddleware:
         Log request to database.
         Uses async task or direct write depending on configuration.
         """
-        # For API requests, try to get body from request.data if available
-        # (DRF has already parsed it, so we can serialize it back)
-        if request.path.startswith("/api/") and request_body is None:
-            try:
-                if hasattr(request, "data") and request.data:
-                    # Serialize the parsed data back to JSON for logging
-                    request_body = json.dumps(request.data)[:1000]
-            except Exception:
-                pass  # If we can't serialize, just skip it
+        # TEMPORARILY DISABLED: Skip reading body from request.data for testing
+        # if request.path.startswith("/api/") and request_body is None:
+        #     try:
+        #         if hasattr(request, "data") and request.data:
+        #             request_body = json.dumps(request.data)[:1000]
+        #     except Exception:
+        #         pass
         
         try:
             from apps.analytics.models import AuditLog
