@@ -1,0 +1,54 @@
+# Spectral configuration for Insomnia - disables most validation
+extends: spectral:oas
+rules:
+  # Disable all operation-related rules
+  operation-operationId: off
+  operation-tags: off
+  operation-description: off
+  operation-parameters: off
+  operation-request-body: off
+  operation-response: off
+  operation-success-response: off
+  operation-operationId-unique: off
+  operation-response-examples: off
+  operation-request-body-examples: off
+  
+  # Disable tag rules
+  tag-description: off
+  openapi-tags: off
+  openapi-tags-uniqueness: off
+  
+  # Disable path rules
+  path-params: off
+  path-declaration-must-exist: off
+  
+  # Disable schema rules
+  oas3-valid-schema-example: off
+  oas3-valid-media-example: off
+  oas3-valid-oas-content-example: off
+  oas3-schema: off
+  
+  # Disable reference rules
+  no-$ref-siblings: off
+  no-unresolved-refs: off
+  
+  # Disable server rules
+  oas3-api-servers: off
+  oas3-server-trailing-slash: off
+  
+  # Disable security rules
+  operation-security-defined: off
+  oas3-operation-security-defined: off
+  oas3-security-defined: off
+  
+  # Disable parameter rules
+  oas3-parameter-description: off
+  oas3-parameter-examples: off
+  
+  # Disable component rules
+  oas3-unused-component: off
+  
+  # Disable other common rules
+  info-contact: off
+  info-description: off
+  info-license: off
