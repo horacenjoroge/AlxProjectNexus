@@ -5,6 +5,7 @@ Views for Users app.
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
@@ -15,6 +16,40 @@ from .models import Follow
 from .serializers import FollowSerializer, UserSerializer
 
 
+@extend_schema(
+    operation_id="obtain_auth_token",
+    summary="Obtain Bearer Token",
+    description="Get authentication token (Bearer token) for API access. Use this token in the Authorization header for all authenticated requests.",
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {
+                "username": {"type": "string", "example": "provote_admin"},
+                "password": {"type": "string", "format": "password", "example": "your_password"},
+            },
+            "required": ["username", "password"],
+        }
+    },
+    responses={
+        200: OpenApiResponse(
+            response={
+                "application/json": {
+                    "type": "object",
+                    "properties": {
+                        "token": {"type": "string", "example": "abc123def456..."},
+                        "user_id": {"type": "integer", "example": 1},
+                        "username": {"type": "string", "example": "provote_admin"},
+                        "is_staff": {"type": "boolean", "example": False},
+                    },
+                }
+            },
+            description="Token generated successfully",
+        ),
+        400: OpenApiResponse(description="Username and password are required"),
+        401: OpenApiResponse(description="Invalid credentials or account disabled"),
+    },
+    tags=["Authentication"],
+)
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def obtain_auth_token(request):

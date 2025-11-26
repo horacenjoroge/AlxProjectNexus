@@ -341,7 +341,8 @@ SPECTACULAR_SETTINGS = {
     - **Notifications**: Real-time notifications for poll updates
 
     ## Authentication
-    Currently using Django session authentication. Future: JWT tokens.
+    Uses Bearer Token Authentication for API access. Get token via POST /api/v1/auth/token/
+    Session authentication is available as fallback for Django admin.
 
     ## Rate Limiting
     - Anonymous users: 100 requests/hour (general), 50 requests/hour (voting)
