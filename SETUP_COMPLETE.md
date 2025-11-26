@@ -129,5 +129,5 @@ docker-compose logs web  # Check web service logs
 - See `docs/api.md` for API documentation
 - See `ENV_SETUP.md` for environment setup
 
-Happy coding! 🚀
+
 
