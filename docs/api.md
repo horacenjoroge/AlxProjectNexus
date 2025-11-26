@@ -14,14 +14,52 @@
 
 ## Authentication
 
-Currently using **Django session authentication**. Future: JWT tokens.
+The API uses **Bearer Token Authentication** for API access. Session authentication is still available as a fallback for Django admin.
 
-**Session Authentication:**
+### Bearer Token Authentication (Recommended)
+
+**Get Token:**
+```bash
+POST /api/v1/auth/token/
+Content-Type: application/json
+
+{
+  "username": "your_username",
+  "password": "your_password"
+}
+```
+
+**Response:**
+```json
+{
+  "token": "abc123def456...",
+  "user_id": 1,
+  "username": "your_username",
+  "is_staff": false
+}
+```
+
+**Use Token:**
+Include the token in the `Authorization` header for all authenticated requests:
+```
+Authorization: Bearer abc123def456...
+```
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:8001/api/v1/polls/
+```
+
+### Session Authentication (Fallback)
+
+Session authentication is still supported for Django admin access:
 - Login via Django admin: `/admin/`
-- Or use Django REST Framework browsable API
 - Session cookie is automatically sent with requests
+- Useful for browser-based access
 
-**Anonymous Access:**
+### Anonymous Access
+
 - Some endpoints support anonymous access (e.g., viewing polls)
 - Anonymous voting is supported with fingerprint validation
 - Rate limits are stricter for anonymous users

@@ -1,0 +1,4028 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-11-25T23:46:36.612344Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_provote",
+      "_type": "workspace",
+      "parentId": null,
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Provote API",
+      "description": "Provote API Collection - All Endpoints",
+      "scope": "collection"
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Authentication",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "fld_polls",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Polls",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "fld_votes",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Votes",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "fld_users",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Users",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "fld_analytics",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Analytics",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "fld_notifications",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Notifications",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "fld_categories",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Categories",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "fld_tags",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Tags",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "fld_admin",
+      "_type": "request_group",
+      "parentId": "wrk_provote",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "name": "Admin Dashboard",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1000000
+    },
+    {
+      "_id": "req_00001",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/admin/login/",
+      "name": "Get CSRF Token",
+      "description": "Get CSRF token for authentication",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 1000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00002",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/admin/login/",
+      "name": "Login",
+      "description": "Login to get session cookie",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/x-www-form-urlencoded",
+        "params": [
+          {
+            "name": "username",
+            "value": "provote_admin"
+          },
+          {
+            "name": "password",
+            "value": "AProvote@14"
+          },
+          {
+            "name": "csrfmiddlewaretoken",
+            "value": "{{ _.csrftoken }}"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Referer",
+          "value": "{{ _.base_url }}/admin/login/"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00003",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/",
+      "name": "GET Api V1",
+      "description": "API root endpoint that lists available endpoints.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00004",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/active-polls/",
+      "name": "GET Admin Dashboard Active Polls",
+      "description": "Get active polls and recent voters.\n\nGET /api/v1/admin-dashboard/active-polls/?limit=20\n\nQuery params:\n    - limit: Maximum number of polls/voters (default: 20)\n\nReturns:\n    - active_polls: List of c",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00005",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/activity/",
+      "name": "GET Admin Dashboard Activity",
+      "description": "Get recent activity feed.\n\nGET /api/v1/admin-dashboard/activity/?limit=50\n\nQuery params:\n    - limit: Maximum number of activities (default: 50, max: 100)\n\nReturns list of recent activities (votes, po",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 5000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00006",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/fraud-alerts/",
+      "name": "GET Admin Dashboard Fraud Alerts",
+      "description": "Get fraud alerts summary.\n\nGET /api/v1/admin-dashboard/fraud-alerts/?limit=20\n\nQuery params:\n    - limit: Maximum number of recent alerts (default: 20)\n\nReturns:\n    - total: Total number of fraud ale",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 6000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00007",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/performance/",
+      "name": "GET Admin Dashboard Performance",
+      "description": "Get performance metrics.\n\nGET /api/v1/admin-dashboard/performance/\n\nReturns:\n    - api_latency: Average API response time\n    - db_queries: Database query statistics\n    - cache_hit_rate: Cache hit ra",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 7000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00008",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/statistics/",
+      "name": "GET Admin Dashboard Statistics",
+      "description": "Get system-wide statistics.\n\nGET /api/v1/admin-dashboard/statistics/\n\nReturns:\n    - total_polls: Total number of polls\n    - active_polls: Number of active polls\n    - total_votes: Total number of vo",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 8000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00009",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/summary/",
+      "name": "GET Admin Dashboard Summary",
+      "description": "Get complete admin dashboard summary.\n\nGET /api/v1/admin-dashboard/summary/\n\nReturns all dashboard data in one response:\n    - statistics: System-wide statistics\n    - recent_activity: Recent activity",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 9000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00010",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/",
+      "name": "GET V1 Analytics",
+      "description": "ViewSet for PollAnalytics model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 10000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00011",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/poll/{poll_id}/comprehensive/",
+      "name": "GET {Poll_Id} Comprehensive",
+      "description": "Get comprehensive analytics for a poll.\n\nGET /api/v1/analytics/poll/{poll_id}/comprehensive/\n\nReturns complete analytics including:\n- Time series data\n- Demographics\n- Participation metrics\n- Vote dis",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 11000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00012",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/poll/{poll_id}/daily/",
+      "name": "GET {Poll_Id} Daily",
+      "description": "Get votes by day for the last N days.\n\nGET /api/v1/analytics/poll/{poll_id}/daily/?days=30",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 12000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00013",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/poll/{poll_id}/demographics/",
+      "name": "GET {Poll_Id} Demographics",
+      "description": "Get voter demographics.\n\nGET /api/v1/analytics/poll/{poll_id}/demographics/",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 13000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00014",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/poll/{poll_id}/distribution/",
+      "name": "GET {Poll_Id} Distribution",
+      "description": "Get vote distribution across options.\n\nGET /api/v1/analytics/poll/{poll_id}/distribution/",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 14000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00015",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/poll/{poll_id}/hourly/",
+      "name": "GET {Poll_Id} Hourly",
+      "description": "Get votes by hour for a specific day.\n\nGET /api/v1/analytics/poll/{poll_id}/hourly/?date=YYYY-MM-DD",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 15000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00016",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/poll/{poll_id}/summary/",
+      "name": "GET {Poll_Id} Summary",
+      "description": "Get analytics summary for a poll.\n\nGET /api/v1/analytics/poll/{poll_id}/summary/\n\nReturns lightweight summary of key metrics.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 16000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00017",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/poll/{poll_id}/time-series/",
+      "name": "GET {Poll_Id} Time Series",
+      "description": "Get time series data for votes.\n\nGET /api/v1/analytics/poll/{poll_id}/time-series/?interval=hour|day\n\nQuery params:\n- interval: 'hour' or 'day' (default: 'hour')",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 17000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00018",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/analytics/{id}/",
+      "name": "GET Analytics {Id}",
+      "description": "ViewSet for PollAnalytics model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 18000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00019",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/categories/",
+      "name": "GET V1 Categories",
+      "description": "ViewSet for Category model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 19000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00020",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/categories/",
+      "name": "POST V1 Categories",
+      "description": "ViewSet for Category model.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 20000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00021",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/categories/{id}/",
+      "name": "GET Categories {Id}",
+      "description": "ViewSet for Category model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 21000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00022",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/categories/{id}/",
+      "name": "PUT Categories {Id}",
+      "description": "ViewSet for Category model.",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 22000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00023",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/categories/{id}/",
+      "name": "PATCH Categories {Id}",
+      "description": "ViewSet for Category model.",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 23000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00024",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/categories/{id}/",
+      "name": "DELETE Categories {Id}",
+      "description": "ViewSet for Category model.",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 24000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00025",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/categories/{id}/polls/",
+      "name": "GET {Id} Polls",
+      "description": "Get all polls in this category.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 25000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00026",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/follows/",
+      "name": "GET V1 Follows",
+      "description": "ViewSet for Follow model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 26000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00027",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596613,
+      "created": 1764103596613,
+      "url": "{{ _.base_url }}/api/v1/follows/my_followers/",
+      "name": "GET Follows My_Followers",
+      "description": "Get list of users following the current user.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 27000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00028",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/follows/my_following/",
+      "name": "GET Follows My_Following",
+      "description": "Get list of users the current user is following.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 28000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00029",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/follows/{id}/",
+      "name": "GET Follows {Id}",
+      "description": "ViewSet for Follow model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 29000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00030",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/",
+      "name": "GET V1 Notifications",
+      "description": "ViewSet for notifications.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 30000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00031",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/mark_all_read/",
+      "name": "POST Notifications Mark_All_Read",
+      "description": "Mark all notifications as read.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 31000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00032",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/mark_read_multiple/",
+      "name": "POST Notifications Mark_Read_Multiple",
+      "description": "Mark multiple notifications as read.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 32000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00033",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/preferences/",
+      "name": "GET Notifications Preferences",
+      "description": "ViewSet for notification preferences.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 33000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00034",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/preferences/",
+      "name": "POST Notifications Preferences",
+      "description": "ViewSet for notification preferences.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 34000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00035",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/preferences/resubscribe/",
+      "name": "POST Preferences Resubscribe",
+      "description": "Resubscribe user to notifications.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 35000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00036",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/preferences/unsubscribe/",
+      "name": "POST Preferences Unsubscribe",
+      "description": "Unsubscribe user from all notifications.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 36000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00037",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/preferences/{id}/",
+      "name": "GET Preferences {Id}",
+      "description": "ViewSet for notification preferences.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 37000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00038",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/preferences/{id}/",
+      "name": "PUT Preferences {Id}",
+      "description": "ViewSet for notification preferences.",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 38000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00039",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/preferences/{id}/",
+      "name": "PATCH Preferences {Id}",
+      "description": "ViewSet for notification preferences.",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 39000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00040",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/preferences/{id}/",
+      "name": "DELETE Preferences {Id}",
+      "description": "ViewSet for notification preferences.",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 40000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00041",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/unread_count/",
+      "name": "GET Notifications Unread_Count",
+      "description": "Get count of unread notifications.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 41000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00042",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/unsubscribe/",
+      "name": "POST Notifications Unsubscribe",
+      "description": "Unsubscribe user by email or token.",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 42000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00043",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/{id}/",
+      "name": "GET Notifications {Id}",
+      "description": "ViewSet for notifications.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 43000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00044",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/notifications/{id}/mark_read/",
+      "name": "POST {Id} Mark_Read",
+      "description": "Mark a notification as read.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 44000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00045",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/",
+      "name": "GET V1 Polls",
+      "description": "ViewSet for Poll model with comprehensive CRUD operations.\n\nEndpoints:\n- POST /api/v1/polls/ - Create poll\n- GET /api/v1/polls/ - List polls (pagination, filtering)\n- GET /api/v1/polls/{id}/ - Get pol",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 45000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00046",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/",
+      "name": "POST V1 Polls",
+      "description": "Create a poll and return it with full nested objects.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 46000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00047",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/from-template/",
+      "name": "POST Polls From Template",
+      "description": "Create a poll from a template.\n\nPOST /api/v1/polls/from-template/\n\nRequest Body:\n{\n    \"template_id\": \"yes_no\",\n    \"title\": \"Do you like pizza?\",\n    \"description\": \"Optional description\",\n    \"custo",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 47000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00048",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/templates/",
+      "name": "GET Polls Templates",
+      "description": "List all available poll templates.\n\nGET /api/v1/polls/templates/",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 48000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00049",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/templates/{template_id}/",
+      "name": "GET Templates {Template_Id}",
+      "description": "Get specific poll template details.\n\nGET /api/v1/polls/templates/{template_id}/",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 49000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00050",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/",
+      "name": "GET Polls {Id}",
+      "description": "ViewSet for Poll model with comprehensive CRUD operations.\n\nEndpoints:\n- POST /api/v1/polls/ - Create poll\n- GET /api/v1/polls/ - List polls (pagination, filtering)\n- GET /api/v1/polls/{id}/ - Get pol",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 50000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00051",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/",
+      "name": "PUT Polls {Id}",
+      "description": "Update poll with ownership and modification restrictions.",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 51000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00052",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/",
+      "name": "PATCH Polls {Id}",
+      "description": "ViewSet for Poll model with comprehensive CRUD operations.\n\nEndpoints:\n- POST /api/v1/polls/ - Create poll\n- GET /api/v1/polls/ - List polls (pagination, filtering)\n- GET /api/v1/polls/{id}/ - Get pol",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 52000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00053",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/",
+      "name": "DELETE Polls {Id}",
+      "description": "Delete poll with ownership and vote checks.",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 53000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00054",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/analytics/",
+      "name": "GET {Id} Analytics",
+      "description": "Get overview analytics for a poll.\n\nGET /api/v1/polls/{id}/analytics/\n\nReturns comprehensive analytics including:\n- Total votes and unique voters\n- Time series data\n- Demographics\n- Participation metr",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 54000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00055",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/analytics/demographics/",
+      "name": "GET Analytics Demographics",
+      "description": "Get voter demographics breakdown.\n\nGET /api/v1/polls/{id}/analytics/demographics/\n\nReturns:\n- Authenticated vs anonymous voters\n- Unique IP addresses\n- Top user agents\n\nAccess: Admin or poll owner onl",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 55000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00056",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/analytics/participation/",
+      "name": "GET Analytics Participation",
+      "description": "Get participation metrics.\n\nGET /api/v1/polls/{id}/analytics/participation/\n\nReturns:\n- Participation rate (if view tracking available)\n- Unique voters\n- Total votes\n- Average time to vote\n- Drop-off ",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 56000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00057",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/analytics/timeseries/",
+      "name": "GET Analytics Timeseries",
+      "description": "Get votes over time (time series data).\n\nGET /api/v1/polls/{id}/analytics/timeseries/?interval=hour|day&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD\n\nQuery Parameters:\n- interval: 'hour' or 'day' (defaul",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 57000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00058",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/clone/",
+      "name": "POST {Id} Clone",
+      "description": "Clone an existing poll with all options.\n\nPOST /api/v1/polls/{id}/clone/\n\nRequest Body (optional):\n{\n    \"clone_settings\": true,  // Whether to clone settings (default: true)\n    \"clone_security_rules",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 58000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00059",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/export-analytics/",
+      "name": "GET {Id} Export Analytics",
+      "description": "Export analytics report as PDF.\n\nGET /api/v1/polls/{id}/export-analytics/?background=false\n\nQuery Parameters:\n- background: Use background task (default: false)\n\nReturns:\n- 200 OK: PDF analytics repor",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 59000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00060",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/export-audit-trail/",
+      "name": "GET {Id} Export Audit Trail",
+      "description": "Export audit trail for a poll.\n\nGET /api/v1/polls/{id}/export-audit-trail/?format=csv|json&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD\n\nQuery Parameters:\n- format: Export format (csv or json, default: c",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 60000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00061",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/export-results/",
+      "name": "GET {Id} Export Results",
+      "description": "Export poll results in various formats.\n\nGET /api/v1/polls/{id}/export-results/?format=csv|json|pdf\n\nQuery Parameters:\n- format: Export format (csv or json, default: json)\n\nReturns:\n- 200 OK: Exported",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 61000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00062",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/export-vote-log/",
+      "name": "GET {Id} Export Vote Log",
+      "description": "Export vote log for a poll.\n\nGET /api/v1/polls/{id}/export-vote-log/?format=csv|json&anonymize=true&include_invalid=false\n\nQuery Parameters:\n- format: Export format (csv or json, default: csv)\n- anony",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 62000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00063",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/options/",
+      "name": "POST {Id} Options",
+      "description": "Add option(s) to poll.\n\nPOST /api/v1/polls/{id}/options/\n\nRequest Body:\n{\n    \"options\": [\n        {\"text\": \"Option 1\", \"order\": 0},\n        {\"text\": \"Option 2\", \"order\": 1}\n    ]\n}",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 63000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00064",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/options/{option_id}/",
+      "name": "DELETE Options {Option_Id}",
+      "description": "Remove option from poll.\n\nDELETE /api/v1/polls/{id}/options/{option_id}/",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 64000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00065",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/publish/",
+      "name": "POST {Id} Publish",
+      "description": "Publish a draft poll (convert draft to active).\n\nPOST /api/v1/polls/{id}/publish/\n\nThis action:\n- Sets is_draft=False\n- Optionally sets is_active=True (if not already active)\n- Validates that poll has",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 65000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00066",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/results/",
+      "name": "GET {Id} Results",
+      "description": "Get poll results",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 66000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00067",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/polls/{id}/results/live/",
+      "name": "GET Results Live",
+      "description": "Get live poll results (for polling/SSE, not WebSocket).\n\nGET /api/v1/polls/{id}/results/live/\n\nThis endpoint is designed for client-side polling to get real-time updates.\nFor true WebSocket support, y",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 67000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00068",
+      "_type": "request",
+      "parentId": "fld_tags",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/tags/",
+      "name": "GET V1 Tags",
+      "description": "ViewSet for Tag model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 68000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00069",
+      "_type": "request",
+      "parentId": "fld_tags",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/tags/",
+      "name": "POST V1 Tags",
+      "description": "ViewSet for Tag model.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 69000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00070",
+      "_type": "request",
+      "parentId": "fld_tags",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/tags/{id}/",
+      "name": "GET Tags {Id}",
+      "description": "ViewSet for Tag model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 70000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00071",
+      "_type": "request",
+      "parentId": "fld_tags",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/tags/{id}/",
+      "name": "PUT Tags {Id}",
+      "description": "ViewSet for Tag model.",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 71000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00072",
+      "_type": "request",
+      "parentId": "fld_tags",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/tags/{id}/",
+      "name": "PATCH Tags {Id}",
+      "description": "ViewSet for Tag model.",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 72000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00073",
+      "_type": "request",
+      "parentId": "fld_tags",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/tags/{id}/",
+      "name": "DELETE Tags {Id}",
+      "description": "ViewSet for Tag model.",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 73000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00074",
+      "_type": "request",
+      "parentId": "fld_tags",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/tags/{id}/polls/",
+      "name": "GET {Id} Polls",
+      "description": "Get all polls with this tag.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 74000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00075",
+      "_type": "request",
+      "parentId": "fld_users",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/users/",
+      "name": "GET V1 Users",
+      "description": "ViewSet for User model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 75000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00076",
+      "_type": "request",
+      "parentId": "fld_users",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/users/{id}/",
+      "name": "GET Users {Id}",
+      "description": "ViewSet for User model.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 76000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00077",
+      "_type": "request",
+      "parentId": "fld_users",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/users/{id}/follow/",
+      "name": "POST {Id} Follow",
+      "description": "Follow a user.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 77000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00078",
+      "_type": "request",
+      "parentId": "fld_users",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/users/{id}/followers/",
+      "name": "GET {Id} Followers",
+      "description": "Get list of users following this user.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 78000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00079",
+      "_type": "request",
+      "parentId": "fld_users",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/users/{id}/following/",
+      "name": "GET {Id} Following",
+      "description": "Get list of users this user is following.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 79000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00080",
+      "_type": "request",
+      "parentId": "fld_users",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/users/{id}/unfollow/",
+      "name": "POST {Id} Unfollow",
+      "description": "Unfollow a user.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 80000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00081",
+      "_type": "request",
+      "parentId": "fld_votes",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/votes/",
+      "name": "GET V1 Votes",
+      "description": "List votes",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 81000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00082",
+      "_type": "request",
+      "parentId": "fld_votes",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/votes/",
+      "name": "POST V1 Votes",
+      "description": "ViewSet for Vote model with comprehensive API endpoints.\n\nEndpoints:\n- POST /api/v1/votes/cast/ - Cast a vote\n- GET /api/v1/votes/my-votes/ - Get current user's votes\n- DELETE /api/v1/votes/{id}/ - Re",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 82000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00083",
+      "_type": "request",
+      "parentId": "fld_votes",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/votes/cast/",
+      "name": "POST Votes Cast",
+      "description": "Cast a vote",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 83000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00084",
+      "_type": "request",
+      "parentId": "fld_votes",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/votes/my-votes/",
+      "name": "GET Votes My Votes",
+      "description": "Get my votes",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 84000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00085",
+      "_type": "request",
+      "parentId": "fld_votes",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/votes/{id}/",
+      "name": "GET Votes {Id}",
+      "description": "Get vote details",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 85000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00086",
+      "_type": "request",
+      "parentId": "fld_votes",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/votes/{id}/",
+      "name": "PUT Votes {Id}",
+      "description": "ViewSet for Vote model with comprehensive API endpoints.\n\nEndpoints:\n- POST /api/v1/votes/cast/ - Cast a vote\n- GET /api/v1/votes/my-votes/ - Get current user's votes\n- DELETE /api/v1/votes/{id}/ - Re",
+      "method": "PUT",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 86000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00087",
+      "_type": "request",
+      "parentId": "fld_votes",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/votes/{id}/",
+      "name": "PATCH Votes {Id}",
+      "description": "ViewSet for Vote model with comprehensive API endpoints.\n\nEndpoints:\n- POST /api/v1/votes/cast/ - Cast a vote\n- GET /api/v1/votes/my-votes/ - Get current user's votes\n- DELETE /api/v1/votes/{id}/ - Re",
+      "method": "PATCH",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 87000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00088",
+      "_type": "request",
+      "parentId": "fld_votes",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/api/v1/votes/{id}/",
+      "name": "DELETE Votes {Id}",
+      "description": "Retract vote",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 88000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00089",
+      "_type": "request",
+      "parentId": "fld_polls",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "url": "{{ _.base_url }}/health/",
+      "name": "GET Health",
+      "description": "Health check endpoint for Docker and load balancers.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 89000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_provote",
+      "modified": 1764103596614,
+      "created": 1764103596614,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8001",
+        "csrftoken": "",
+        "sessionid": "",
+        "poll_id": "",
+        "user_id": "1",
+        "bearer_token": ""
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "csrftoken",
+          "sessionid",
+          "poll_id",
+          "user_id",
+          "bearer_token"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1000000000000
+    },
+    {
+      "_id": "fld_ip_blocks",
+      "name": "IP Block Management",
+      "parentId": "fld_admin",
+      "_type": "request_group",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 90000000
+    },
+    {
+      "_id": "fld_ip_whitelist",
+      "name": "IP Whitelist Management",
+      "parentId": "fld_admin",
+      "_type": "request_group",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 91000000
+    },
+    {
+      "_id": "fld_ip_reputation",
+      "name": "IP Reputation",
+      "parentId": "fld_admin",
+      "_type": "request_group",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 92000000
+    },
+    {
+      "_id": "fld_fingerprint_blocks",
+      "name": "Fingerprint Block Management",
+      "parentId": "fld_admin",
+      "_type": "request_group",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 93000000
+    },
+    {
+      "_id": "fld_fraud_alerts",
+      "name": "Fraud Alert Management",
+      "parentId": "fld_admin",
+      "_type": "request_group",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 94000000
+    },
+    {
+      "_id": "fld_audit_logs",
+      "name": "Audit Logs",
+      "parentId": "fld_admin",
+      "_type": "request_group",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 95000000
+    },
+    {
+      "_id": "fld_vote_attempts",
+      "name": "Vote Attempts",
+      "parentId": "fld_admin",
+      "_type": "request_group",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 96000000
+    },
+    {
+      "_id": "req_00090",
+      "_type": "request",
+      "parentId": "fld_ip_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-blocks/",
+      "name": "GET List Blocked IPs",
+      "description": "List all blocked IP addresses",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 97000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00091",
+      "_type": "request",
+      "parentId": "fld_ip_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-blocks/",
+      "name": "POST Block IP",
+      "description": "Block an IP address",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"ip_address\": \"192.168.1.100\",\n  \"reason\": \"Multiple fraud attempts\",\n  \"is_manual\": true,\n  \"auto_unblock_hours\": 24\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 98000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00092",
+      "_type": "request",
+      "parentId": "fld_ip_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-blocks/{id}/",
+      "name": "GET Get Blocked IP",
+      "description": "Get details of a blocked IP",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 99000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00093",
+      "_type": "request",
+      "parentId": "fld_ip_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-blocks/{id}/",
+      "name": "PATCH Update Block",
+      "description": "Update block details",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reason\": \"Updated reason\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 100000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00094",
+      "_type": "request",
+      "parentId": "fld_ip_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-blocks/{id}/",
+      "name": "DELETE Unblock IP",
+      "description": "Unblock an IP address",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 101000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00095",
+      "_type": "request",
+      "parentId": "fld_ip_whitelist",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-whitelist/",
+      "name": "GET List Whitelisted IPs",
+      "description": "List all whitelisted IP addresses",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 102000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00096",
+      "_type": "request",
+      "parentId": "fld_ip_whitelist",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-whitelist/",
+      "name": "POST Whitelist IP",
+      "description": "Whitelist an IP address",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"ip_address\": \"192.168.1.1\",\n  \"reason\": \"Trusted internal network\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 103000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00097",
+      "_type": "request",
+      "parentId": "fld_ip_whitelist",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-whitelist/{id}/",
+      "name": "GET Get Whitelist Entry",
+      "description": "Get whitelist entry details",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 104000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00098",
+      "_type": "request",
+      "parentId": "fld_ip_whitelist",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-whitelist/{id}/",
+      "name": "PATCH Update Whitelist",
+      "description": "Update whitelist entry",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reason\": \"Updated reason\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 105000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00099",
+      "_type": "request",
+      "parentId": "fld_ip_whitelist",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-whitelist/{id}/",
+      "name": "DELETE Remove from Whitelist",
+      "description": "Remove IP from whitelist",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 106000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00100",
+      "_type": "request",
+      "parentId": "fld_ip_reputation",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-reputation/",
+      "name": "GET List IP Reputations",
+      "description": "List IP reputation scores with filters",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 107000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00101",
+      "_type": "request",
+      "parentId": "fld_ip_reputation",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-reputation/{ip}/",
+      "name": "GET Get IP Reputation",
+      "description": "Get reputation for specific IP",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 108000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00102",
+      "_type": "request",
+      "parentId": "fld_ip_reputation",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-reputation/low-reputation/",
+      "name": "GET Low Reputation IPs",
+      "description": "Get IPs with low reputation scores",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 109000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00103",
+      "_type": "request",
+      "parentId": "fld_ip_reputation",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/ip-reputation/high-violations/",
+      "name": "GET High Violation IPs",
+      "description": "Get IPs with high violation counts",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 110000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00104",
+      "_type": "request",
+      "parentId": "fld_fingerprint_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fingerprint-blocks/",
+      "name": "GET List Blocked Fingerprints",
+      "description": "List all blocked fingerprints",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 111000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00105",
+      "_type": "request",
+      "parentId": "fld_fingerprint_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fingerprint-blocks/",
+      "name": "POST Block Fingerprint",
+      "description": "Block a fingerprint",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"fingerprint\": \"abc123...\",\n  \"reason\": \"Used by multiple users\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 112000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00106",
+      "_type": "request",
+      "parentId": "fld_fingerprint_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fingerprint-blocks/{id}/",
+      "name": "GET Get Blocked Fingerprint",
+      "description": "Get fingerprint block details",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 113000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00107",
+      "_type": "request",
+      "parentId": "fld_fingerprint_blocks",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fingerprint-blocks/{id}/",
+      "name": "DELETE Unblock Fingerprint",
+      "description": "Unblock a fingerprint",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 114000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00108",
+      "_type": "request",
+      "parentId": "fld_fraud_alerts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fraud-alerts/",
+      "name": "GET List Fraud Alerts",
+      "description": "List all fraud alerts with filters",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 115000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00109",
+      "_type": "request",
+      "parentId": "fld_fraud_alerts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fraud-alerts/{id}/",
+      "name": "GET Get Fraud Alert",
+      "description": "Get fraud alert details",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 116000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00110",
+      "_type": "request",
+      "parentId": "fld_fraud_alerts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fraud-alerts/{id}/",
+      "name": "PATCH Update Fraud Alert",
+      "description": "Update alert (mark as reviewed)",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reviewed\": true\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 117000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00111",
+      "_type": "request",
+      "parentId": "fld_fraud_alerts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fraud-alerts/{id}/",
+      "name": "DELETE Delete Fraud Alert",
+      "description": "Delete fraud alert",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 118000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00112",
+      "_type": "request",
+      "parentId": "fld_fraud_alerts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fraud-alerts/poll/{poll_id}/",
+      "name": "GET Fraud Alerts for Poll",
+      "description": "Get fraud alerts for a poll",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 119000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00113",
+      "_type": "request",
+      "parentId": "fld_fraud_alerts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/fraud-alerts/ip/{ip}/",
+      "name": "GET Fraud Alerts for IP",
+      "description": "Get fraud alerts for an IP",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 120000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00114",
+      "_type": "request",
+      "parentId": "fld_audit_logs",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/audit-logs/",
+      "name": "GET List Audit Logs",
+      "description": "List audit logs with filters",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 121000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00115",
+      "_type": "request",
+      "parentId": "fld_audit_logs",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/audit-logs/{id}/",
+      "name": "GET Get Audit Log",
+      "description": "Get audit log entry details",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 122000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00116",
+      "_type": "request",
+      "parentId": "fld_audit_logs",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/audit-logs/user/{user_id}/",
+      "name": "GET Audit Logs for User",
+      "description": "Get audit logs for a user",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 123000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00117",
+      "_type": "request",
+      "parentId": "fld_audit_logs",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/audit-logs/ip/{ip}/",
+      "name": "GET Audit Logs for IP",
+      "description": "Get audit logs for an IP",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 124000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00118",
+      "_type": "request",
+      "parentId": "fld_audit_logs",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/audit-logs/path/{path}/",
+      "name": "GET Audit Logs for Path",
+      "description": "Get audit logs for a path",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 125000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00119",
+      "_type": "request",
+      "parentId": "fld_vote_attempts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/vote-attempts/",
+      "name": "GET List Vote Attempts",
+      "description": "List vote attempts with filters",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 126000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00120",
+      "_type": "request",
+      "parentId": "fld_vote_attempts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/vote-attempts/{id}/",
+      "name": "GET Get Vote Attempt",
+      "description": "Get vote attempt details",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 127000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00121",
+      "_type": "request",
+      "parentId": "fld_vote_attempts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/vote-attempts/poll/{poll_id}/",
+      "name": "GET Vote Attempts for Poll",
+      "description": "Get vote attempts for a poll",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 128000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00122",
+      "_type": "request",
+      "parentId": "fld_vote_attempts",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin/vote-attempts/failed/",
+      "name": "GET Failed Vote Attempts",
+      "description": "Get failed vote attempts",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 129000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00123",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/block-ip/",
+      "name": "POST Quick Block IP",
+      "description": "Quick block IP from dashboard",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"ip_address\": \"192.168.1.100\",\n  \"reason\": \"Quick block\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 130000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00124",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/unblock-ip/",
+      "name": "POST Quick Unblock IP",
+      "description": "Quick unblock IP",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"ip_address\": \"192.168.1.100\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 131000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00125",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1764158372498,
+      "created": 1764158372498,
+      "url": "{{ _.base_url }}/api/v1/admin-dashboard/whitelist-ip/",
+      "name": "POST Quick Whitelist IP",
+      "description": "Quick whitelist IP",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"ip_address\": \"192.168.1.1\",\n  \"reason\": \"Trusted\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.bearer_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 132000000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_00126",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1764158829873,
+      "created": 1764158829873,
+      "url": "{{ _.base_url }}/api/v1/auth/token/",
+      "name": "Get Bearer Token",
+      "description": "Obtain Bearer token for API authentication. Returns token that can be used in Authorization header.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"provote_admin\",\n  \"password\": \"AProvote@14\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 500000,
+      "isPrivate": false,
+      "settingStoreCookies": false,
+      "settingSendCookies": false,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    }
+  ]
+}

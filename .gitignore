@@ -103,3 +103,4 @@ certs/
 certificates/
 *.cert
 
+INSOMNIA_ENV_SETUP.md

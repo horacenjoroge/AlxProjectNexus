@@ -2,15 +2,76 @@
 Views for Users app.
 """
 
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Follow
 from .serializers import FollowSerializer, UserSerializer
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def obtain_auth_token(request):
+    """
+    Obtain authentication token (Bearer token) for API access.
+    
+    POST /api/v1/auth/token/
+    
+    Request Body:
+    {
+        "username": "your_username",
+        "password": "your_password"
+    }
+    
+    Response:
+    {
+        "token": "your_bearer_token_here",
+        "user_id": 1,
+        "username": "your_username",
+        "is_staff": false
+    }
+    """
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+    if not username or not password:
+        return Response(
+            {"error": "Username and password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = authenticate(username=username, password=password)
+
+    if not user:
+        return Response(
+            {"error": "Invalid username or password."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    if not user.is_active:
+        return Response(
+            {"error": "User account is disabled."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    # Get or create token
+    token, created = Token.objects.get_or_create(user=user)
+
+    return Response(
+        {
+            "token": token.key,
+            "user_id": user.id,
+            "username": user.username,
+            "is_staff": user.is_staff,
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party apps
     "rest_framework",
+    "rest_framework.authtoken",  # Token authentication
     "drf_spectacular",  # API documentation
     "corsheaders",
     "django_celery_beat",
@@ -220,7 +221,8 @@ CHANNEL_LAYERS = {
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",  # Bearer token (primary)
+        "rest_framework.authentication.SessionAuthentication",  # Fallback for Django admin
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
