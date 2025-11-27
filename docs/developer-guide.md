@@ -1632,8 +1632,4 @@ docker-compose exec web python manage.py showmigrations
 - **Settings:** `backend/config/settings/`
 - **Core Utils:** `backend/core/`
 
----
-
-**Last Updated:** 2025-11-22  
-**For Questions:** See `docs/development.md` or `docs/api.md`
 

@@ -465,9 +465,4 @@ python manage.py verify_migration_data polls 0009_populate_priority
 - [PostgreSQL Concurrent Indexes](https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY)
 - [Blue-Green Deployment](https://martinfowler.com/bliki/BlueGreenDeployment.html)
 
----
-
-**Document Maintained By:** DevOps Team  
-**Last Review Date:** 2025-11-22  
-**Next Review Date:** 2026-02-22
 

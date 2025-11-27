@@ -753,7 +753,4 @@ Use these schemas for:
 - **Architecture Docs:** `docs/architecture-comprehensive.md`
 - **Deployment Guide:** `docs/deployment-guide.md`
 
----
 
-**Last Updated:** 2025-11-22  
-**API Version:** 1.0.0

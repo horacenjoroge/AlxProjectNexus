@@ -208,9 +208,4 @@ docker-compose -f docker/docker-compose.prod.yml exec db \
 - [PostgreSQL Continuous Archiving](https://www.postgresql.org/docs/current/continuous-archiving.html)
 - [PostgreSQL Point-in-Time Recovery](https://www.postgresql.org/docs/current/backup-pitr.html)
 
----
-
-**Document Maintained By:** DevOps Team  
-**Last Review Date:** 2025-11-22  
-**Next Review Date:** 2026-02-22
 

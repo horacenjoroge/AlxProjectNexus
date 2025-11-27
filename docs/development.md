@@ -952,6 +952,4 @@ python manage.py runserver 8001
 - **SSL Setup:** `docs/SSL_SETUP_QUICKSTART.md`
 - **Security Notes:** `docs/SECURITY_NOTES.md`
 
----
 
-**Last Updated:** 2025-11-22

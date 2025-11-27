@@ -536,9 +536,5 @@ gpg --decrypt backup.sql.gz.gpg | gunzip | psql ...
 - [PostgreSQL Point-in-Time Recovery](https://www.postgresql.org/docs/current/continuous-archiving.html)
 - [Docker Volume Management](https://docs.docker.com/storage/volumes/)
 
----
 
-**Document Maintained By:** DevOps Team  
-**Last Review Date:** 2025-11-22  
-**Next Review Date:** 2026-02-22
 

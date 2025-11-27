@@ -339,9 +339,3 @@ sentry_sdk.set_context("poll", {"poll_id": poll.id, "title": poll.title})
 - [Sentry Documentation](https://docs.sentry.io/)
 - [PagerDuty Documentation](https://developer.pagerduty.com/)
 
----
-
-**Document Maintained By:** DevOps Team  
-**Last Review Date:** 2025-11-22  
-**Next Review Date:** 2026-02-22
-
