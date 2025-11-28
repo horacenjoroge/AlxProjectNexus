@@ -21,7 +21,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install Python dependencies
 COPY requirements/ /app/requirements/
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements/production.txt
+    pip install --no-cache-dir -r /app/requirements/production.txt
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.11-slim as runtime
