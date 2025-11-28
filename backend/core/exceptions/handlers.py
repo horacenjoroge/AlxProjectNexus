@@ -89,6 +89,23 @@ def custom_exception_handler(exc, context):
 
     # If response is None, it's an unhandled exception (500 error)
     if response is None:
+        # Check if this is an authentication-related error that should return 401
+        # (e.g., AttributeError when Authorization header is None)
+        if isinstance(exc, (WrappedAttributeError, AttributeError)):
+            error_msg = str(exc).lower()
+            if 'split' in error_msg and ('authorization' in error_msg or 'nonetype' in error_msg):
+                logger.warning(
+                    f"Authentication error (converted to 401): {exc.__class__.__name__}: {str(exc)}"
+                )
+                return JsonResponse(
+                    {
+                        "error": "Authentication failed",
+                        "error_code": "AuthenticationFailed",
+                        "status_code": 401,
+                    },
+                    status=401,
+                )
+        
         # Log the full traceback for debugging
         logger.error(
             f"Unhandled exception: {exc.__class__.__name__}: {str(exc)}\n"
