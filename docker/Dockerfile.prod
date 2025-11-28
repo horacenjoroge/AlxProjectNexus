@@ -75,9 +75,9 @@ USER provote
 # Expose port (Railway uses PORT env var, default to 8000)
 EXPOSE 8000
 
-# Health check
+# Health check (use default port 8000, Railway will set PORT at runtime)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/health/ || exit 1
+    CMD curl -f http://localhost:8000/health/ || exit 1
 
 # Default command - uses start.sh to determine what to run based on SERVICE_TYPE
 CMD ["/app/start.sh"]

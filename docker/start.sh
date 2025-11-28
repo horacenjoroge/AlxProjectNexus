@@ -13,6 +13,8 @@ elif [ "$SERVICE_TYPE" = "celery-beat" ]; then
     exec celery -A config beat --loglevel=info
 else
     echo "Starting Gunicorn web server..."
-    exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 4 --timeout 120 --max-requests 1000 --max-requests-jitter 100 --access-logfile - --error-logfile - --log-level info config.wsgi:application
+    # Railway provides PORT env var, use it or default to 8000
+    PORT=${PORT:-8000}
+    exec gunicorn --bind 0.0.0.0:$PORT --workers 4 --timeout 120 --max-requests 1000 --max-requests-jitter 100 --access-logfile - --error-logfile - --log-level info config.wsgi:application
 fi
 
