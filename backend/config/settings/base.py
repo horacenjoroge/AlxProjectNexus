@@ -176,8 +176,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Redis Configuration
 REDIS_HOST = env("REDIS_HOST", default="localhost")
-REDIS_PORT = env.int("REDIS_PORT", default=6379)
-REDIS_DB = env.int("REDIS_DB", default=0)
+# Handle empty string from Railway - use default if empty
+_redis_port = env("REDIS_PORT", default="")
+REDIS_PORT = int(_redis_port) if _redis_port and _redis_port.strip() else 6379
+_redis_db = env("REDIS_DB", default="")
+REDIS_DB = int(_redis_db) if _redis_db and _redis_db.strip() else 0
 
 # Cache Configuration (Redis)
 # Note: Django 5.0's built-in Redis cache doesn't use CLIENT_CLASS
