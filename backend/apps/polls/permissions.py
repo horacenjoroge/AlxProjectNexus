@@ -57,13 +57,16 @@ class IsAdminOrPollOwner(permissions.BasePermission):
     Permission class that allows access only to:
     - Poll owners (created_by == user)
     - Admin users (is_staff == True)
+    
+    Returns 403 (not 401) for unauthenticated users to indicate
+    permission denial rather than authentication failure.
     """
 
     def has_permission(self, request, view):
         """Check if user has permission to access the view."""
-        # Require authentication
-        if not request.user or not request.user.is_authenticated:
-            return False
+        # Allow unauthenticated users to proceed to object-level permission check
+        # This ensures we return 403 (PermissionDenied) instead of 401 (NotAuthenticated)
+        # for unauthenticated users
         return True
 
     def has_object_permission(self, request, view, obj):
@@ -76,4 +79,5 @@ class IsAdminOrPollOwner(permissions.BasePermission):
         if request.user and request.user.is_authenticated:
             return obj.created_by == request.user
 
+        # Unauthenticated users are denied access (returns 403)
         return False
