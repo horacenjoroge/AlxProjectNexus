@@ -75,8 +75,11 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8000}/health/ || exit 1
 
-# Default command for Railway (uses PORT environment variable)
-# Railway provides PORT env var, so we use it in the command
-CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 4 --timeout 120 --max-requests 1000 --max-requests-jitter 100 --access-logfile - --error-logfile - --log-level info config.wsgi:application
+# Copy startup script
+COPY docker/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Default command - uses start.sh to determine what to run based on SERVICE_TYPE
+CMD ["/app/start.sh"]
 
 # Trigger Railway rebuild
