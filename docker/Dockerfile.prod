@@ -51,6 +51,10 @@ WORKDIR /app
 COPY backend/ /app/backend/
 COPY docker/ /app/docker/
 
+# Copy and set permissions for startup script (as root, before switching user)
+COPY docker/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Set PYTHONPATH
 ENV PYTHONPATH=/app/backend:$PYTHONPATH
 
@@ -74,10 +78,6 @@ EXPOSE 8000
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8000}/health/ || exit 1
-
-# Copy startup script
-COPY docker/start.sh /app/start.sh
-RUN chmod +x /app/start.sh
 
 # Default command - uses start.sh to determine what to run based on SERVICE_TYPE
 CMD ["/app/start.sh"]
