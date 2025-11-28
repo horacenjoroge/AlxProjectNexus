@@ -77,7 +77,6 @@ erDiagram
         bigint follower_id FK "NOT NULL"
         bigint following_id FK "NOT NULL"
         datetime created_at "INDEXED"
-        UNIQUE "follower_id, following_id"
     }
     
     Poll {
@@ -96,9 +95,6 @@ erDiagram
         jsonb security_rules "default={}"
         integer cached_total_votes "default=0"
         integer cached_unique_voters "default=0"
-        INDEX "is_active, starts_at, ends_at"
-        INDEX "is_draft, created_by_id"
-        INDEX "category_id"
     }
     
     Category {
@@ -114,7 +110,6 @@ erDiagram
         string name UK "NOT NULL, max_length=50"
         string slug UK "NOT NULL, max_length=50, INDEXED"
         datetime created_at "NOT NULL"
-        INDEX "name"
     }
     
     PollOption {
@@ -124,7 +119,6 @@ erDiagram
         integer order "default=0"
         integer cached_vote_count "default=0"
         datetime created_at "NOT NULL"
-        INDEX "poll_id, order"
     }
     
     Vote {
@@ -141,13 +135,6 @@ erDiagram
         text fraud_reasons
         integer risk_score "default=0"
         datetime created_at "NOT NULL, INDEXED"
-        UNIQUE "user_id, poll_id" "where user_id IS NOT NULL"
-        INDEX "poll_id, voter_token"
-        INDEX "ip_address, created_at"
-        INDEX "user_id, poll_id"
-        INDEX "poll_id, created_at"
-        INDEX "fingerprint, created_at"
-        INDEX "is_valid, poll_id"
     }
     
     PollAnalytics {
@@ -171,9 +158,6 @@ erDiagram
         string request_id "INDEXED, max_length=64"
         float response_time "NOT NULL"
         datetime created_at "NOT NULL, INDEXED"
-        INDEX "user_id, created_at"
-        INDEX "ip_address, created_at"
-        INDEX "method, path, created_at"
     }
     
     Notification {
@@ -188,9 +172,6 @@ erDiagram
         boolean is_read "default=False, INDEXED"
         datetime read_at
         datetime created_at "NOT NULL, INDEXED"
-        INDEX "user_id, is_read, created_at"
-        INDEX "notification_type, created_at"
-        INDEX "poll_id, created_at"
     }
     
     NotificationPreference {
@@ -227,9 +208,6 @@ erDiagram
         string external_id "max_length=255"
         datetime created_at "NOT NULL"
         datetime updated_at "NOT NULL"
-        UNIQUE "notification_id, channel"
-        INDEX "status, created_at"
-        INDEX "channel, status"
     }
     
     FraudAlert {
@@ -241,10 +219,6 @@ erDiagram
         text reasons "NOT NULL"
         integer risk_score "NOT NULL"
         datetime created_at "NOT NULL, INDEXED"
-        INDEX "poll_id, created_at"
-        INDEX "user_id, created_at"
-        INDEX "ip_address, created_at"
-        INDEX "risk_score, created_at"
     }
     
     IPReputation {
@@ -257,8 +231,6 @@ erDiagram
         datetime first_seen "NOT NULL"
         datetime last_seen "NOT NULL"
         datetime last_violation_at
-        INDEX "reputation_score, last_seen"
-        INDEX "violation_count, last_seen"
     }
     
     IPBlock {
@@ -272,9 +244,6 @@ erDiagram
         datetime auto_unblock_at
         datetime unblocked_at
         bigint unblocked_by_id FK "NULLABLE"
-        INDEX "ip_address, is_active"
-        INDEX "is_active, auto_unblock_at"
-        INDEX "is_manual, is_active"
     }
     
     FingerprintBlock {
@@ -289,8 +258,6 @@ erDiagram
         bigint first_seen_user_id FK "NULLABLE"
         integer total_users "default=0"
         integer total_votes "default=0"
-        INDEX "fingerprint, is_active"
-        INDEX "is_active, blocked_at"
     }
 ```
 
