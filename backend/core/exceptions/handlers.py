@@ -42,6 +42,7 @@ def custom_exception_handler(exc, context):
     
     # Handle WrappedAttributeError that occurs during authentication
     # (e.g., when Authorization header is None and .split() is called)
+    # This happens when TokenAuthentication tries to parse an invalid/None Authorization header
     if isinstance(exc, WrappedAttributeError):
         # Check if the underlying exception is authentication-related
         original_exc = getattr(exc, '__cause__', None) or getattr(exc, '__context__', None)
@@ -57,6 +58,20 @@ def custom_exception_handler(exc, context):
                     },
                     status=401,
                 )
+    
+    # Also handle AttributeError directly (in case it's not wrapped)
+    if isinstance(exc, AttributeError):
+        error_msg = str(exc).lower()
+        # Check if it's related to authorization header parsing
+        if 'split' in error_msg and ('authorization' in error_msg or 'nonetype' in error_msg):
+            return JsonResponse(
+                {
+                    "error": "Authentication failed",
+                    "error_code": "AuthenticationFailed",
+                    "status_code": 401,
+                },
+                status=401,
+            )
 
     # Call REST framework's default exception handler first
     response = exception_handler(exc, context)
