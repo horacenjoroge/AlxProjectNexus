@@ -453,7 +453,16 @@ class VoteViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         - 200 OK: List of user's votes
         - 401 Unauthorized: User not authenticated
         """
-        if not request.user or not request.user.is_authenticated:
+        # Check authentication - handle any authentication errors gracefully
+        # TokenAuthentication may raise exceptions for malformed tokens
+        try:
+            is_authenticated = request.user and request.user.is_authenticated
+        except Exception:
+            # If there's any error checking authentication (e.g., invalid token format),
+            # treat as unauthenticated
+            is_authenticated = False
+
+        if not is_authenticated:
             return Response(
                 {"error": "Authentication required"},
                 status=status.HTTP_401_UNAUTHORIZED,

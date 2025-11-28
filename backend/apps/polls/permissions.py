@@ -59,6 +59,13 @@ class IsAdminOrPollOwner(permissions.BasePermission):
     - Admin users (is_staff == True)
     """
 
+    def has_permission(self, request, view):
+        """Check if user has permission to access the view."""
+        # Require authentication
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return True
+
     def has_object_permission(self, request, view, obj):
         """Check if user can access analytics for this poll."""
         # Check if user is admin
