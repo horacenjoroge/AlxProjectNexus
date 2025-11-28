@@ -25,7 +25,7 @@ from django.db import models
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 
@@ -1268,6 +1268,7 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         methods=["get"],
         url_path="analytics",
         permission_classes=[IsAdminOrPollOwner],
+        authentication_classes=[],  # Empty list allows unauthenticated users to proceed to permission check
     )
     def analytics(self, request, pk=None):
         """
@@ -1319,6 +1320,7 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         methods=["get"],
         url_path="analytics/timeseries",
         permission_classes=[IsAdminOrPollOwner],
+        authentication_classes=[],  # Empty list allows unauthenticated users to proceed to permission check
     )
     def analytics_timeseries(self, request, pk=None):
         """
@@ -1418,6 +1420,7 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         methods=["get"],
         url_path="analytics/demographics",
         permission_classes=[IsAdminOrPollOwner],
+        authentication_classes=[],  # Empty list allows unauthenticated users to proceed to permission check
     )
     def analytics_demographics(self, request, pk=None):
         """
@@ -1469,6 +1472,7 @@ class PollViewSet(RateLimitHeadersMixin, viewsets.ModelViewSet):
         methods=["get"],
         url_path="analytics/participation",
         permission_classes=[IsAdminOrPollOwner],
+        authentication_classes=[],  # Empty list allows unauthenticated users to proceed to permission check
     )
     def analytics_participation(self, request, pk=None):
         """
