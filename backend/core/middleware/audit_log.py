@@ -99,7 +99,7 @@ class AuditLogMiddleware:
         #             request_body = json.dumps(request.data)[:1000]
         #     except Exception:
         #         pass
-        
+
         try:
             from apps.analytics.models import AuditLog
 

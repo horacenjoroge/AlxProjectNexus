@@ -57,7 +57,7 @@ class IsAdminOrPollOwner(permissions.BasePermission):
     Permission class that allows access only to:
     - Poll owners (created_by == user)
     - Admin users (is_staff == True)
-    
+
     Returns 403 (not 401) for unauthenticated users to indicate
     permission denial rather than authentication failure.
     """

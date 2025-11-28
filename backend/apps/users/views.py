@@ -25,7 +25,11 @@ from .serializers import FollowSerializer, UserSerializer
             "type": "object",
             "properties": {
                 "username": {"type": "string", "example": "provote_admin"},
-                "password": {"type": "string", "format": "password", "example": "your_password"},
+                "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "your_password",
+                },
             },
             "required": ["username", "password"],
         }
@@ -55,15 +59,15 @@ from .serializers import FollowSerializer, UserSerializer
 def obtain_auth_token(request):
     """
     Obtain authentication token (Bearer token) for API access.
-    
+
     POST /api/v1/auth/token/
-    
+
     Request Body:
     {
         "username": "your_username",
         "password": "your_password"
     }
-    
+
     Response:
     {
         "token": "your_bearer_token_here",

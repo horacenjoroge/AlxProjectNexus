@@ -28,7 +28,7 @@ def custom_exception_handler(exc, context):
     # These should return 401 instead of 500
     from rest_framework.exceptions import AuthenticationFailed
     from rest_framework.request import WrappedAttributeError
-    
+
     # Check if this is an authentication-related exception
     if isinstance(exc, AuthenticationFailed):
         return JsonResponse(
@@ -39,17 +39,23 @@ def custom_exception_handler(exc, context):
             },
             status=401,
         )
-    
+
     # Handle WrappedAttributeError that occurs during authentication
     # (e.g., when Authorization header is None and .split() is called)
     # This happens when TokenAuthentication tries to parse an invalid/None Authorization header
     if isinstance(exc, WrappedAttributeError):
         # Check if the underlying exception is authentication-related
-        original_exc = getattr(exc, '__cause__', None) or getattr(exc, '__context__', None)
+        original_exc = getattr(exc, "__cause__", None) or getattr(
+            exc, "__context__", None
+        )
         if original_exc and isinstance(original_exc, AttributeError):
             error_msg = str(original_exc).lower()
             # Check if it's related to authorization header parsing
-            if 'split' in error_msg or 'authorization' in error_msg or 'nonetype' in error_msg:
+            if (
+                "split" in error_msg
+                or "authorization" in error_msg
+                or "nonetype" in error_msg
+            ):
                 return JsonResponse(
                     {
                         "error": "Authentication failed",
@@ -58,12 +64,14 @@ def custom_exception_handler(exc, context):
                     },
                     status=401,
                 )
-    
+
     # Also handle AttributeError directly (in case it's not wrapped)
     if isinstance(exc, AttributeError):
         error_msg = str(exc).lower()
         # Check if it's related to authorization header parsing
-        if 'split' in error_msg and ('authorization' in error_msg or 'nonetype' in error_msg):
+        if "split" in error_msg and (
+            "authorization" in error_msg or "nonetype" in error_msg
+        ):
             return JsonResponse(
                 {
                     "error": "Authentication failed",
@@ -93,7 +101,9 @@ def custom_exception_handler(exc, context):
         # (e.g., AttributeError when Authorization header is None)
         if isinstance(exc, (WrappedAttributeError, AttributeError)):
             error_msg = str(exc).lower()
-            if 'split' in error_msg and ('authorization' in error_msg or 'nonetype' in error_msg):
+            if "split" in error_msg and (
+                "authorization" in error_msg or "nonetype" in error_msg
+            ):
                 logger.warning(
                     f"Authentication error (converted to 401): {exc.__class__.__name__}: {str(exc)}"
                 )
@@ -105,7 +115,7 @@ def custom_exception_handler(exc, context):
                     },
                     status=401,
                 )
-        
+
         # Log the full traceback for debugging
         logger.error(
             f"Unhandled exception: {exc.__class__.__name__}: {str(exc)}\n"
