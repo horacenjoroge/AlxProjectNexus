@@ -73,11 +73,14 @@ RUN python manage.py collectstatic --noinput --settings=config.settings.producti
 USER provote
 
 # Expose port (Railway uses PORT env var, default to 8000)
+# Note: Only web services need this, Celery workers don't use ports
 EXPOSE 8000
 
-# Health check (use default port 8000, Railway will set PORT at runtime)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health/ || exit 1
+# Health check - only for web services (Celery workers don't need this)
+# Railway will handle health checks for services that expose ports
+# Commented out to avoid PORT errors for Celery services
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+#     CMD curl -f http://localhost:8000/health/ || exit 1
 
 # Default command - uses start.sh to determine what to run based on SERVICE_TYPE
 CMD ["/app/start.sh"]
