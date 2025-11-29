@@ -6,6 +6,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import include, path
 
 # Prometheus metrics (optional)
@@ -155,7 +156,13 @@ def schema_viewer(request):
     return HttpResponse(html_content, content_type="text/html")
 
 
+def root_view(request):
+    """Root view that redirects to API documentation."""
+    return redirect("/api/v1/")
+
+
 urlpatterns = [
+    path("", root_view, name="root"),
     path("admin/", admin.site.urls),
     # Health check endpoint for Docker/load balancers
     path("health/", health_check, name="health-check"),
