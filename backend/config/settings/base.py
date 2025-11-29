@@ -112,7 +112,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 # Database
-# Railway provides DATABASE_URL automatically, or individual DB_* variables
+# Railway provides DATABASE_URL automatically when Postgres service is connected
 # Try DATABASE_URL first (Railway auto-provides this), then fall back to individual vars
 _database_url = env("DATABASE_URL", default="")
 if _database_url:
@@ -125,15 +125,25 @@ if _database_url:
         )
     }
 else:
-    # Fall back to individual DB_* variables
-    _db_host = env("DB_HOST", default="")
+    # Fall back to individual DB_* variables (with defaults for optional fields)
+    _db_host = env("DB_HOST", default="localhost")
+    _db_name = env("DB_NAME", default="")
+    _db_user = env("DB_USER", default="")
+    _db_password = env("DB_PASSWORD", default="")
+    
+    if not _db_name:
+        raise ValueError(
+            "Either DATABASE_URL or DB_NAME must be set. "
+            "Railway should provide DATABASE_URL automatically when Postgres service is connected."
+        )
+    
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("DB_NAME"),
-            "USER": env("DB_USER"),
-            "PASSWORD": env("DB_PASSWORD"),
-            "HOST": _db_host if _db_host else "localhost",
+            "NAME": _db_name,
+            "USER": _db_user,
+            "PASSWORD": _db_password,
+            "HOST": _db_host,
             "PORT": env("DB_PORT", default="5432"),
             "OPTIONS": {
                 "connect_timeout": 10,
