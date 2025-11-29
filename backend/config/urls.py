@@ -57,14 +57,14 @@ def health_check(request):
     overall_status = "healthy" if db_status == "healthy" else "unhealthy"
     status_code = 200 if overall_status == "healthy" else 503
 
-    data = {{
+    data = {
         "status": overall_status,
-        "checks": {{
+        "checks": {
             "database": db_status,
             "cache": cache_status,
-        }},
+        },
         "version": "1.0.0",
-    }}
+    }
 
     return Response(data, status=status_code)
 
@@ -76,16 +76,16 @@ def health_check(request):
 )  # Only use JSONRenderer to avoid BrowsableAPIRenderer template issues
 def api_root(request):
     """API root endpoint that lists available endpoints."""
-    data = {{
+    data = {
         "message": "Welcome to Provote API",
         "version": "1.0.0",
-        "documentation": {{
+        "documentation": {
             "swagger_ui": "/api/docs/",
             "redoc": "/api/redoc/",
             "schema": "/api/schema/",
             "schema_viewer": "/api/schema/view/",
-        }},
-        "endpoints": {{
+        },
+        "endpoints": {
             "polls": "/api/v1/polls/",
             "votes": "/api/v1/votes/",
             "users": "/api/v1/users/",
@@ -93,9 +93,9 @@ def api_root(request):
             "notifications": "/api/v1/notifications/",
             "categories": "/api/v1/categories/",
             "tags": "/api/v1/tags/",
-        }},
+        },
         "info": "For detailed API documentation, visit /api/docs/ or /api/redoc/",
-    }}
+    }
 
     return Response(data)
 
