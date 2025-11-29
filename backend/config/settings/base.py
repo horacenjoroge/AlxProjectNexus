@@ -112,14 +112,20 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 # Database
+# Railway provides DATABASE_URL or individual DB_* variables
+# Ensure HOST is set to use TCP connection (not Unix socket)
+_db_host = env("DB_HOST", default="")
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": env("DB_NAME"),
         "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD"),
-        "HOST": env("DB_HOST", default="localhost"),
+        "HOST": _db_host if _db_host else "localhost",
         "PORT": env("DB_PORT", default="5432"),
+        "OPTIONS": {
+            "connect_timeout": 10,
+        },
     }
 }
 
@@ -175,7 +181,9 @@ MEDIA_ROOT = BASE_DIR / "backend" / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Redis Configuration
-REDIS_HOST = env("REDIS_HOST", default="localhost")
+# Railway provides REDIS_URL or individual REDIS_* variables
+_redis_host = env("REDIS_HOST", default="")
+REDIS_HOST = _redis_host if _redis_host and _redis_host.strip() else "localhost"
 # Handle empty string from Railway - use default if empty
 _redis_port = env("REDIS_PORT", default="")
 REDIS_PORT = int(_redis_port) if _redis_port and _redis_port.strip() else 6379
