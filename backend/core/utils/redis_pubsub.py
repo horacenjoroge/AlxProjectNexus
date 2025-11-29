@@ -38,10 +38,13 @@ def get_redis_connection() -> redis.Redis:
     global _redis_pool
 
     if _redis_pool is None:
+        # Use password if available (Railway Redis requires authentication)
+        password = getattr(settings, "REDIS_PASSWORD", None)
         _redis_pool = redis.ConnectionPool(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
             db=settings.REDIS_DB,
+            password=password,
             decode_responses=True,
             socket_connect_timeout=5,
             socket_timeout=5,

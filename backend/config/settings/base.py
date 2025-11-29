@@ -196,13 +196,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Railway provides REDIS_URL automatically, or individual REDIS_* variables
 # Try REDIS_URL first (Railway auto-provides this), then fall back to individual vars
 _redis_url = env("REDIS_URL", default="")
+REDIS_PASSWORD = None
 if _redis_url:
-    # Parse REDIS_URL (format: redis://host:port/db)
+    # Parse REDIS_URL (format: redis://user:password@host:port/db)
     import urllib.parse
     parsed = urllib.parse.urlparse(_redis_url)
     REDIS_HOST = parsed.hostname or "localhost"
     REDIS_PORT = parsed.port or 6379
     REDIS_DB = int(parsed.path.lstrip("/")) if parsed.path else 0
+    # Extract password if present
+    if parsed.password:
+        REDIS_PASSWORD = parsed.password
+    # Also store the full URL for direct use
+    REDIS_FULL_URL = _redis_url
 else:
     # Fall back to individual REDIS_* variables
     _redis_host = env("REDIS_HOST", default="")
@@ -212,14 +218,22 @@ else:
     REDIS_PORT = int(_redis_port) if _redis_port and _redis_port.strip() else 6379
     _redis_db = env("REDIS_DB", default="")
     REDIS_DB = int(_redis_db) if _redis_db and _redis_db.strip() else 0
+    # Try to get password from individual variable
+    REDIS_PASSWORD = env("REDIS_PASSWORD", default=None)
+    # Build URL from components
+    if REDIS_PASSWORD:
+        REDIS_FULL_URL = f"redis://default:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+    else:
+        REDIS_FULL_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
 # Cache Configuration (Redis)
 # Note: Django 5.0's built-in Redis cache doesn't use CLIENT_CLASS
 # Use django-redis for advanced features, or use built-in RedisCache
+# Use full URL if available (includes password), otherwise build from components
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
+        "LOCATION": REDIS_FULL_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -228,12 +242,9 @@ CACHES = {
 }
 
 # Celery Configuration
-CELERY_BROKER_URL = env(
-    "CELERY_BROKER_URL", default=f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
-)
-CELERY_RESULT_BACKEND = env(
-    "CELERY_RESULT_BACKEND", default=f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
-)
+# Use REDIS_URL if provided, otherwise use full URL with password
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_FULL_URL)
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=REDIS_FULL_URL)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -241,16 +252,29 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Django Channels Configuration
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [(REDIS_HOST, REDIS_PORT)],
-            "capacity": 1500,  # default 100
-            "expiry": 10,  # default 60
+# Use full URL with password if available
+if REDIS_PASSWORD:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [REDIS_FULL_URL],
+                "capacity": 1500,  # default 100
+                "expiry": 10,  # default 60
+            },
         },
-    },
-}
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [(REDIS_HOST, REDIS_PORT)],
+                "capacity": 1500,  # default 100
+                "expiry": 10,  # default 60
+            },
+        },
+    }
 
 # Django REST Framework
 REST_FRAMEWORK = {
