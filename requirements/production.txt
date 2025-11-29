@@ -6,6 +6,9 @@ gunicorn==21.2.0
 # Production Static Files
 whitenoise==6.6.0
 
+# Database URL parsing (for Railway DATABASE_URL)
+dj-database-url==2.1.0
+
 # Monitoring
 prometheus-client==0.19.0
 django-prometheus==2.3.1

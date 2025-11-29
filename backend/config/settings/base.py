@@ -112,22 +112,34 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 # Database
-# Railway provides DATABASE_URL or individual DB_* variables
-# Ensure HOST is set to use TCP connection (not Unix socket)
-_db_host = env("DB_HOST", default="")
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME"),
-        "USER": env("DB_USER"),
-        "PASSWORD": env("DB_PASSWORD"),
-        "HOST": _db_host if _db_host else "localhost",
-        "PORT": env("DB_PORT", default="5432"),
-        "OPTIONS": {
-            "connect_timeout": 10,
-        },
+# Railway provides DATABASE_URL automatically, or individual DB_* variables
+# Try DATABASE_URL first (Railway auto-provides this), then fall back to individual vars
+_database_url = env("DATABASE_URL", default="")
+if _database_url:
+    import dj_database_url
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=_database_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Fall back to individual DB_* variables
+    _db_host = env("DB_HOST", default="")
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": _db_host if _db_host else "localhost",
+            "PORT": env("DB_PORT", default="5432"),
+            "OPTIONS": {
+                "connect_timeout": 10,
+            },
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -181,14 +193,25 @@ MEDIA_ROOT = BASE_DIR / "backend" / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Redis Configuration
-# Railway provides REDIS_URL or individual REDIS_* variables
-_redis_host = env("REDIS_HOST", default="")
-REDIS_HOST = _redis_host if _redis_host and _redis_host.strip() else "localhost"
-# Handle empty string from Railway - use default if empty
-_redis_port = env("REDIS_PORT", default="")
-REDIS_PORT = int(_redis_port) if _redis_port and _redis_port.strip() else 6379
-_redis_db = env("REDIS_DB", default="")
-REDIS_DB = int(_redis_db) if _redis_db and _redis_db.strip() else 0
+# Railway provides REDIS_URL automatically, or individual REDIS_* variables
+# Try REDIS_URL first (Railway auto-provides this), then fall back to individual vars
+_redis_url = env("REDIS_URL", default="")
+if _redis_url:
+    # Parse REDIS_URL (format: redis://host:port/db)
+    import urllib.parse
+    parsed = urllib.parse.urlparse(_redis_url)
+    REDIS_HOST = parsed.hostname or "localhost"
+    REDIS_PORT = parsed.port or 6379
+    REDIS_DB = int(parsed.path.lstrip("/")) if parsed.path else 0
+else:
+    # Fall back to individual REDIS_* variables
+    _redis_host = env("REDIS_HOST", default="")
+    REDIS_HOST = _redis_host if _redis_host and _redis_host.strip() else "localhost"
+    # Handle empty string from Railway - use default if empty
+    _redis_port = env("REDIS_PORT", default="")
+    REDIS_PORT = int(_redis_port) if _redis_port and _redis_port.strip() else 6379
+    _redis_db = env("REDIS_DB", default="")
+    REDIS_DB = int(_redis_db) if _redis_db and _redis_db.strip() else 0
 
 # Cache Configuration (Redis)
 # Note: Django 5.0's built-in Redis cache doesn't use CLIENT_CLASS
