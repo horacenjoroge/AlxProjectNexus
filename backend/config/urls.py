@@ -171,7 +171,7 @@ def root_view(request):
     analytics_url = request.build_absolute_uri("/api/v1/analytics/")
     notifications_url = request.build_absolute_uri("/api/v1/notifications/")
     
-    html_content = f"""
+    html_content = """
     <!DOCTYPE html>
     <html>
     <head>
@@ -383,7 +383,18 @@ def root_view(request):
         </div>
     </body>
     </html>
-    """
+    """.format(
+        api_docs_url=api_docs_url,
+        api_redoc_url=api_redoc_url,
+        api_root_url=api_root_url,
+        api_schema_url=api_schema_url,
+        auth_token_url=auth_token_url,
+        polls_url=polls_url,
+        votes_url=votes_url,
+        users_url=users_url,
+        analytics_url=analytics_url,
+        notifications_url=notifications_url,
+    )
     return HttpResponse(html_content, content_type="text/html")
 
 
