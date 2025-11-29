@@ -124,22 +124,22 @@ if _database_url:
             conn_health_checks=True,
         )
     }
-    else:
-        # Fall back to individual DB_* variables with defaults
-        # Railway may not auto-provide DATABASE_URL, so use individual vars
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": env("DB_NAME", default="railway"),  # Railway default
-                "USER": env("DB_USER", default="postgres"),
-                "PASSWORD": env("DB_PASSWORD", default=""),
-                "HOST": env("DB_HOST", default="localhost"),
-                "PORT": env("DB_PORT", default="5432"),
-                "OPTIONS": {
-                    "connect_timeout": 10,
-                },
-            }
+else:
+    # Fall back to individual DB_* variables with defaults
+    # Railway may not auto-provide DATABASE_URL, so use individual vars
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME", default="railway"),  # Railway default
+            "USER": env("DB_USER", default="postgres"),
+            "PASSWORD": env("DB_PASSWORD", default=""),
+            "HOST": env("DB_HOST", default="localhost"),
+            "PORT": env("DB_PORT", default="5432"),
+            "OPTIONS": {
+                "connect_timeout": 10,
+            },
         }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
