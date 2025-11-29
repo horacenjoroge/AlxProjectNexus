@@ -14,6 +14,17 @@ env = environ.Env()  # noqa: F405
 
 DEBUG = False
 
+# ALLOWED_HOSTS for production
+# Include both old and new Railway domains
+# You can override this via ALLOWED_HOSTS environment variable (comma-separated)
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=[
+        "reasonable-bravery-production.up.railway.app",
+        "provote-api-production.up.railway.app",
+    ],
+)
+
 # Security settings for production
 # Railway handles SSL termination, so don't redirect HTTP to HTTPS
 # Set SECURE_SSL_REDIRECT=False for Railway deployment
