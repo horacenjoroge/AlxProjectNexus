@@ -124,32 +124,22 @@ if _database_url:
             conn_health_checks=True,
         )
     }
-else:
-    # Fall back to individual DB_* variables (with defaults for optional fields)
-    _db_host = env("DB_HOST", default="localhost")
-    _db_name = env("DB_NAME", default="")
-    _db_user = env("DB_USER", default="")
-    _db_password = env("DB_PASSWORD", default="")
-    
-    if not _db_name:
-        raise ValueError(
-            "Either DATABASE_URL or DB_NAME must be set. "
-            "Railway should provide DATABASE_URL automatically when Postgres service is connected."
-        )
-    
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": _db_name,
-            "USER": _db_user,
-            "PASSWORD": _db_password,
-            "HOST": _db_host,
-            "PORT": env("DB_PORT", default="5432"),
-            "OPTIONS": {
-                "connect_timeout": 10,
-            },
+    else:
+        # Fall back to individual DB_* variables with defaults
+        # Railway may not auto-provide DATABASE_URL, so use individual vars
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": env("DB_NAME", default="railway"),  # Railway default
+                "USER": env("DB_USER", default="postgres"),
+                "PASSWORD": env("DB_PASSWORD", default=""),
+                "HOST": env("DB_HOST", default="localhost"),
+                "PORT": env("DB_PORT", default="5432"),
+                "OPTIONS": {
+                    "connect_timeout": 10,
+                },
+            }
         }
-    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
