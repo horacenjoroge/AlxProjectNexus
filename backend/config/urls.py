@@ -157,8 +157,234 @@ def schema_viewer(request):
 
 
 def root_view(request):
-    """Root view that redirects to API documentation."""
-    return redirect("/api/v1/")
+    """Root view that shows a welcome page with links to documentation."""
+    # Build absolute URLs
+    base_url = request.build_absolute_uri("/").rstrip("/")
+    api_docs_url = request.build_absolute_uri("/api/docs/")
+    api_redoc_url = request.build_absolute_uri("/api/redoc/")
+    api_root_url = request.build_absolute_uri("/api/v1/")
+    api_schema_url = request.build_absolute_uri("/api/schema/")
+    auth_token_url = request.build_absolute_uri("/api/v1/auth/token/")
+    polls_url = request.build_absolute_uri("/api/v1/polls/")
+    votes_url = request.build_absolute_uri("/api/v1/votes/")
+    users_url = request.build_absolute_uri("/api/v1/users/")
+    analytics_url = request.build_absolute_uri("/api/v1/analytics/")
+    notifications_url = request.build_absolute_uri("/api/v1/notifications/")
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Provote API - Welcome</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .container {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                max-width: 800px;
+                width: 100%;
+                padding: 40px;
+            }
+            h1 {
+                color: #333;
+                margin-bottom: 10px;
+                font-size: 2.5em;
+            }
+            .subtitle {
+                color: #666;
+                margin-bottom: 30px;
+                font-size: 1.1em;
+            }
+            .section {
+                margin: 30px 0;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 4px solid #667eea;
+            }
+            .section h2 {
+                color: #333;
+                margin-bottom: 15px;
+                font-size: 1.5em;
+            }
+            .section p {
+                color: #555;
+                line-height: 1.6;
+                margin-bottom: 15px;
+            }
+            .links {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                margin-top: 20px;
+            }
+            .btn {
+                display: inline-block;
+                padding: 12px 24px;
+                background: #667eea;
+                color: white;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: 600;
+                transition: all 0.3s;
+                border: none;
+                cursor: pointer;
+            }
+            .btn:hover {
+                background: #5568d3;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+            .btn-secondary {
+                background: #6c757d;
+            }
+            .btn-secondary:hover {
+                background: #5a6268;
+            }
+            .btn-success {
+                background: #28a745;
+            }
+            .btn-success:hover {
+                background: #218838;
+            }
+            .code {
+                background: #2d2d2d;
+                color: #f8f8f2;
+                padding: 15px;
+                border-radius: 6px;
+                font-family: 'Monaco', 'Courier New', monospace;
+                font-size: 0.9em;
+                overflow-x: auto;
+                margin: 10px 0;
+            }
+            .step {
+                background: white;
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 6px;
+                border-left: 3px solid #28a745;
+            }
+            .step-number {
+                display: inline-block;
+                background: #28a745;
+                color: white;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                text-align: center;
+                line-height: 24px;
+                font-weight: bold;
+                margin-right: 10px;
+            }
+            .endpoint-list {
+                list-style: none;
+                padding: 0;
+            }
+            .endpoint-list li {
+                padding: 8px 0;
+                border-bottom: 1px solid #e9ecef;
+            }
+            .endpoint-list li:last-child {
+                border-bottom: none;
+            }
+            .endpoint-list code {
+                background: #e9ecef;
+                padding: 2px 6px;
+                border-radius: 3px;
+                color: #d63384;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 Provote API</h1>
+            <p class="subtitle">Welcome to the Provote Polling API v1.0.0</p>
+
+            <div class="section">
+                <h2>📖 What's Next?</h2>
+                <p>You're looking at the API root. Here's how to get started:</p>
+                
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <strong>Explore the Documentation</strong>
+                    <p>Check out our interactive API documentation to see all available endpoints and try them out.</p>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <strong>Get Authenticated</strong>
+                    <p>To use the API, you'll need a Bearer token. Use the authentication endpoint to get one.</p>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <strong>Start Building</strong>
+                    <p>Create polls, cast votes, and explore all the features of the Provote API.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔗 Quick Links</h2>
+                <div class="links">
+                    <a href="{api_docs_url}" class="btn">📘 Swagger UI (Interactive Docs)</a>
+                    <a href="{api_redoc_url}" class="btn btn-secondary">📕 ReDoc (Alternative Docs)</a>
+                    <a href="{api_root_url}" class="btn btn-success">🔗 API Root (JSON)</a>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔑 Get Started - Authentication</h2>
+                <p>To get a Bearer token, make a POST request to:</p>
+                <div class="code">POST {auth_token_url}
+
+{{
+  "username": "your_username",
+  "password": "your_password"
+}}</div>
+                <p><strong>Full URL:</strong> <a href="{auth_token_url}" style="color: #667eea; word-break: break-all;">{auth_token_url}</a></p>
+                <p style="margin-top: 15px;">Then use the token in the Authorization header:</p>
+                <div class="code">Authorization: Bearer your_token_here</div>
+            </div>
+
+            <div class="section">
+                <h2>📋 Available Endpoints</h2>
+                <ul class="endpoint-list">
+                    <li><code>GET <a href="{polls_url}" style="color: #667eea;">{polls_url}</a></code> - List all polls</li>
+                    <li><code>POST {polls_url}</code> - Create a new poll</li>
+                    <li><code>GET <a href="{votes_url}" style="color: #667eea;">{votes_url}</a></code> - List votes</li>
+                    <li><code>POST {votes_url}</code> - Cast a vote</li>
+                    <li><code>GET <a href="{users_url}" style="color: #667eea;">{users_url}</a></code> - User management</li>
+                    <li><code>GET <a href="{analytics_url}" style="color: #667eea;">{analytics_url}</a></code> - Poll analytics</li>
+                    <li><code>GET <a href="{notifications_url}" style="color: #667eea;">{notifications_url}</a></code> - User notifications</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>💡 Tip:</strong> Visit <a href="{api_docs_url}">Swagger UI</a> to see all endpoints with full documentation and try them out interactively!</p>
+            </div>
+
+            <div class="section">
+                <h2>🛠️ Using the API</h2>
+                <p><strong>Option 1: Interactive Documentation (Easiest)</strong></p>
+                <p>Visit <a href="{api_docs_url}">Swagger UI</a> to explore and test endpoints directly in your browser.</p>
+                
+                <p style="margin-top: 15px;"><strong>Option 2: API Clients</strong></p>
+                <p>Use tools like Postman, Insomnia, or cURL. Import the OpenAPI schema from:</p>
+                <div class="code"><a href="{api_schema_url}?format=json" style="color: #f8f8f2;">{api_schema_url}?format=json</a></div>
+                <p style="margin-top: 10px;">Or YAML format: <a href="{api_schema_url}?format=yaml" style="color: #667eea;">{api_schema_url}?format=yaml</a></p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return HttpResponse(html_content, content_type="text/html")
 
 
 urlpatterns = [
