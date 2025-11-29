@@ -2,7 +2,12 @@
 
 ## 🌐 Your API is Live!
 
-**Base URL:** `https://reasonable-bravery-production.up.railway.app`
+**Service Name:** `provote-api-production`  
+**Base URLs (both work):**
+- `https://provote-api-production.up.railway.app` (new domain)
+- `https://reasonable-bravery-production.up.railway.app` (legacy domain)
+
+> **Note:** Railway generated a new domain when the service was renamed. Both domains are configured and work correctly!
 
 ## 📚 Interactive Documentation (Easiest Way)
 
