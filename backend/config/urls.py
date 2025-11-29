@@ -8,6 +8,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import include, path
+from string import Template
 
 # Prometheus metrics (optional)
 try:
@@ -56,14 +57,14 @@ def health_check(request):
     overall_status = "healthy" if db_status == "healthy" else "unhealthy"
     status_code = 200 if overall_status == "healthy" else 503
 
-    data = {
+    data = {{
         "status": overall_status,
-        "checks": {
+        "checks": {{
             "database": db_status,
             "cache": cache_status,
-        },
+        }},
         "version": "1.0.0",
-    }
+    }}
 
     return Response(data, status=status_code)
 
@@ -75,16 +76,16 @@ def health_check(request):
 )  # Only use JSONRenderer to avoid BrowsableAPIRenderer template issues
 def api_root(request):
     """API root endpoint that lists available endpoints."""
-    data = {
+    data = {{
         "message": "Welcome to Provote API",
         "version": "1.0.0",
-        "documentation": {
+        "documentation": {{
             "swagger_ui": "/api/docs/",
             "redoc": "/api/redoc/",
             "schema": "/api/schema/",
             "schema_viewer": "/api/schema/view/",
-        },
-        "endpoints": {
+        }},
+        "endpoints": {{
             "polls": "/api/v1/polls/",
             "votes": "/api/v1/votes/",
             "users": "/api/v1/users/",
@@ -92,9 +93,9 @@ def api_root(request):
             "notifications": "/api/v1/notifications/",
             "categories": "/api/v1/categories/",
             "tags": "/api/v1/tags/",
-        },
+        }},
         "info": "For detailed API documentation, visit /api/docs/ or /api/redoc/",
-    }
+    }}
 
     return Response(data)
 
@@ -107,15 +108,15 @@ def schema_viewer(request):
     <head>
         <title>Provote API - Schema</title>
         <style>
-            body { font-family: Arial, sans-serif; max-width: 1200px; margin: 50px auto; padding: 20px; }
-            .header { background: #f5f5f5; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-            .links { margin: 20px 0; }
-            .links a { display: inline-block; margin-right: 15px; padding: 10px 20px;
-                       background: #007bff; color: white; text-decoration: none; border-radius: 3px; }
-            .links a:hover { background: #0056b3; }
-            .info { background: #e7f3ff; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0; }
-            .download-links { margin-top: 20px; }
-            .download-links a { color: #007bff; text-decoration: none; margin-right: 15px; }
+            body {{ font-family: Arial, sans-serif; max-width: 1200px; margin: 50px auto; padding: 20px; }}
+            .header {{ background: #f5f5f5; padding: 20px; border-radius: 5px; margin-bottom: 20px; }}
+            .links {{ margin: 20px 0; }}
+            .links a {{ display: inline-block; margin-right: 15px; padding: 10px 20px;
+                       background: #007bff; color: white; text-decoration: none; border-radius: 3px; }}
+            .links a:hover {{ background: #0056b3; }}
+            .info {{ background: #e7f3ff; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0; }}
+            .download-links {{ margin-top: 20px; }}
+            .download-links a {{ color: #007bff; text-decoration: none; margin-right: 15px; }}
         </style>
     </head>
     <body>
@@ -177,8 +178,8 @@ def root_view(request):
     <head>
         <title>Provote API - Welcome</title>
         <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 min-height: 100vh;
@@ -186,49 +187,49 @@ def root_view(request):
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
-            }
-            .container {
+            }}
+            .container {{
                 background: white;
                 border-radius: 12px;
                 box-shadow: 0 20px 60px rgba(0,0,0,0.3);
                 max-width: 800px;
                 width: 100%;
                 padding: 40px;
-            }
-            h1 {
+            }}
+            h1 {{
                 color: #333;
                 margin-bottom: 10px;
                 font-size: 2.5em;
-            }
-            .subtitle {
+            }}
+            .subtitle {{
                 color: #666;
                 margin-bottom: 30px;
                 font-size: 1.1em;
-            }
-            .section {
+            }}
+            .section {{
                 margin: 30px 0;
                 padding: 20px;
                 background: #f8f9fa;
                 border-radius: 8px;
                 border-left: 4px solid #667eea;
-            }
-            .section h2 {
+            }}
+            .section h2 {{
                 color: #333;
                 margin-bottom: 15px;
                 font-size: 1.5em;
-            }
-            .section p {
+            }}
+            .section p {{
                 color: #555;
                 line-height: 1.6;
                 margin-bottom: 15px;
-            }
-            .links {
+            }}
+            .links {{
                 display: flex;
                 flex-wrap: wrap;
                 gap: 15px;
                 margin-top: 20px;
-            }
-            .btn {
+            }}
+            .btn {{
                 display: inline-block;
                 padding: 12px 24px;
                 background: #667eea;
@@ -239,25 +240,25 @@ def root_view(request):
                 transition: all 0.3s;
                 border: none;
                 cursor: pointer;
-            }
-            .btn:hover {
+            }}
+            .btn:hover {{
                 background: #5568d3;
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            }
-            .btn-secondary {
+            }}
+            .btn-secondary {{
                 background: #6c757d;
-            }
-            .btn-secondary:hover {
+            }}
+            .btn-secondary:hover {{
                 background: #5a6268;
-            }
-            .btn-success {
+            }}
+            .btn-success {{
                 background: #28a745;
-            }
-            .btn-success:hover {
+            }}
+            .btn-success:hover {{
                 background: #218838;
-            }
-            .code {
+            }}
+            .code {{
                 background: #2d2d2d;
                 color: #f8f8f2;
                 padding: 15px;
@@ -266,15 +267,15 @@ def root_view(request):
                 font-size: 0.9em;
                 overflow-x: auto;
                 margin: 10px 0;
-            }
-            .step {
+            }}
+            .step {{
                 background: white;
                 padding: 15px;
                 margin: 10px 0;
                 border-radius: 6px;
                 border-left: 3px solid #28a745;
-            }
-            .step-number {
+            }}
+            .step-number {{
                 display: inline-block;
                 background: #28a745;
                 color: white;
@@ -285,24 +286,24 @@ def root_view(request):
                 line-height: 24px;
                 font-weight: bold;
                 margin-right: 10px;
-            }
-            .endpoint-list {
+            }}
+            .endpoint-list {{
                 list-style: none;
                 padding: 0;
-            }
-            .endpoint-list li {
+            }}
+            .endpoint-list li {{
                 padding: 8px 0;
                 border-bottom: 1px solid #e9ecef;
-            }
-            .endpoint-list li:last-child {
+            }}
+            .endpoint-list li:last-child {{
                 border-bottom: none;
-            }
-            .endpoint-list code {
+            }}
+            .endpoint-list code {{
                 background: #e9ecef;
                 padding: 2px 6px;
                 border-radius: 3px;
                 color: #d63384;
-            }
+            }}
         </style>
     </head>
     <body>
